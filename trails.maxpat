@@ -18,7 +18,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 76.0, 426.0, 50.0, 20.0 ],
+					"patching_rect" : [ 76.0, 404.0, 50.0, 20.0 ],
 					"text" : "<- reset"
 				}
 
@@ -31,7 +31,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "bang" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 48.0, 424.0, 24.0, 24.0 ]
+					"patching_rect" : [ 48.0, 402.0, 24.0, 24.0 ]
 				}
 
 			}
@@ -41,7 +41,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 76.0, 232.0, 124.0, 20.0 ],
+					"patching_rect" : [ 76.0, 215.0, 124.0, 20.0 ],
 					"text" : "<- generate new trails"
 				}
 
@@ -54,7 +54,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "bang" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 48.0, 230.0, 24.0, 24.0 ]
+					"patching_rect" : [ 48.0, 213.0, 24.0, 24.0 ]
 				}
 
 			}
@@ -65,7 +65,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "bang" ],
-					"patching_rect" : [ 132.0, 549.0, 58.0, 22.0 ],
+					"patching_rect" : [ 48.0, 529.0, 58.0, 22.0 ],
 					"text" : "loadbang"
 				}
 
@@ -77,7 +77,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 132.0, 581.0, 123.0, 22.0 ],
+					"patching_rect" : [ 48.0, 561.0, 123.0, 22.0 ],
 					"text" : "frame_true 230, bang"
 				}
 
@@ -89,7 +89,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 132.0, 610.0, 270.0, 22.0 ],
+					"patching_rect" : [ 48.0, 590.0, 270.0, 22.0 ],
 					"text" : "jit.movie @moviefile chickens.mp4 @automatic 0"
 				}
 
@@ -102,7 +102,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "int" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 52.0, 19.0, 24.0, 24.0 ]
+					"patching_rect" : [ 48.0, 18.0, 24.0, 24.0 ]
 				}
 
 			}
@@ -114,7 +114,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_gl_texture", "" ],
-					"patching_rect" : [ 58.0, 837.0, 75.0, 22.0 ],
+					"patching_rect" : [ 48.0, 844.0, 75.0, 22.0 ],
 					"text" : "jit.fx.lin2srgb",
 					"textfile" : 					{
 						"filename" : "jit.fx.lin2srgb.jxs",
@@ -133,7 +133,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 227.0, 267.0, 139.0, 22.0 ],
+					"patching_rect" : [ 205.0, 250.0, 139.0, 22.0 ],
 					"text" : "jit.matrix 4 float32 10000"
 				}
 
@@ -145,7 +145,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 227.0, 304.0, 397.0, 22.0 ],
+					"patching_rect" : [ 205.0, 287.0, 397.0, 22.0 ],
 					"text" : "jit.gpu.image @name velImg @format RGBA32_FLOAT @dim 10000 1 1"
 				}
 
@@ -157,7 +157,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 58.0, 880.0, 201.0, 22.0 ],
+					"patching_rect" : [ 48.0, 887.0, 201.0, 22.0 ],
 					"text" : "jit.gl.videoplane @transform_reset 2"
 				}
 
@@ -169,7 +169,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 132.0, 677.0, 271.0, 22.0 ],
+					"patching_rect" : [ 48.0, 657.0, 271.0, 22.0 ],
 					"text" : "jit.matrix 4 float32 1920 1080 @planemap 0 0 0 0"
 				}
 
@@ -181,7 +181,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 42.0, 677.0, 80.0, 60.0 ],
+					"patching_rect" : [ 72.0, 691.0, 67.0, 50.0 ],
 					"sync" : 1
 				}
 
@@ -193,7 +193,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 132.0, 642.0, 71.0, 22.0 ],
+					"patching_rect" : [ 48.0, 622.0, 71.0, 22.0 ],
 					"text" : "jit.rgb2luma"
 				}
 
@@ -205,7 +205,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "bang" ],
-					"patching_rect" : [ 48.0, 391.0, 58.0, 22.0 ],
+					"patching_rect" : [ 48.0, 369.0, 58.0, 22.0 ],
 					"text" : "loadbang"
 				}
 
@@ -217,7 +217,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 48.0, 461.0, 163.0, 22.0 ],
+					"patching_rect" : [ 48.0, 439.0, 163.0, 22.0 ],
 					"text" : "jit.matrix 4 float32 1920 1080"
 				}
 
@@ -229,7 +229,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 48.0, 304.0, 89.0, 22.0 ],
+					"patching_rect" : [ 48.0, 287.0, 89.0, 22.0 ],
 					"text" : "jit.* @val 1920."
 				}
 
@@ -241,7 +241,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "bang" ],
-					"patching_rect" : [ 48.0, 200.0, 58.0, 22.0 ],
+					"patching_rect" : [ 48.0, 183.0, 58.0, 22.0 ],
 					"text" : "loadbang"
 				}
 
@@ -253,7 +253,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 48.0, 267.0, 135.0, 22.0 ],
+					"patching_rect" : [ 48.0, 250.0, 135.0, 22.0 ],
 					"text" : "jit.noise 4 float32 10000"
 				}
 
@@ -265,7 +265,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 48.0, 346.0, 401.0, 22.0 ],
+					"patching_rect" : [ 48.0, 319.0, 401.0, 22.0 ],
 					"text" : "jit.gpu.image @name posImg @format RGBA32_FLOAT @dim 10000 1 1"
 				}
 
@@ -277,7 +277,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 132.0, 716.0, 421.0, 22.0 ],
+					"patching_rect" : [ 48.0, 746.0, 421.0, 22.0 ],
 					"text" : "jit.gpu.image @name lumaImg @format RGBA32_FLOAT @dim 1920 1080 1"
 				}
 
@@ -289,7 +289,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 58.0, 801.0, 184.0, 22.0 ],
+					"patching_rect" : [ 48.0, 808.0, 184.0, 22.0 ],
 					"text" : "jit.gpu.totexture @source imgOut"
 				}
 
@@ -301,7 +301,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 48.0, 500.0, 414.0, 22.0 ],
+					"patching_rect" : [ 48.0, 478.0, 414.0, 22.0 ],
 					"text" : "jit.gpu.image @name imgOut @format RGBA32_FLOAT @dim 1920 1080 1"
 				}
 
@@ -314,7 +314,7 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 48.0, 162.0, 155.0, 22.0 ],
+					"patching_rect" : [ 48.0, 134.0, 155.0, 22.0 ],
 					"text" : "jit.gpu.shader @name trails",
 					"textfile" : 					{
 						"text" : "#version 460\nlayout(local_size_x = 32, local_size_y = 1, local_size_z = 1) in;\n\nlayout(binding = 0, rgba32f) uniform image1D posImg;\nlayout(binding = 1, rgba32f) uniform image1D velImg;\nlayout(binding = 2, rgba32f) uniform image2D imgOut;\nlayout(binding = 3, rgba32f) readonly uniform image2D lumaImg;\n\n\nvoid main() {\n\n    int coord = int(gl_GlobalInvocationID.x);\n    int posImgSize = imageSize(posImg).x;\n\n    if(coord >= posImgSize) return;\n    \n    vec2 imgSize = vec2(imageSize(imgOut).xy);\n\n    vec2 pos = imageLoad(posImg, coord).xy;\n    vec2 vel = imageLoad(velImg, coord).xy;\n    float luma = imageLoad(lumaImg, ivec2(pos)).x;\n    float angle = luma*10;\n    vel = mix(vel, vec2(cos(angle), sin(angle))*1.5, 0.1);\n    pos += vel;\n    if(pos.x < 0 || pos.y < 0 || pos.x >= imgSize.x || pos.y >= imgSize.y){\n        pos = vec2( fract(pos.x + float(coord)*1.223456849), fract(pos.y + float(coord)*2.4435515234) );\n    }\n\n    imageStore(posImg, coord, vec4(pos,0,0));\n    imageStore(velImg, coord, vec4(vel,0,0));\n    vec4 prevCol = imageLoad(imgOut, ivec2(pos));\n    imageStore(imgOut, ivec2(pos), min(vec4(luma), prevCol + 0.1));\n}",
@@ -334,7 +334,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 48.0, 121.0, 547.0, 22.0 ],
+					"patching_rect" : [ 48.0, 102.0, 547.0, 22.0 ],
 					"text" : "jit.gpu.compute @shader trails @threads 313 1 1 @readwrite imgOut posImg velImg @read lumaImg"
 				}
 
@@ -346,7 +346,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "jit_matrix", "bang", "" ],
-					"patching_rect" : [ 52.0, 62.0, 197.0, 22.0 ],
+					"patching_rect" : [ 48.0, 54.0, 197.0, 22.0 ],
 					"text" : "jit.world @floating 1 @size 960 540"
 				}
 
@@ -399,7 +399,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-15", 0 ],
-					"order" : 1,
+					"order" : 0,
 					"source" : [ "obj-20", 0 ]
 				}
 
@@ -407,7 +407,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-3", 0 ],
-					"order" : 0,
+					"order" : 1,
 					"source" : [ "obj-20", 0 ]
 				}
 
