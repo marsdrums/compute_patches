@@ -14,11 +14,140 @@
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
 				"box" : 				{
+					"id" : "obj-33",
+					"maxclass" : "comment",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 80.0, 20.0, 59.0, 20.0 ],
+					"text" : "1) enable"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-39",
+					"maxclass" : "button",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "bang" ],
+					"parameter_enable" : 0,
+					"patching_rect" : [ 299.0, 199.0, 24.0, 24.0 ]
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-35",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 778.0, 134.0, 111.0, 22.0 ],
+					"text" : "set inertia $1, bang"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-36",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 778.0, 59.0, 87.0, 22.0 ],
+					"text" : "loadmess 0.96"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"floatoutput" : 1,
+					"id" : "obj-37",
+					"maxclass" : "slider",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"parameter_enable" : 0,
+					"patching_rect" : [ 778.0, 92.0, 220.0, 26.0 ],
+					"size" : 1.0
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-34",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 644.0, 134.0, 124.0, 22.0 ],
+					"text" : "set rotations $1, bang"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-32",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 644.0, 59.0, 80.0, 22.0 ],
+					"text" : "loadmess 30."
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"format" : 6,
+					"id" : "obj-31",
+					"maxclass" : "flonum",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "bang" ],
+					"parameter_enable" : 0,
+					"patching_rect" : [ 644.0, 102.0, 50.0, 22.0 ]
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-16",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 5,
+					"outlettype" : [ "dictionary", "", "", "", "" ],
+					"patching_rect" : [ 644.0, 169.0, 98.0, 22.0 ],
+					"saved_object_attributes" : 					{
+						"embed" : 0,
+						"legacy" : 0,
+						"parameter_enable" : 0,
+						"parameter_mappable" : 0
+					}
+,
+					"text" : "dict trail_settings"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-12",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "" ],
+					"patching_rect" : [ 644.0, 206.0, 211.0, 22.0 ],
+					"text" : "jit.gpu.constants @name trail_settings"
+				}
+
+			}
+, 			{
+				"box" : 				{
 					"id" : "obj-19",
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 76.0, 404.0, 50.0, 20.0 ],
+					"patching_rect" : [ 327.0, 201.0, 50.0, 20.0 ],
 					"text" : "<- reset"
 				}
 
@@ -317,7 +446,7 @@
 					"patching_rect" : [ 48.0, 134.0, 155.0, 22.0 ],
 					"text" : "jit.gpu.shader @name trails",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 32, local_size_y = 1, local_size_z = 1) in;\n\nlayout(binding = 0, rgba32f) uniform image1D posImg;\nlayout(binding = 1, rgba32f) uniform image1D velImg;\nlayout(binding = 2, rgba32f) uniform image2D imgOut;\nlayout(binding = 3, rgba32f) readonly uniform image2D lumaImg;\n\n\nvoid main() {\n\n    int coord = int(gl_GlobalInvocationID.x);\n    int posImgSize = imageSize(posImg).x;\n\n    if(coord >= posImgSize) return;\n    \n    vec2 imgSize = vec2(imageSize(imgOut).xy);\n\n    vec2 pos = imageLoad(posImg, coord).xy;\n    vec2 vel = imageLoad(velImg, coord).xy;\n    float luma = imageLoad(lumaImg, ivec2(pos)).x;\n    float angle = luma*10;\n    vel = mix(vel, vec2(cos(angle), sin(angle))*1.5, 0.1);\n    pos += vel;\n    if(pos.x < 0 || pos.y < 0 || pos.x >= imgSize.x || pos.y >= imgSize.y){\n        pos = vec2( fract(pos.x + float(coord)*1.223456849), fract(pos.y + float(coord)*2.4435515234) );\n    }\n\n    imageStore(posImg, coord, vec4(pos,0,0));\n    imageStore(velImg, coord, vec4(vel,0,0));\n    vec4 prevCol = imageLoad(imgOut, ivec2(pos));\n    imageStore(imgOut, ivec2(pos), min(vec4(luma), prevCol + 0.1));\n}",
+						"text" : "#version 460\nlayout(local_size_x = 32, local_size_y = 1, local_size_z = 1) in;\n\nlayout(binding = 0, rgba32f) uniform image1D posImg;\nlayout(binding = 1, rgba32f) uniform image1D velImg;\nlayout(binding = 2, rgba32f) uniform image2D imgOut;\nlayout(binding = 3, rgba32f) readonly uniform image2D lumaImg;\nlayout(binding = 4) uniform trail_settings\n{\n    float rotations;\n    float inertia;\n}\nconfig;\n\n\nvoid main() {\n\n    int coord = int(gl_GlobalInvocationID.x);\n    int posImgSize = imageSize(posImg).x;\n\n    if(coord >= posImgSize) return;\n    \n    vec2 imgSize = vec2(imageSize(imgOut).xy);\n\n    vec2 pos = imageLoad(posImg, coord).xy;\n    vec2 vel = imageLoad(velImg, coord).xy;\n    float luma = imageLoad(lumaImg, ivec2(pos)).x;\n    float angle = luma*config.rotations;\n    vel = mix(vec2(cos(angle), sin(angle))*1.5, vel, config.inertia);\n    pos += vel;\n    if(pos.x < 0 || pos.y < 0 || pos.x >= imgSize.x || pos.y >= imgSize.y){\n        pos = vec2( fract(pos.x + float(coord)*1.223456849), fract(pos.y + float(coord)*2.4435515234) );\n    }\n\n    imageStore(posImg, coord, vec4(pos,0,0));\n    imageStore(velImg, coord, vec4(vel,0,0));\n    vec4 prevCol = imageLoad(imgOut, ivec2(pos));\n    imageStore(imgOut, ivec2(pos), min(vec4(luma), prevCol + 0.1));\n}",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -368,6 +497,13 @@
 			}
 , 			{
 				"patchline" : 				{
+					"destination" : [ "obj-29", 0 ],
+					"source" : [ "obj-12", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"destination" : [ "obj-24", 0 ],
 					"order" : 0,
 					"source" : [ "obj-13", 0 ]
@@ -386,6 +522,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-20", 0 ],
 					"source" : [ "obj-14", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-12", 0 ],
+					"source" : [ "obj-16", 0 ]
 				}
 
 			}
@@ -444,6 +587,64 @@
 				"patchline" : 				{
 					"destination" : [ "obj-1", 0 ],
 					"source" : [ "obj-28", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-34", 0 ],
+					"source" : [ "obj-31", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-31", 0 ],
+					"source" : [ "obj-32", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-16", 0 ],
+					"source" : [ "obj-34", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-16", 0 ],
+					"source" : [ "obj-35", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-37", 0 ],
+					"source" : [ "obj-36", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-35", 0 ],
+					"source" : [ "obj-37", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-10", 0 ],
+					"order" : 0,
+					"source" : [ "obj-39", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-6", 0 ],
+					"order" : 1,
+					"source" : [ "obj-39", 0 ]
 				}
 
 			}
