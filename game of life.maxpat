@@ -14,12 +14,24 @@
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
 				"box" : 				{
+					"id" : "obj-4",
+					"maxclass" : "button",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "bang" ],
+					"parameter_enable" : 0,
+					"patching_rect" : [ 41.0, 167.0, 24.0, 24.0 ]
+				}
+
+			}
+, 			{
+				"box" : 				{
 					"id" : "obj-15",
 					"maxclass" : "newobj",
 					"numinlets" : 2,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 41.0, 203.0, 78.0, 22.0 ],
+					"patching_rect" : [ 41.0, 238.0, 78.0, 22.0 ],
 					"text" : "jit.> @val 0.5"
 				}
 
@@ -30,7 +42,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 101.0, 136.0, 50.0, 20.0 ],
+					"patching_rect" : [ 69.0, 169.0, 50.0, 20.0 ],
 					"text" : "<- reset"
 				}
 
@@ -54,7 +66,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 41.0, 168.0, 159.0, 22.0 ],
+					"patching_rect" : [ 41.0, 203.0, 159.0, 22.0 ],
 					"text" : "jit.noise 4 float32 1920 1080"
 				}
 
@@ -66,7 +78,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 40.0, 299.0, 169.0, 22.0 ],
+					"patching_rect" : [ 40.0, 334.0, 169.0, 22.0 ],
 					"text" : "jit.gpu.totexture @source cells"
 				}
 
@@ -78,7 +90,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 41.0, 242.0, 399.0, 22.0 ],
+					"patching_rect" : [ 41.0, 277.0, 399.0, 22.0 ],
 					"text" : "jit.gpu.image @name cells @format RGBA32_FLOAT @dim 1920 1080 1"
 				}
 
@@ -123,7 +135,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "jit_matrix", "bang", "" ],
-					"patching_rect" : [ 40.0, 342.0, 259.0, 22.0 ],
+					"patching_rect" : [ 40.0, 377.0, 259.0, 22.0 ],
 					"text" : "jit.world @floating 1 @enable 1 @size 960 540"
 				}
 
@@ -133,6 +145,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-2", 0 ],
 					"source" : [ "obj-15", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-6", 0 ],
+					"source" : [ "obj-4", 0 ]
 				}
 
 			}
@@ -152,13 +171,17 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-6", 0 ],
+					"destination" : [ "obj-4", 0 ],
 					"source" : [ "obj-8", 0 ]
 				}
 
 			}
  ],
-		"dependency_cache" : [  ],
+		"dependency_cache" : [ 			{
+				"name" : "jit.>.mxo",
+				"type" : "iLaX"
+			}
+ ],
 		"autosave" : 0
 	}
 
