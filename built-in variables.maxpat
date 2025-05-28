@@ -186,7 +186,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 991.0, 535.0, 50.0, 22.0 ],
-					"text" : "20 15 1"
+					"text" : "10 8 1"
 				}
 
 			}
@@ -874,8 +874,21 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 72.0, 70.0, 916.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader showVariables @threads 20 15 1 @write localInvocationID globalInvocationID workgroupID localInvocationIndex numWorkgroups workgroupSize"
+					"patching_rect" : [ 72.0, 70.0, 910.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader showVariables @threads 10 8 1 @write localInvocationID globalInvocationID workgroupID localInvocationIndex numWorkgroups workgroupSize"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"attr" : "threads",
+					"id" : "obj-3",
+					"maxclass" : "attrui",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"parameter_enable" : 0,
+					"patching_rect" : [ 285.0, 29.0, 223.0, 22.0 ]
 				}
 
 			}
@@ -928,6 +941,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-25", 0 ],
 					"source" : [ "obj-27", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-29", 0 ],
+					"source" : [ "obj-3", 0 ]
 				}
 
 			}
