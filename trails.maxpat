@@ -475,8 +475,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "jit_matrix", "bang", "" ],
-					"patching_rect" : [ 48.0, 54.0, 197.0, 22.0 ],
-					"text" : "jit.world @floating 1 @size 960 540"
+					"patching_rect" : [ 48.0, 54.0, 386.0, 22.0 ],
+					"text" : "jit.world @floating 1 @size 960 540 @sync 0 @displaylink 0 @fps 400."
 				}
 
 			}
