@@ -14,6 +14,118 @@
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
 				"box" : 				{
+					"filename" : "jit.fx.cf.bilateral.jxs",
+					"id" : "obj-339",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "jit_gl_texture", "" ],
+					"patching_rect" : [ 1043.0, 321.0, 88.0, 22.0 ],
+					"text" : "jit.fx.cf.bilateral",
+					"textfile" : 					{
+						"filename" : "jit.fx.cf.bilateral.jxs",
+						"flags" : 0,
+						"embed" : 0,
+						"autowatch" : 1
+					}
+
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-338",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "bang" ],
+					"patching_rect" : [ 531.0, 24.0, 133.0, 22.0 ],
+					"text" : "qmetro 4000 @active 1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-337",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "float" ],
+					"patching_rect" : [ 1742.0, 133.0, 53.0, 22.0 ],
+					"text" : "* 0.0001"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-170",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 1742.0, 166.0, 127.0, 22.0 ],
+					"text" : "set threshold $1, bang"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-292",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 1742.0, 45.0, 100.0, 22.0 ],
+					"text" : "loadmess 0.0058"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"format" : 6,
+					"id" : "obj-296",
+					"maxclass" : "flonum",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "bang" ],
+					"parameter_enable" : 0,
+					"patching_rect" : [ 1742.0, 88.0, 127.0, 22.0 ]
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-335",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 5,
+					"outlettype" : [ "dictionary", "", "", "", "" ],
+					"patching_rect" : [ 1742.0, 201.0, 98.0, 22.0 ],
+					"saved_object_attributes" : 					{
+						"embed" : 0,
+						"legacy" : 0,
+						"parameter_enable" : 0,
+						"parameter_mappable" : 0
+					}
+,
+					"text" : "dict trail_settings"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-336",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "" ],
+					"patching_rect" : [ 1742.0, 238.0, 213.0, 22.0 ],
+					"text" : "jit.gpu.constants @name flow_settings"
+				}
+
+			}
+, 			{
+				"box" : 				{
 					"id" : "obj-328",
 					"maxclass" : "newobj",
 					"numinlets" : 2,
@@ -343,7 +455,7 @@
 					"patching_rect" : [ 7547.0, 765.0, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow0",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient0;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow0; // (du, dv)\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient0);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Kernel 3x3\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -1; dy <= 1; dy++) {\n        for (int dx = -1; dx <= 1; dx++) {\n            ivec2 neighbor = clamp(coord + ivec2(dx, dy), ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient0, neighbor).rgb; // Ix, Iy, It\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n\n            A11 += Ix * Ix;\n            A12 += Ix * Iy;\n            A22 += Iy * Iy;\n\n            b1 += Ix * It;\n            b2 += Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > 1e-5) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow0, coord).xy;\n    imageStore(flow0, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient0;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow0; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient0);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient0, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow0, coord).xy;\n    imageStore(flow0, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -2786,7 +2898,7 @@
 					"patching_rect" : [ 6588.0, 765.0, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow1",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient1;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow1; // (du, dv)\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient1);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Kernel 3x3\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -1; dy <= 1; dy++) {\n        for (int dx = -1; dx <= 1; dx++) {\n            ivec2 neighbor = clamp(coord + ivec2(dx, dy), ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient1, neighbor).rgb; // Ix, Iy, It\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n\n            A11 += Ix * Ix;\n            A12 += Ix * Iy;\n            A22 += Iy * Iy;\n\n            b1 += Ix * It;\n            b2 += Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > 1e-5) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow1, coord).xy;\n    imageStore(flow1, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient1;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow1; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient1);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient1, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow1, coord).xy;\n    imageStore(flow1, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -2973,7 +3085,7 @@
 					"patching_rect" : [ 5612.0, 765.0, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow2",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient2;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow2; // (du, dv)\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient2);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Kernel 3x3\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -1; dy <= 1; dy++) {\n        for (int dx = -1; dx <= 1; dx++) {\n            ivec2 neighbor = clamp(coord + ivec2(dx, dy), ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient2, neighbor).rgb; // Ix, Iy, It\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n\n            A11 += Ix * Ix;\n            A12 += Ix * Iy;\n            A22 += Iy * Iy;\n\n            b1 += Ix * It;\n            b2 += Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > 1e-5) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow2, coord).xy;\n    imageStore(flow2, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient2;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow2; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient2);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient2, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow2, coord).xy;\n    imageStore(flow2, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -3160,7 +3272,7 @@
 					"patching_rect" : [ 4704.0, 764.0, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow3",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient3;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow3; // (du, dv)\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient3);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Kernel 3x3\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -1; dy <= 1; dy++) {\n        for (int dx = -1; dx <= 1; dx++) {\n            ivec2 neighbor = clamp(coord + ivec2(dx, dy), ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient3, neighbor).rgb; // Ix, Iy, It\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n\n            A11 += Ix * Ix;\n            A12 += Ix * Iy;\n            A22 += Iy * Iy;\n\n            b1 += Ix * It;\n            b2 += Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > 1e-5) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow3, coord).xy;\n    imageStore(flow3, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient3;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow3; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient3);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient3, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow3, coord).xy;\n    imageStore(flow3, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -3347,7 +3459,7 @@
 					"patching_rect" : [ 3782.0, 765.0, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow4",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient4;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow4; // (du, dv)\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient4);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Kernel 3x3\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -1; dy <= 1; dy++) {\n        for (int dx = -1; dx <= 1; dx++) {\n            ivec2 neighbor = clamp(coord + ivec2(dx, dy), ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient4, neighbor).rgb; // Ix, Iy, It\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n\n            A11 += Ix * Ix;\n            A12 += Ix * Iy;\n            A22 += Iy * Iy;\n\n            b1 += Ix * It;\n            b2 += Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > 1e-5) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow4, coord).xy;\n    imageStore(flow4, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient4;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow4; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient4);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient4, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow4, coord).xy;\n    imageStore(flow4, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -3594,7 +3706,7 @@
 					"patching_rect" : [ 2889.0, 765.0, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow5",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient5;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow5; // (du, dv)\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient5);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Kernel 3x3\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -1; dy <= 1; dy++) {\n        for (int dx = -1; dx <= 1; dx++) {\n            ivec2 neighbor = clamp(coord + ivec2(dx, dy), ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient5, neighbor).rgb; // Ix, Iy, It\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n\n            A11 += Ix * Ix;\n            A12 += Ix * Iy;\n            A22 += Iy * Iy;\n\n            b1 += Ix * It;\n            b2 += Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > 1e-5) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow5, coord).xy;\n    imageStore(flow5, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient5;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow5; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient5);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient5, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow5, coord).xy;\n    imageStore(flow5, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -5602,6 +5714,13 @@
 			}
 , 			{
 				"patchline" : 				{
+					"destination" : [ "obj-335", 0 ],
+					"source" : [ "obj-170", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"destination" : [ "obj-168", 0 ],
 					"source" : [ "obj-171", 0 ]
 				}
@@ -6094,6 +6213,13 @@
 			}
 , 			{
 				"patchline" : 				{
+					"destination" : [ "obj-296", 0 ],
+					"source" : [ "obj-292", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"destination" : [ "obj-230", 2 ],
 					"order" : 1,
 					"source" : [ "obj-293", 0 ]
@@ -6119,6 +6245,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-293", 0 ],
 					"source" : [ "obj-295", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-337", 0 ],
+					"source" : [ "obj-296", 0 ]
 				}
 
 			}
@@ -6231,6 +6364,297 @@
 				"patchline" : 				{
 					"destination" : [ "obj-330", 1 ],
 					"source" : [ "obj-333", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-336", 0 ],
+					"source" : [ "obj-335", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-117", 0 ],
+					"order" : 20,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-131", 0 ],
+					"order" : 15,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-145", 0 ],
+					"order" : 10,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-159", 0 ],
+					"order" : 7,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-172", 0 ],
+					"order" : 28,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-176", 0 ],
+					"order" : 27,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-180", 0 ],
+					"order" : 24,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-184", 0 ],
+					"order" : 23,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-188", 0 ],
+					"order" : 17,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-195", 0 ],
+					"order" : 16,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-202", 0 ],
+					"order" : 11,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-209", 0 ],
+					"order" : 12,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-216", 0 ],
+					"order" : 6,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-223", 0 ],
+					"order" : 5,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-233", 0 ],
+					"order" : 26,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-237", 0 ],
+					"order" : 25,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-241", 0 ],
+					"order" : 22,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-245", 0 ],
+					"order" : 21,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-249", 0 ],
+					"order" : 18,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-256", 0 ],
+					"order" : 19,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-263", 0 ],
+					"order" : 13,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-270", 0 ],
+					"order" : 14,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-277", 0 ],
+					"order" : 8,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-284", 0 ],
+					"order" : 9,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-298", 0 ],
+					"order" : 0,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-307", 0 ],
+					"order" : 1,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-314", 0 ],
+					"order" : 2,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-321", 0 ],
+					"order" : 3,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-328", 0 ],
+					"order" : 4,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.176470588235294, 0.376470588235294, 0.631372549019608, 1.0 ],
+					"destination" : [ "obj-39", 0 ],
+					"order" : 29,
+					"source" : [ "obj-336", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-170", 0 ],
+					"source" : [ "obj-337", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-154", 0 ],
+					"source" : [ "obj-338", 0 ]
 				}
 
 			}
