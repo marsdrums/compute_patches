@@ -34,18 +34,6 @@
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-338",
-					"maxclass" : "newobj",
-					"numinlets" : 2,
-					"numoutlets" : 1,
-					"outlettype" : [ "bang" ],
-					"patching_rect" : [ 531.0, 24.0, 133.0, 22.0 ],
-					"text" : "qmetro 4000 @active 1"
-				}
-
-			}
-, 			{
-				"box" : 				{
 					"id" : "obj-337",
 					"maxclass" : "newobj",
 					"numinlets" : 2,
@@ -75,8 +63,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 1742.0, 45.0, 100.0, 22.0 ],
-					"text" : "loadmess 0.0058"
+					"patching_rect" : [ 1742.0, 45.0, 93.0, 22.0 ],
+					"text" : "loadmess 0.006"
 				}
 
 			}
@@ -6648,13 +6636,6 @@
 				"patchline" : 				{
 					"destination" : [ "obj-170", 0 ],
 					"source" : [ "obj-337", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-154", 0 ],
-					"source" : [ "obj-338", 0 ]
 				}
 
 			}
