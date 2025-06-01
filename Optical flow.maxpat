@@ -14,6 +14,390 @@
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
 				"box" : 				{
+					"id" : "obj-64",
+					"maxclass" : "jit.pwindow",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "jit_matrix", "" ],
+					"patching_rect" : [ 1043.0, 214.649118423461914, 364.0, 267.0 ],
+					"sync" : 1
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-18",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "jit_gl_texture", "" ],
+					"patcher" : 					{
+						"fileversion" : 1,
+						"appversion" : 						{
+							"major" : 9,
+							"minor" : 1,
+							"revision" : 0,
+							"architecture" : "x64",
+							"modernui" : 1
+						}
+,
+						"classnamespace" : "jit.gen",
+						"rect" : [ 59.0, 119.0, 600.0, 450.0 ],
+						"gridsize" : [ 15.0, 15.0 ],
+						"boxes" : [ 							{
+								"box" : 								{
+									"id" : "obj-13",
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 80.0, 418.0, 48.0, 22.0 ],
+									"text" : "hsl2rgb"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"id" : "obj-12",
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 192.0, 358.0, 40.0, 22.0 ],
+									"text" : "* 0.01"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"id" : "obj-11",
+									"maxclass" : "newobj",
+									"numinlets" : 3,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 80.0, 385.0, 74.0, 22.0 ],
+									"text" : "vec 0. 1. 0.5"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"id" : "obj-10",
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 128.0, 288.0, 43.0, 22.0 ],
+									"text" : "/ twopi"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"id" : "obj-9",
+									"maxclass" : "newobj",
+									"numinlets" : 2,
+									"numoutlets" : 2,
+									"outlettype" : [ "", "" ],
+									"patching_rect" : [ 96.0, 251.0, 51.0, 22.0 ],
+									"text" : "cartopol"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"id" : "obj-8",
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 103.0, 173.0, 42.0, 22.0 ],
+									"text" : "swiz g"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"id" : "obj-3",
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 33.0, 173.0, 39.0, 22.0 ],
+									"text" : "swiz r"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"id" : "obj-2",
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 185.0, 173.0, 42.0, 22.0 ],
+									"text" : "swiz b"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"id" : "obj-1",
+									"maxclass" : "newobj",
+									"numinlets" : 0,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 50.0, 14.0, 28.0, 22.0 ],
+									"text" : "in 1"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"id" : "obj-4",
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 0,
+									"patching_rect" : [ 146.0, 486.0, 35.0, 22.0 ],
+									"text" : "out 1"
+								}
+
+							}
+ ],
+						"lines" : [ 							{
+								"patchline" : 								{
+									"destination" : [ "obj-2", 0 ],
+									"order" : 0,
+									"source" : [ "obj-1", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-3", 0 ],
+									"order" : 2,
+									"source" : [ "obj-1", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-8", 0 ],
+									"order" : 1,
+									"source" : [ "obj-1", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-11", 0 ],
+									"source" : [ "obj-10", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-13", 0 ],
+									"source" : [ "obj-11", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-11", 2 ],
+									"source" : [ "obj-12", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-4", 0 ],
+									"source" : [ "obj-13", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-9", 0 ],
+									"source" : [ "obj-3", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-9", 1 ],
+									"source" : [ "obj-8", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-10", 0 ],
+									"source" : [ "obj-9", 1 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-12", 0 ],
+									"source" : [ "obj-9", 0 ]
+								}
+
+							}
+ ]
+					}
+,
+					"patching_rect" : [ 800.0, 310.0, 49.0, 22.0 ],
+					"text" : "jit.gl.pix"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-398",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 6933.5, 2204.0, 478.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd0 @threads 120 68 1 @read flow0 @write flowOut0"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-399",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 6930.5, 2139.0, 483.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven0 @threads 120 68 1 @read flowOut0 @write flow0"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-396",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 6001.885907649993896, 2174.0, 471.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd1 @threads 60 34 1 @read flow1 @write flowOut1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-397",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 6001.885907649993896, 2114.0, 476.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven1 @threads 60 34 1 @read flowOut1 @write flow1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-394",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 5022.938548564910889, 2153.0, 471.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd2 @threads 30 17 1 @read flow2 @write flowOut2"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-395",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 5022.938548564910889, 2095.0, 476.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven2 @threads 30 17 1 @read flowOut2 @write flow2"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-392",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 4100.385925769805908, 2155.0, 465.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd3 @threads 15 9 1 @read flow3 @write flowOut3"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-393",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 4100.385925769805908, 2088.0, 469.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven3 @threads 15 9 1 @read flowOut3 @write flow3"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-390",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 3205.263127326965332, 2163.0, 458.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd4 @threads 8 5 1 @read flow4 @write flowOut4"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-391",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 3205.263127326965332, 2096.0, 463.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven4 @threads 8 5 1 @read flowOut4 @write flow4"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-388",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 2325.000069439411163, 2152.0, 458.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd5 @threads 4 3 1 @read flow5 @write flowOut5"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-389",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 2325.000069439411163, 2095.0, 463.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven5 @threads 4 3 1 @read flowOut5 @write flow5"
+				}
+
+			}
+, 			{
+				"box" : 				{
 					"id" : "obj-387",
 					"maxclass" : "toggle",
 					"numinlets" : 1,
@@ -219,8 +603,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 1714.0, 115.0, 87.0, 22.0 ],
-					"text" : "loadmess 0.01"
+					"patching_rect" : [ 1714.0, 115.0, 93.0, 22.0 ],
+					"text" : "loadmess 0.005"
 				}
 
 			}
@@ -913,8 +1297,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 1816.350860595703125, 115.0, 93.0, 22.0 ],
-					"text" : "loadmess 0.004"
+					"patching_rect" : [ 1816.350860595703125, 115.0, 100.0, 22.0 ],
+					"text" : "loadmess 0.0001"
 				}
 
 			}
@@ -1293,7 +1677,7 @@
 					"patching_rect" : [ 7545.61396312713623, 909.64911413192749, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow0",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient0;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow0; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient0);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient0, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow0, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.x, det);\n    delta *= confidence;\n    imageStore(flow0, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient0;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow0; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient0);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient0, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow0, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow0, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -3144,7 +3528,7 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 6559.885907649993896, 2095.0, 213.0, 22.0 ],
+					"patching_rect" : [ 6558.385907649993896, 2258.0, 213.0, 22.0 ],
 					"text" : "jit.gpu.shader @name upsampleFlow1",
 					"textfile" : 					{
 						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut1; // livello L+1\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow0; // livello L\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 sizeHigh = imageSize(flow0);\n    ivec2 sizeLow = imageSize(flowOut1);\n    if (coord.x >= sizeHigh.x || coord.y >= sizeHigh.y) return;\n\n    // Coord corrispondente nel livello più piccolo\n    vec2 uvLow = vec2(coord) / 2.0;\n\n    uvLow = clamp(uvLow, vec2(0.0), vec2(sizeLow - 1));\n    ivec2 iuv = ivec2(floor(uvLow));\n    vec2 f = fract(uvLow);\n\n    vec2 a = imageLoad(flowOut1, iuv).xy;\n    vec2 b = imageLoad(flowOut1, iuv + ivec2(1, 0)).xy;\n    vec2 c = imageLoad(flowOut1, iuv + ivec2(0, 1)).xy;\n    vec2 d = imageLoad(flowOut1, iuv + ivec2(1, 1)).xy;\n\n    vec2 ab = mix(a, b, f.x);\n    vec2 cd = mix(c, d, f.x);\n    vec2 upsampledFlow = mix(ab, cd, f.y);\n\n\n    //vec2 upsampledFlow = bilinearSampleVec2(flowLowRes, uvLow, sizeLow);\n\n    // Scala il flow (perché 1 px in low = 2 px in high)\n    upsampledFlow *= 2.0;\n\n    imageStore(flow0, coord, vec4(upsampledFlow, 0.0, 0.0));\n}\n",
@@ -3164,7 +3548,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6005.885907649993896, 2095.0, 497.0, 22.0 ],
+					"patching_rect" : [ 6004.385907649993896, 2258.0, 497.0, 22.0 ],
 					"text" : "jit.gpu.compute @shader upsampleFlow1 @threads 120 68 1 @read flowOut1 @write flow0"
 				}
 
@@ -3175,7 +3559,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 5913.885907649993896, 2096.0, 85.0, 20.0 ],
+					"patching_rect" : [ 5912.385907649993896, 2259.0, 85.0, 20.0 ],
 					"text" : "upsample flow"
 				}
 
@@ -3191,7 +3575,7 @@
 					"patching_rect" : [ 6585.964849472045898, 909.64911413192749, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow1",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient1;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow1; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient1);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient1, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow1, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.x, det);\n    delta *= confidence;\n    imageStore(flow1, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient1;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow1; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient1);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient1, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow1, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow1, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -3331,7 +3715,7 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 5562.824511528015137, 2095.0, 213.0, 22.0 ],
+					"patching_rect" : [ 5570.438548564910889, 2257.0, 213.0, 22.0 ],
 					"text" : "jit.gpu.shader @name upsampleFlow2",
 					"textfile" : 					{
 						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut2; // livello L+1\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow1; // livello L\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 sizeHigh = imageSize(flow1);\n    ivec2 sizeLow = imageSize(flowOut2);\n    if (coord.x >= sizeHigh.x || coord.y >= sizeHigh.y) return;\n\n    // Coord corrispondente nel livello più piccolo\n    vec2 uvLow = vec2(coord) / 2.0;\n\n    uvLow = clamp(uvLow, vec2(0.0), vec2(sizeLow - 1));\n    ivec2 iuv = ivec2(floor(uvLow));\n    vec2 f = fract(uvLow);\n\n    vec2 a = imageLoad(flowOut2, iuv).xy;\n    vec2 b = imageLoad(flowOut2, iuv + ivec2(1, 0)).xy;\n    vec2 c = imageLoad(flowOut2, iuv + ivec2(0, 1)).xy;\n    vec2 d = imageLoad(flowOut2, iuv + ivec2(1, 1)).xy;\n\n    vec2 ab = mix(a, b, f.x);\n    vec2 cd = mix(c, d, f.x);\n    vec2 upsampledFlow = mix(ab, cd, f.y);\n\n\n    //vec2 upsampledFlow = bilinearSampleVec2(flowLowRes, uvLow, sizeLow);\n\n    // Scala il flow (perché 1 px in low = 2 px in high)\n    upsampledFlow *= 2.0;\n\n    imageStore(flow1, coord, vec4(upsampledFlow, 0.0, 0.0));\n}\n",
@@ -3351,7 +3735,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 5007.824511528015137, 2095.0, 491.0, 22.0 ],
+					"patching_rect" : [ 5015.438548564910889, 2257.0, 491.0, 22.0 ],
 					"text" : "jit.gpu.compute @shader upsampleFlow2 @threads 60 34 1 @read flowOut2 @write flow1"
 				}
 
@@ -3362,7 +3746,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 4915.824511528015137, 2097.0, 85.0, 20.0 ],
+					"patching_rect" : [ 4923.438548564910889, 2259.0, 85.0, 20.0 ],
 					"text" : "upsample flow"
 				}
 
@@ -3378,7 +3762,7 @@
 					"patching_rect" : [ 5610.526262283325195, 909.64911413192749, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow2",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient2;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow2; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient2);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient2, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow2, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.x, det);\n    delta *= confidence;\n    imageStore(flow2, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient2;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow2; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient2);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient2, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow2, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow2, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -3518,7 +3902,7 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 4627.385925769805908, 2095.0, 213.0, 22.0 ],
+					"patching_rect" : [ 4624.385925769805908, 2257.0, 213.0, 22.0 ],
 					"text" : "jit.gpu.shader @name upsampleFlow3",
 					"textfile" : 					{
 						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut3; // livello L+1\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow2; // livello L\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 sizeHigh = imageSize(flow2);\n    ivec2 sizeLow = imageSize(flowOut3);\n    if (coord.x >= sizeHigh.x || coord.y >= sizeHigh.y) return;\n\n    // Coord corrispondente nel livello più piccolo\n    vec2 uvLow = vec2(coord) / 2.0;\n\n    uvLow = clamp(uvLow, vec2(0.0), vec2(sizeLow - 1));\n    ivec2 iuv = ivec2(floor(uvLow));\n    vec2 f = fract(uvLow);\n\n    vec2 a = imageLoad(flowOut3, iuv).xy;\n    vec2 b = imageLoad(flowOut3, iuv + ivec2(1, 0)).xy;\n    vec2 c = imageLoad(flowOut3, iuv + ivec2(0, 1)).xy;\n    vec2 d = imageLoad(flowOut3, iuv + ivec2(1, 1)).xy;\n\n    vec2 ab = mix(a, b, f.x);\n    vec2 cd = mix(c, d, f.x);\n    vec2 upsampledFlow = mix(ab, cd, f.y);\n\n\n    //vec2 upsampledFlow = bilinearSampleVec2(flowLowRes, uvLow, sizeLow);\n\n    // Scala il flow (perché 1 px in low = 2 px in high)\n    upsampledFlow *= 2.0;\n\n    imageStore(flow2, coord, vec4(upsampledFlow, 0.0, 0.0));\n}\n",
@@ -3538,7 +3922,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 4105.385925769805908, 2095.0, 491.0, 22.0 ],
+					"patching_rect" : [ 4102.385925769805908, 2257.0, 491.0, 22.0 ],
 					"text" : "jit.gpu.compute @shader upsampleFlow3 @threads 30 17 1 @read flowOut3 @write flow2"
 				}
 
@@ -3549,7 +3933,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 4013.385925769805908, 2097.0, 85.0, 20.0 ],
+					"patching_rect" : [ 4010.385925769805908, 2259.0, 85.0, 20.0 ],
 					"text" : "upsample flow"
 				}
 
@@ -3565,7 +3949,7 @@
 					"patching_rect" : [ 4702.631534099578857, 908.771921157836914, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow3",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient3;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow3; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient3);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient3, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow3, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.x, det);\n    delta *= confidence;\n    imageStore(flow3, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient3;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow3; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient3);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient3, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow3, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow3, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -3705,7 +4089,7 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 3714.857112288475037, 2095.0, 213.0, 22.0 ],
+					"patching_rect" : [ 3710.763127326965332, 2257.0, 213.0, 22.0 ],
 					"text" : "jit.gpu.shader @name upsampleFlow4",
 					"textfile" : 					{
 						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut4; // livello L+1\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow3; // livello L\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 sizeHigh = imageSize(flow3);\n    ivec2 sizeLow = imageSize(flowOut4);\n    if (coord.x >= sizeHigh.x || coord.y >= sizeHigh.y) return;\n\n    // Coord corrispondente nel livello più piccolo\n    vec2 uvLow = vec2(coord) / 2.0;\n\n    uvLow = clamp(uvLow, vec2(0.0), vec2(sizeLow - 1));\n    ivec2 iuv = ivec2(floor(uvLow));\n    vec2 f = fract(uvLow);\n\n    vec2 a = imageLoad(flowOut4, iuv).xy;\n    vec2 b = imageLoad(flowOut4, iuv + ivec2(1, 0)).xy;\n    vec2 c = imageLoad(flowOut4, iuv + ivec2(0, 1)).xy;\n    vec2 d = imageLoad(flowOut4, iuv + ivec2(1, 1)).xy;\n\n    vec2 ab = mix(a, b, f.x);\n    vec2 cd = mix(c, d, f.x);\n    vec2 upsampledFlow = mix(ab, cd, f.y);\n\n\n    //vec2 upsampledFlow = bilinearSampleVec2(flowLowRes, uvLow, sizeLow);\n\n    // Scala il flow (perché 1 px in low = 2 px in high)\n    upsampledFlow *= 2.0;\n\n    imageStore(flow3, coord, vec4(upsampledFlow, 0.0, 0.0));\n}\n",
@@ -3725,7 +4109,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 3206.857112288475037, 2095.0, 484.0, 22.0 ],
+					"patching_rect" : [ 3202.763127326965332, 2257.0, 484.0, 22.0 ],
 					"text" : "jit.gpu.compute @shader upsampleFlow4 @threads 15 9 1 @read flowOut4 @write flow3"
 				}
 
@@ -3752,7 +4136,7 @@
 					"patching_rect" : [ 3779.824525356292725, 909.64911413192749, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow4",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient4;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow4; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient4);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient4, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow4, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.x, det);\n    delta *= confidence;\n    imageStore(flow4, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient4;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow4; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient4);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient4, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow4, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow4, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -3892,7 +4276,7 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 2814.500069439411163, 2113.0, 213.0, 22.0 ],
+					"patching_rect" : [ 2821.500069439411163, 2316.0, 213.0, 22.0 ],
 					"text" : "jit.gpu.shader @name upsampleFlow5",
 					"textfile" : 					{
 						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut5; // livello L+1\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow4; // livello L\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 sizeHigh = imageSize(flow4);\n    ivec2 sizeLow = imageSize(flowOut5);\n    if (coord.x >= sizeHigh.x || coord.y >= sizeHigh.y) return;\n\n    // Coord corrispondente nel livello più piccolo\n    vec2 uvLow = vec2(coord) / 2.0;\n\n    uvLow = clamp(uvLow, vec2(0.0), vec2(sizeLow - 1));\n    ivec2 iuv = ivec2(floor(uvLow));\n    vec2 f = fract(uvLow);\n\n    vec2 a = imageLoad(flowOut5, iuv).xy;\n    vec2 b = imageLoad(flowOut5, iuv + ivec2(1, 0)).xy;\n    vec2 c = imageLoad(flowOut5, iuv + ivec2(0, 1)).xy;\n    vec2 d = imageLoad(flowOut5, iuv + ivec2(1, 1)).xy;\n\n    vec2 ab = mix(a, b, f.x);\n    vec2 cd = mix(c, d, f.x);\n    vec2 upsampledFlow = mix(ab, cd, f.y);\n\n    // Scala il flow (perché 1 px in low = 2 px in high)\n    upsampledFlow *= 2.0;\n\n    imageStore(flow4, coord, vec4(upsampledFlow, 0.0, 0.0));\n}\n",
@@ -3912,7 +4296,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 2320.500069439411163, 2113.0, 477.0, 22.0 ],
+					"patching_rect" : [ 2327.500069439411163, 2316.0, 477.0, 22.0 ],
 					"text" : "jit.gpu.compute @shader upsampleFlow5 @threads 8 5 1 @read flowOut5 @write flow4"
 				}
 
@@ -3963,7 +4347,7 @@
 					"patching_rect" : [ 2886.842077732086182, 909.64911413192749, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow5",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient5;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow5; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient5);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient5, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow5, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.x, det);\n    delta *= confidence;\n    imageStore(flow5, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient5;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow5; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient5);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient5, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow5, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow5, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -4980,7 +5364,6 @@
 					"fontsize" : 12.0,
 					"id" : "obj-42",
 					"maxclass" : "jit.fpsgui",
-					"mode" : 3,
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
@@ -5638,7 +6021,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-63", 1 ],
+					"destination" : [ "obj-389", 1 ],
 					"source" : [ "obj-170", 1 ]
 				}
 
@@ -5682,6 +6065,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-177", 1 ],
 					"source" : [ "obj-178", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-64", 0 ],
+					"source" : [ "obj-18", 0 ]
 				}
 
 			}
@@ -6674,7 +7064,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-100", 1 ],
+					"destination" : [ "obj-391", 1 ],
 					"source" : [ "obj-372", 1 ]
 				}
 
@@ -6716,7 +7106,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-128", 1 ],
+					"destination" : [ "obj-393", 1 ],
 					"source" : [ "obj-378", 1 ]
 				}
 
@@ -6730,7 +7120,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-142", 1 ],
+					"destination" : [ "obj-395", 1 ],
 					"source" : [ "obj-380", 1 ]
 				}
 
@@ -6744,7 +7134,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-156", 1 ],
+					"destination" : [ "obj-397", 1 ],
 					"source" : [ "obj-382", 1 ]
 				}
 
@@ -6758,7 +7148,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-7", 1 ],
+					"destination" : [ "obj-399", 1 ],
 					"source" : [ "obj-384", 1 ]
 				}
 
@@ -6779,8 +7169,92 @@
 			}
 , 			{
 				"patchline" : 				{
+					"destination" : [ "obj-63", 1 ],
+					"source" : [ "obj-388", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-388", 1 ],
+					"source" : [ "obj-389", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"destination" : [ "obj-174", 1 ],
 					"source" : [ "obj-39", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-100", 1 ],
+					"source" : [ "obj-390", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-390", 1 ],
+					"source" : [ "obj-391", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-128", 1 ],
+					"source" : [ "obj-392", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-392", 1 ],
+					"source" : [ "obj-393", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-142", 1 ],
+					"source" : [ "obj-394", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-394", 1 ],
+					"source" : [ "obj-395", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-156", 1 ],
+					"source" : [ "obj-396", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-396", 1 ],
+					"source" : [ "obj-397", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-7", 1 ],
+					"source" : [ "obj-398", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-398", 1 ],
+					"source" : [ "obj-399", 1 ]
 				}
 
 			}
@@ -6844,7 +7318,7 @@
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-10", 0 ],
-					"order" : 139,
+					"order" : 151,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6853,249 +7327,6 @@
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-100", 0 ],
-					"order" : 86,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-103", 0 ],
-					"order" : 129,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-105", 0 ],
-					"order" : 128,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-107", 0 ],
-					"order" : 127,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-109", 0 ],
-					"order" : 126,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-111", 0 ],
-					"order" : 125,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-113", 0 ],
-					"order" : 121,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-117", 0 ],
-					"order" : 83,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-120", 0 ],
-					"order" : 84,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-124", 0 ],
-					"order" : 85,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-128", 0 ],
-					"order" : 74,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-131", 0 ],
-					"order" : 62,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-134", 0 ],
-					"order" : 63,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-138", 0 ],
-					"order" : 64,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-140", 0 ],
-					"order" : 16,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-142", 0 ],
-					"order" : 61,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-145", 0 ],
-					"order" : 41,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-148", 0 ],
-					"order" : 42,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-152", 0 ],
-					"order" : 43,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-156", 0 ],
-					"order" : 32,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-159", 0 ],
-					"order" : 26,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-162", 0 ],
-					"order" : 27,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-166", 0 ],
-					"order" : 28,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-170", 0 ],
-					"order" : 122,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-172", 0 ],
-					"order" : 114,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-173", 0 ],
-					"order" : 115,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-174", 0 ],
-					"order" : 116,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-176", 0 ],
 					"order" : 111,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -7104,8 +7335,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-177", 0 ],
-					"order" : 112,
+					"destination" : [ "obj-103", 0 ],
+					"order" : 141,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7113,8 +7344,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-178", 0 ],
-					"order" : 113,
+					"destination" : [ "obj-105", 0 ],
+					"order" : 140,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7122,8 +7353,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-180", 0 ],
-					"order" : 99,
+					"destination" : [ "obj-107", 0 ],
+					"order" : 139,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7131,8 +7362,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-181", 0 ],
-					"order" : 100,
+					"destination" : [ "obj-109", 0 ],
+					"order" : 138,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7140,8 +7371,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-182", 0 ],
-					"order" : 101,
+					"destination" : [ "obj-111", 0 ],
+					"order" : 137,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7149,8 +7380,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-184", 0 ],
-					"order" : 96,
+					"destination" : [ "obj-113", 0 ],
+					"order" : 131,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7158,286 +7389,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-185", 0 ],
-					"order" : 97,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-186", 0 ],
-					"order" : 98,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-188", 0 ],
-					"order" : 68,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-190", 0 ],
-					"order" : 69,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-193", 0 ],
-					"order" : 70,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-195", 0 ],
-					"order" : 65,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-197", 0 ],
-					"order" : 66,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-200", 0 ],
-					"order" : 67,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-202", 0 ],
-					"order" : 44,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-204", 0 ],
-					"order" : 45,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-207", 0 ],
-					"order" : 46,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-209", 0 ],
-					"order" : 47,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-211", 0 ],
-					"order" : 48,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-214", 0 ],
-					"order" : 49,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-216", 0 ],
-					"order" : 23,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-218", 0 ],
-					"order" : 24,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-221", 0 ],
-					"order" : 25,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-223", 0 ],
-					"order" : 20,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-225", 0 ],
-					"order" : 21,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-228", 0 ],
-					"order" : 22,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-233", 0 ],
-					"order" : 108,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-234", 0 ],
-					"order" : 109,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-235", 0 ],
-					"order" : 110,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-237", 0 ],
-					"order" : 105,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-238", 0 ],
-					"order" : 106,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-239", 0 ],
-					"order" : 107,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-24", 0 ],
-					"order" : 104,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-241", 0 ],
-					"order" : 93,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-242", 0 ],
-					"order" : 94,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-243", 0 ],
-					"order" : 95,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-245", 0 ],
-					"order" : 90,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-246", 0 ],
+					"destination" : [ "obj-117", 0 ],
 					"order" : 91,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -7446,7 +7398,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-247", 0 ],
+					"destination" : [ "obj-120", 0 ],
 					"order" : 92,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -7455,8 +7407,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-249", 0 ],
-					"order" : 71,
+					"destination" : [ "obj-124", 0 ],
+					"order" : 93,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7464,8 +7416,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-25", 0 ],
-					"order" : 89,
+					"destination" : [ "obj-128", 0 ],
+					"order" : 86,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7473,8 +7425,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-251", 0 ],
-					"order" : 72,
+					"destination" : [ "obj-131", 0 ],
+					"order" : 68,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7482,8 +7434,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-254", 0 ],
-					"order" : 73,
+					"destination" : [ "obj-134", 0 ],
+					"order" : 69,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7491,8 +7443,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-256", 0 ],
-					"order" : 78,
+					"destination" : [ "obj-138", 0 ],
+					"order" : 70,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7500,8 +7452,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-258", 0 ],
-					"order" : 79,
+					"destination" : [ "obj-140", 0 ],
+					"order" : 18,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7509,8 +7461,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-261", 0 ],
-					"order" : 80,
+					"destination" : [ "obj-142", 0 ],
+					"order" : 67,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7518,8 +7470,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-263", 0 ],
-					"order" : 50,
+					"destination" : [ "obj-145", 0 ],
+					"order" : 45,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7527,8 +7479,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-265", 0 ],
-					"order" : 51,
+					"destination" : [ "obj-148", 0 ],
+					"order" : 46,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7536,8 +7488,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-268", 0 ],
-					"order" : 52,
+					"destination" : [ "obj-152", 0 ],
+					"order" : 47,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7545,8 +7497,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-270", 0 ],
-					"order" : 58,
+					"destination" : [ "obj-156", 0 ],
+					"order" : 34,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7554,8 +7506,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-272", 0 ],
-					"order" : 59,
+					"destination" : [ "obj-159", 0 ],
+					"order" : 28,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7563,16 +7515,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-275", 0 ],
-					"order" : 60,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-277", 0 ],
+					"destination" : [ "obj-162", 0 ],
 					"order" : 29,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -7581,7 +7524,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-279", 0 ],
+					"destination" : [ "obj-166", 0 ],
 					"order" : 30,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -7590,7 +7533,520 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-282", 0 ],
+					"destination" : [ "obj-170", 0 ],
+					"order" : 133,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-172", 0 ],
+					"order" : 124,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-173", 0 ],
+					"order" : 125,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-174", 0 ],
+					"order" : 126,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-176", 0 ],
+					"order" : 121,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-177", 0 ],
+					"order" : 122,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-178", 0 ],
+					"order" : 123,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-180", 0 ],
+					"order" : 108,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-181", 0 ],
+					"order" : 109,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-182", 0 ],
+					"order" : 110,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-184", 0 ],
+					"order" : 105,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-185", 0 ],
+					"order" : 106,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-186", 0 ],
+					"order" : 107,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-188", 0 ],
+					"order" : 74,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-190", 0 ],
+					"order" : 75,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-193", 0 ],
+					"order" : 76,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-195", 0 ],
+					"order" : 71,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-197", 0 ],
+					"order" : 72,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-200", 0 ],
+					"order" : 73,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-202", 0 ],
+					"order" : 48,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-204", 0 ],
+					"order" : 49,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-207", 0 ],
+					"order" : 50,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-209", 0 ],
+					"order" : 51,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-211", 0 ],
+					"order" : 52,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-214", 0 ],
+					"order" : 53,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-216", 0 ],
+					"order" : 25,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-218", 0 ],
+					"order" : 26,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-221", 0 ],
+					"order" : 27,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-223", 0 ],
+					"order" : 22,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-225", 0 ],
+					"order" : 23,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-228", 0 ],
+					"order" : 24,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-233", 0 ],
+					"order" : 118,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-234", 0 ],
+					"order" : 119,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-235", 0 ],
+					"order" : 120,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-237", 0 ],
+					"order" : 115,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-238", 0 ],
+					"order" : 116,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-239", 0 ],
+					"order" : 117,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-24", 0 ],
+					"order" : 114,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-241", 0 ],
+					"order" : 102,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-242", 0 ],
+					"order" : 103,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-243", 0 ],
+					"order" : 104,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-245", 0 ],
+					"order" : 99,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-246", 0 ],
+					"order" : 100,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-247", 0 ],
+					"order" : 101,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-249", 0 ],
+					"order" : 77,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-25", 0 ],
+					"order" : 98,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-251", 0 ],
+					"order" : 78,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-254", 0 ],
+					"order" : 79,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-256", 0 ],
+					"order" : 83,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-258", 0 ],
+					"order" : 84,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-261", 0 ],
+					"order" : 85,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-263", 0 ],
+					"order" : 54,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-265", 0 ],
+					"order" : 55,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-268", 0 ],
+					"order" : 56,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-270", 0 ],
+					"order" : 62,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-272", 0 ],
+					"order" : 63,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-275", 0 ],
+					"order" : 64,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-277", 0 ],
 					"order" : 31,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -7599,25 +8055,25 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-279", 0 ],
+					"order" : 32,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-282", 0 ],
+					"order" : 33,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-284", 0 ],
-					"order" : 38,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-286", 0 ],
-					"order" : 39,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-289", 0 ],
 					"order" : 40,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -7626,8 +8082,26 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-286", 0 ],
+					"order" : 41,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-289", 0 ],
+					"order" : 42,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-29", 0 ],
-					"order" : 141,
+					"order" : 153,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7717,7 +8191,7 @@
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-32", 0 ],
-					"order" : 120,
+					"order" : 130,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -7726,15 +8200,6 @@
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-321", 0 ],
-					"order" : 11,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-323", 0 ],
 					"order" : 12,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -7743,7 +8208,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-326", 0 ],
+					"destination" : [ "obj-323", 0 ],
 					"order" : 13,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -7752,250 +8217,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-328", 0 ],
-					"order" : 17,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-330", 0 ],
-					"order" : 18,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-333", 0 ],
-					"order" : 19,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-348", 0 ],
-					"order" : 88,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-35", 0 ],
-					"order" : 77,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-350", 0 ],
-					"order" : 119,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-352", 0 ],
-					"order" : 118,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-354", 0 ],
-					"order" : 87,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-355", 0 ],
-					"order" : 76,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-357", 0 ],
-					"order" : 75,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-358", 0 ],
-					"order" : 56,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-360", 0 ],
-					"order" : 55,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-361", 0 ],
-					"order" : 36,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-363", 0 ],
-					"order" : 35,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-364", 0 ],
-					"order" : 15,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-366", 0 ],
-					"order" : 10,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-368", 0 ],
-					"order" : 123,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-37", 0 ],
-					"order" : 134,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-372", 0 ],
-					"order" : 102,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-377", 0 ],
-					"order" : 103,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-378", 0 ],
-					"order" : 81,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-379", 0 ],
-					"order" : 82,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-380", 0 ],
-					"order" : 53,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-381", 0 ],
-					"order" : 54,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-382", 0 ],
-					"order" : 33,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-383", 0 ],
-					"order" : 34,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-384", 0 ],
-					"order" : 9,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-385", 0 ],
+					"destination" : [ "obj-326", 0 ],
 					"order" : 14,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -8004,8 +8226,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-39", 0 ],
-					"order" : 117,
+					"destination" : [ "obj-328", 0 ],
+					"order" : 19,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -8013,8 +8235,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-40", 0 ],
-					"order" : 138,
+					"destination" : [ "obj-330", 0 ],
+					"order" : 20,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -8022,8 +8244,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-43", 0 ],
-					"order" : 137,
+					"destination" : [ "obj-333", 0 ],
+					"order" : 21,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -8031,8 +8253,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-46", 0 ],
-					"order" : 133,
+					"destination" : [ "obj-348", 0 ],
+					"order" : 97,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -8040,8 +8262,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-48", 0 ],
-					"order" : 136,
+					"destination" : [ "obj-35", 0 ],
+					"order" : 82,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -8049,8 +8271,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-5", 0 ],
-					"order" : 140,
+					"destination" : [ "obj-350", 0 ],
+					"order" : 129,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -8058,8 +8280,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-51", 0 ],
-					"order" : 132,
+					"destination" : [ "obj-352", 0 ],
+					"order" : 128,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -8067,8 +8289,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-55", 0 ],
-					"order" : 57,
+					"destination" : [ "obj-354", 0 ],
+					"order" : 96,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -8076,8 +8298,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-57", 0 ],
-					"order" : 135,
+					"destination" : [ "obj-355", 0 ],
+					"order" : 81,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -8085,8 +8307,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-60", 0 ],
-					"order" : 131,
+					"destination" : [ "obj-357", 0 ],
+					"order" : 80,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -8094,8 +8316,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-63", 0 ],
-					"order" : 124,
+					"destination" : [ "obj-358", 0 ],
+					"order" : 60,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -8103,8 +8325,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-75", 0 ],
-					"order" : 147,
+					"destination" : [ "obj-360", 0 ],
+					"order" : 59,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -8112,8 +8334,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-80", 0 ],
-					"order" : 146,
+					"destination" : [ "obj-361", 0 ],
+					"order" : 38,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -8121,43 +8343,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-82", 0 ],
-					"order" : 145,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-84", 0 ],
-					"order" : 144,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-86", 0 ],
-					"order" : 143,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-88", 0 ],
-					"order" : 142,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-89", 0 ],
+					"destination" : [ "obj-363", 0 ],
 					"order" : 37,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -8166,8 +8352,404 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-364", 0 ],
+					"order" : 17,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-366", 0 ],
+					"order" : 11,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-368", 0 ],
+					"order" : 134,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-37", 0 ],
+					"order" : 146,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-372", 0 ],
+					"order" : 112,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-377", 0 ],
+					"order" : 113,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-378", 0 ],
+					"order" : 87,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-379", 0 ],
+					"order" : 88,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-380", 0 ],
+					"order" : 57,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-381", 0 ],
+					"order" : 58,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-382", 0 ],
+					"order" : 35,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-383", 0 ],
+					"order" : 36,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-384", 0 ],
+					"order" : 10,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-385", 0 ],
+					"order" : 16,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-388", 0 ],
+					"order" : 135,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-389", 0 ],
+					"order" : 136,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-39", 0 ],
+					"order" : 127,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-390", 0 ],
+					"order" : 94,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-391", 0 ],
+					"order" : 95,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-392", 0 ],
+					"order" : 89,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-393", 0 ],
+					"order" : 90,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-394", 0 ],
+					"order" : 65,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-395", 0 ],
+					"order" : 66,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-396", 0 ],
+					"order" : 43,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-397", 0 ],
+					"order" : 44,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-398", 0 ],
+					"order" : 9,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-399", 0 ],
+					"order" : 15,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-40", 0 ],
+					"order" : 150,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-43", 0 ],
+					"order" : 149,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-46", 0 ],
+					"order" : 145,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-48", 0 ],
+					"order" : 148,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-5", 0 ],
+					"order" : 152,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-51", 0 ],
+					"order" : 144,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-55", 0 ],
+					"order" : 61,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-57", 0 ],
+					"order" : 147,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-60", 0 ],
+					"order" : 143,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-63", 0 ],
+					"order" : 132,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-75", 0 ],
+					"order" : 159,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-80", 0 ],
+					"order" : 158,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-82", 0 ],
+					"order" : 157,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-84", 0 ],
+					"order" : 156,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-86", 0 ],
+					"order" : 155,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-88", 0 ],
+					"order" : 154,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-89", 0 ],
+					"order" : 39,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-99", 0 ],
-					"order" : 130,
+					"order" : 142,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -8216,8 +8798,16 @@
 			}
 , 			{
 				"patchline" : 				{
+					"destination" : [ "obj-18", 0 ],
+					"order" : 0,
+					"source" : [ "obj-7", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"destination" : [ "obj-230", 0 ],
-					"order" : 1,
+					"order" : 2,
 					"source" : [ "obj-7", 0 ]
 				}
 
@@ -8225,7 +8815,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-42", 0 ],
-					"order" : 0,
+					"order" : 1,
 					"source" : [ "obj-7", 0 ]
 				}
 
