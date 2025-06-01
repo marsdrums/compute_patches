@@ -14,6 +14,844 @@
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
 				"box" : 				{
+					"id" : "obj-387",
+					"maxclass" : "toggle",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "int" ],
+					"parameter_enable" : 0,
+					"patching_rect" : [ 596.0, 43.0, 24.0, 24.0 ]
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-337",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "bang" ],
+					"patching_rect" : [ 594.0, 101.0, 133.0, 22.0 ],
+					"text" : "qmetro 5000 @active 1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"filename" : "jit.fx.cf.bilateral.jxs",
+					"id" : "obj-291",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "jit_gl_texture", "" ],
+					"patching_rect" : [ 904.0, 476.0, 88.0, 22.0 ],
+					"text" : "jit.fx.cf.bilateral",
+					"textfile" : 					{
+						"filename" : "jit.fx.cf.bilateral.jxs",
+						"flags" : 0,
+						"embed" : 0,
+						"autowatch" : 1
+					}
+
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-384",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 6933.0, 2062.0, 478.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd0 @threads 120 68 1 @read flow0 @write flowOut0"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-385",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 6930.0, 1997.0, 483.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven0 @threads 120 68 1 @read flowOut0 @write flow0"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-382",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 6004.385907649993896, 2035.0, 471.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd1 @threads 60 34 1 @read flow1 @write flowOut1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-383",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 6004.385907649993896, 1975.0, 476.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven1 @threads 60 34 1 @read flowOut1 @write flow1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-380",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 5025.438548564910889, 2023.0, 471.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd2 @threads 30 17 1 @read flow2 @write flowOut2"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-381",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 5025.438548564910889, 1965.0, 476.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven2 @threads 30 17 1 @read flowOut2 @write flow2"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-378",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 4102.385925769805908, 2024.0, 465.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd3 @threads 15 9 1 @read flow3 @write flowOut3"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-379",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 4102.385925769805908, 1957.0, 469.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven3 @threads 15 9 1 @read flowOut3 @write flow3"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-372",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 3202.763127326965332, 2028.0, 458.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd4 @threads 8 5 1 @read flow4 @write flowOut4"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-377",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 3202.763127326965332, 1961.0, 463.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven4 @threads 8 5 1 @read flowOut4 @write flow4"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-170",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 2327.500069439411163, 2024.0, 458.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd5 @threads 4 3 1 @read flow5 @write flowOut5"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-368",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 2327.500069439411163, 1967.0, 463.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven5 @threads 4 3 1 @read flowOut5 @write flow5"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-376",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 1512.0, 115.0, 70.0, 22.0 ],
+					"text" : "loadmess 0"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-375",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 1714.0, 115.0, 87.0, 22.0 ],
+					"text" : "loadmess 0.01"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"format" : 6,
+					"id" : "obj-374",
+					"maxclass" : "flonum",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "bang" ],
+					"parameter_enable" : 0,
+					"patching_rect" : [ 1755.350860595703125, 186.0, 50.0, 22.0 ]
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"format" : 6,
+					"id" : "obj-373",
+					"maxclass" : "flonum",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "bang" ],
+					"parameter_enable" : 0,
+					"patching_rect" : [ 1548.0, 163.0, 110.0, 22.0 ]
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-371",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 1740.350860595703125, 299.0, 245.0, 22.0 ],
+					"text" : "set confidence $1 $2, set threshold $3, bang"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-370",
+					"maxclass" : "newobj",
+					"numinlets" : 3,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 1740.350860595703125, 260.0, 95.0, 22.0 ],
+					"text" : "pak 0.001 0.05 f"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-369",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 199.0, 136.0, 35.0, 22.0 ],
+					"text" : "open"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-367",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "jit_gl_texture", "" ],
+					"patching_rect" : [ 199.0, 174.0, 359.0, 22.0 ],
+					"text" : "jit.grab @output_texture 1 @unique 1 @adapt 0 @dim 1920 1080"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-366",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 6932.324495315551758, 1925.0, 478.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd0 @threads 120 68 1 @read flow0 @write flowOut0"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-364",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 6929.824495315551758, 1860.0, 483.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven0 @threads 120 68 1 @read flowOut0 @write flow0"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"filename" : "none",
+					"id" : "obj-365",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 7480.824495315551758, 1860.0, 199.0, 22.0 ],
+					"text" : "jit.gpu.shader @name inpaintEven0",
+					"textfile" : 					{
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut0;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow0;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut0);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut0, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow0, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flowOut0, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flow0, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"filename" : "none",
+						"flags" : 0,
+						"embed" : 1,
+						"autowatch" : 1
+					}
+
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-363",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 6004.385907649993896, 1919.0, 471.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd1 @threads 60 34 1 @read flow1 @write flowOut1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-361",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 6004.385907649993896, 1859.0, 476.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven1 @threads 60 34 1 @read flowOut1 @write flow1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"filename" : "none",
+					"id" : "obj-362",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 6564.385907649993896, 1860.0, 199.0, 22.0 ],
+					"text" : "jit.gpu.shader @name inpaintEven1",
+					"textfile" : 					{
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut1;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow1;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut1);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut1, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow1, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flowOut1, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flow1, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"filename" : "none",
+						"flags" : 0,
+						"embed" : 1,
+						"autowatch" : 1
+					}
+
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-360",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 5025.438548564910889, 1902.0, 471.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd2 @threads 30 17 1 @read flow2 @write flowOut2"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-358",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 5025.438548564910889, 1843.333388268947601, 476.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven2 @threads 30 17 1 @read flowOut2 @write flow2"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"filename" : "none",
+					"id" : "obj-359",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 5573.438548564910889, 1843.333388268947601, 199.0, 22.0 ],
+					"text" : "jit.gpu.shader @name inpaintEven2",
+					"textfile" : 					{
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow2;\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut2;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut2);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut2, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow2, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flowOut2, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flow2, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"filename" : "none",
+						"flags" : 0,
+						"embed" : 1,
+						"autowatch" : 1
+					}
+
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-357",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 4104.385925769805908, 1910.0, 465.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd3 @threads 15 9 1 @read flow3 @write flowOut3"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-355",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 4104.385925769805908, 1843.333388268947601, 469.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven3 @threads 15 9 1 @read flowOut3 @write flow3"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"filename" : "none",
+					"id" : "obj-356",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 4603.385925769805908, 1843.333388268947601, 199.0, 22.0 ],
+					"text" : "jit.gpu.shader @name inpaintEven3",
+					"textfile" : 					{
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform writeonly image2D flow3;\nlayout(binding = 1, rgba32f) uniform readonly image2D flowOut3;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut3);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut3, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow3, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flowOut3, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flow3, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"filename" : "none",
+						"flags" : 0,
+						"embed" : 1,
+						"autowatch" : 1
+					}
+
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-354",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 3205.263127326965332, 1910.0, 458.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd4 @threads 8 5 1 @read flow4 @write flowOut4"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-348",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 3205.263127326965332, 1843.333388268947601, 463.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven4 @threads 8 5 1 @read flowOut4 @write flow4"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"filename" : "none",
+					"id" : "obj-353",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 3699.263127326965332, 1843.333388268947601, 199.0, 22.0 ],
+					"text" : "jit.gpu.shader @name inpaintEven4",
+					"textfile" : 					{
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform writeonly image2D flow4;\nlayout(binding = 1, rgba32f) uniform readonly image2D flowOut4;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut4);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut4, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow4, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flowOut4, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flow4, coord, vec4(newFlow, newConf, 0.0));\n}\n",
+						"filename" : "none",
+						"flags" : 0,
+						"embed" : 1,
+						"autowatch" : 1
+					}
+
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-352",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 2330.000069439411163, 1900.666723310947418, 458.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd5 @threads 4 3 1 @read flow5 @write flowOut5"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-350",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 2330.000069439411163, 1843.333388268947601, 463.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven5 @threads 4 3 1 @read flowOut5 @write flow5"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"filename" : "none",
+					"id" : "obj-351",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 2824.000084161758423, 1843.333388268947601, 199.0, 22.0 ],
+					"text" : "jit.gpu.shader @name inpaintEven5",
+					"textfile" : 					{
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform writeonly image2D flow5;\nlayout(binding = 1, rgba32f) uniform readonly image2D flowOut5;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut5);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut5, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow5, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flowOut5, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flow5, coord, vec4(newFlow, newConf, 0.0));\n}\n",
+						"filename" : "none",
+						"flags" : 0,
+						"embed" : 1,
+						"autowatch" : 1
+					}
+
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-349",
+					"linecount" : 3,
+					"maxclass" : "comment",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 1207.0, 118.0, 155.0, 47.0 ],
+					"text" : "add controllable confidence\niterate inpainting more times"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-169",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "" ],
+					"patching_rect" : [ 999.0, 1726.0, 396.0, 22.0 ],
+					"text" : "jit.gpu.image @name flowOut5 @format RGBA32_FLOAT @dim 60 34 1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-171",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "" ],
+					"patching_rect" : [ 999.0, 1695.0, 402.0, 22.0 ],
+					"text" : "jit.gpu.image @name flowOut4 @format RGBA32_FLOAT @dim 120 68 1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-338",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "" ],
+					"patching_rect" : [ 999.0, 1667.0, 409.0, 22.0 ],
+					"text" : "jit.gpu.image @name flowOut3 @format RGBA32_FLOAT @dim 240 135 1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-340",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "" ],
+					"patching_rect" : [ 999.0, 1640.0, 409.0, 22.0 ],
+					"text" : "jit.gpu.image @name flowOut2 @format RGBA32_FLOAT @dim 480 270 1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-343",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "" ],
+					"patching_rect" : [ 999.0, 1611.0, 409.0, 22.0 ],
+					"text" : "jit.gpu.image @name flowOut1 @format RGBA32_FLOAT @dim 960 540 1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-346",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "" ],
+					"patching_rect" : [ 999.0, 1582.0, 422.0, 22.0 ],
+					"text" : "jit.gpu.image @name flowOut0 @format RGBA32_FLOAT @dim 1920 1080 1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-140",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 6929.824495315551758, 1804.661059975624084, 478.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd0 @threads 120 68 1 @read flow0 @write flowOut0"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"filename" : "none",
+					"id" : "obj-168",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 7481.0, 1804.661059975624084, 194.0, 22.0 ],
+					"text" : "jit.gpu.shader @name inpaintOdd0",
+					"textfile" : 					{
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow0;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut0;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow0);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow0, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut0, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flow0, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flowOut0, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"filename" : "none",
+						"flags" : 0,
+						"embed" : 1,
+						"autowatch" : 1
+					}
+
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-89",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 6004.385907649993896, 1802.678554236888885, 471.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd1 @threads 60 34 1 @read flow1 @write flowOut1"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"filename" : "none",
+					"id" : "obj-90",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 6564.534648954868317, 1802.906912267208099, 194.0, 22.0 ],
+					"text" : "jit.gpu.shader @name inpaintOdd1",
+					"textfile" : 					{
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow1;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut1;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow1);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow1, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut1, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flow1, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flowOut1, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"filename" : "none",
+						"flags" : 0,
+						"embed" : 1,
+						"autowatch" : 1
+					}
+
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-55",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 5025.438548564910889, 1777.678554475307465, 471.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd2 @threads 30 17 1 @read flow2 @write flowOut2"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"filename" : "none",
+					"id" : "obj-77",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 5573.684157371520996, 1777.678554475307465, 194.0, 22.0 ],
+					"text" : "jit.gpu.shader @name inpaintOdd2",
+					"textfile" : 					{
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow2;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut2;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow2);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow2, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut2, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flow2, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flowOut2, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"filename" : "none",
+						"flags" : 0,
+						"embed" : 1,
+						"autowatch" : 1
+					}
+
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-35",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 4104.385925769805908, 1777.678554475307465, 465.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd3 @threads 15 9 1 @read flow3 @write flowOut3"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"filename" : "none",
+					"id" : "obj-54",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 4603.399078905582428, 1777.678554475307465, 194.0, 22.0 ],
+					"text" : "jit.gpu.shader @name inpaintOdd3",
+					"textfile" : 					{
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow3;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut3;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow3);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow3, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut3, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flow3, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flowOut3, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"filename" : "none",
+						"flags" : 0,
+						"embed" : 1,
+						"autowatch" : 1
+					}
+
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-25",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 3205.263127326965332, 1777.678554475307465, 458.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd4 @threads 8 5 1 @read flow4 @write flowOut4"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"filename" : "none",
+					"id" : "obj-34",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 3699.013122618198395, 1777.678554475307465, 194.0, 22.0 ],
+					"text" : "jit.gpu.shader @name inpaintOdd4",
+					"textfile" : 					{
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow4;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut4;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow4);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow4, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut4, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flow4, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flowOut4, coord, vec4(newFlow, newConf, 0.0));\n}\n",
+						"filename" : "none",
+						"flags" : 0,
+						"embed" : 1,
+						"autowatch" : 1
+					}
+
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-24",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 2329.824539184570312, 1782.140333652496338, 458.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd5 @threads 4 3 1 @read flow5 @write flowOut5"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"filename" : "none",
+					"id" : "obj-22",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 2823.684183597564697, 1782.140333652496338, 194.0, 22.0 ],
+					"text" : "jit.gpu.shader @name inpaintOdd5",
+					"textfile" : 					{
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow5;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut5;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow5);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow5, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut5, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flow5, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flowOut5, coord, vec4(newFlow, newConf, 0.0));\n}\n",
+						"filename" : "none",
+						"flags" : 0,
+						"embed" : 1,
+						"autowatch" : 1
+					}
+
+				}
+
+			}
+, 			{
+				"box" : 				{
 					"id" : "obj-347",
 					"maxclass" : "comment",
 					"numinlets" : 1,
@@ -63,52 +901,8 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 1679.824545383453369, 233.333331108093262, 58.0, 20.0 ],
+					"patching_rect" : [ 1967.0, 159.0, 58.0, 20.0 ],
 					"text" : "threshold"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"filename" : "jit.fx.cf.bilateral.jxs",
-					"id" : "obj-339",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 2,
-					"outlettype" : [ "jit_gl_texture", "" ],
-					"patching_rect" : [ 1041.228060245513916, 465.789469242095947, 88.0, 22.0 ],
-					"text" : "jit.fx.cf.bilateral",
-					"textfile" : 					{
-						"filename" : "jit.fx.cf.bilateral.jxs",
-						"flags" : 0,
-						"embed" : 0,
-						"autowatch" : 1
-					}
-
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-337",
-					"maxclass" : "newobj",
-					"numinlets" : 2,
-					"numoutlets" : 1,
-					"outlettype" : [ "float" ],
-					"patching_rect" : [ 1740.350860595703125, 277.19297981262207, 53.0, 22.0 ],
-					"text" : "* 0.0001"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-170",
-					"maxclass" : "message",
-					"numinlets" : 2,
-					"numoutlets" : 1,
-					"outlettype" : [ "" ],
-					"patching_rect" : [ 1740.350860595703125, 310.526312828063965, 127.0, 22.0 ],
-					"text" : "set threshold $1, bang"
 				}
 
 			}
@@ -119,8 +913,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 1740.350860595703125, 189.473682403564453, 93.0, 22.0 ],
-					"text" : "loadmess 0.006"
+					"patching_rect" : [ 1816.350860595703125, 115.0, 93.0, 22.0 ],
+					"text" : "loadmess 0.004"
 				}
 
 			}
@@ -133,7 +927,7 @@
 					"numoutlets" : 2,
 					"outlettype" : [ "", "bang" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 1740.350860595703125, 232.456138134002686, 127.0, 22.0 ]
+					"patching_rect" : [ 1816.350860595703125, 158.0, 127.0, 22.0 ]
 				}
 
 			}
@@ -499,7 +1293,7 @@
 					"patching_rect" : [ 7545.61396312713623, 909.64911413192749, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow0",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient0;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow0; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient0);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient0, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow0, coord).xy;\n    imageStore(flow0, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient0;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow0; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient0);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient0, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow0, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.x, det);\n    delta *= confidence;\n    imageStore(flow0, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -664,65 +1458,6 @@
 					"outlettype" : [ "jit_gl_texture", "" ],
 					"patching_rect" : [ 354.385961532592773, 395.614031314849854, 344.0, 22.0 ],
 					"text" : "jit.gl.texture @dim 1920 1080 @adapt 0 @type float32 @thru 0"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-291",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 2,
-					"outlettype" : [ "jit_gl_texture", "" ],
-					"patcher" : 					{
-						"fileversion" : 1,
-						"appversion" : 						{
-							"major" : 9,
-							"minor" : 1,
-							"revision" : 0,
-							"architecture" : "x64",
-							"modernui" : 1
-						}
-,
-						"classnamespace" : "jit.gen",
-						"rect" : [ 59.0, 119.0, 600.0, 450.0 ],
-						"gridsize" : [ 15.0, 15.0 ],
-						"boxes" : [ 							{
-								"box" : 								{
-									"id" : "obj-1",
-									"maxclass" : "newobj",
-									"numinlets" : 0,
-									"numoutlets" : 1,
-									"outlettype" : [ "" ],
-									"patching_rect" : [ 50.0, 14.0, 28.0, 22.0 ],
-									"text" : "in 1"
-								}
-
-							}
-, 							{
-								"box" : 								{
-									"id" : "obj-4",
-									"maxclass" : "newobj",
-									"numinlets" : 1,
-									"numoutlets" : 0,
-									"patching_rect" : [ 176.0, 418.0, 35.0, 22.0 ],
-									"text" : "out 1"
-								}
-
-							}
- ],
-						"lines" : [ 							{
-								"patchline" : 								{
-									"destination" : [ "obj-4", 0 ],
-									"source" : [ "obj-1", 0 ]
-								}
-
-							}
- ]
-					}
-,
-					"patching_rect" : [ 667.543853282928467, 475.438591957092285, 49.0, 22.0 ],
-					"text" : "jit.gl.pix"
 				}
 
 			}
@@ -1213,7 +1948,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 3205.263127326965332, 1713.157878398895264, 487.0, 22.0 ],
+					"patching_rect" : [ 3205.357112288475037, 1690.178555309772491, 487.0, 22.0 ],
 					"text" : "jit.gpu.compute @shader opticalFlow4 @threads 8 5 1 @read gradient4 @readwrite flow4"
 				}
 
@@ -1225,7 +1960,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 3205.263127326965332, 1667.543843746185303, 553.0, 22.0 ],
+					"patching_rect" : [ 3205.357112288475037, 1644.642841458320618, 553.0, 22.0 ],
 					"text" : "jit.gpu.compute @shader grad4 @threads 8 5 1 @read level4 @write gradient4 @readwrite prevlevel4"
 				}
 
@@ -1237,7 +1972,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 3205.263127326965332, 1614.912265300750732, 457.0, 22.0 ],
+					"patching_rect" : [ 3205.357112288475037, 1591.964270532131195, 457.0, 22.0 ],
 					"text" : "jit.gpu.compute @shader wrap4 @threads 8 5 1 @read flow4 @readwrite prevlevel4"
 				}
 
@@ -1248,7 +1983,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 3410.526283264160156, 1585.087704181671143, 47.0, 20.0 ],
+					"patching_rect" : [ 3410.714253187179565, 1561.607127964496613, 47.0, 20.0 ],
 					"text" : "Level 5"
 				}
 
@@ -1487,6 +2222,54 @@
 						"gridsize" : [ 15.0, 15.0 ],
 						"boxes" : [ 							{
 								"box" : 								{
+									"id" : "obj-10",
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 453.0, 393.0, 35.0, 22.0 ],
+									"text" : "/ dim"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"id" : "obj-9",
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 453.0, 360.0, 36.0, 22.0 ],
+									"text" : "+ 0.5"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"id" : "obj-3",
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 453.0, 326.0, 32.0, 22.0 ],
+									"text" : "floor"
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"id" : "obj-1",
+									"maxclass" : "newobj",
+									"numinlets" : 1,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 453.0, 291.0, 36.0, 22.0 ],
+									"text" : "* dim"
+								}
+
+							}
+, 							{
+								"box" : 								{
 									"id" : "obj-8",
 									"maxclass" : "newobj",
 									"numinlets" : 1,
@@ -1571,6 +2354,13 @@
  ],
 						"lines" : [ 							{
 								"patchline" : 								{
+									"destination" : [ "obj-3", 0 ],
+									"source" : [ "obj-1", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
 									"destination" : [ "obj-7", 0 ],
 									"source" : [ "obj-19", 0 ]
 								}
@@ -1580,6 +2370,13 @@
 								"patchline" : 								{
 									"destination" : [ "obj-19", 0 ],
 									"source" : [ "obj-2", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-9", 0 ],
+									"source" : [ "obj-3", 0 ]
 								}
 
 							}
@@ -1606,15 +2403,31 @@
 							}
 , 							{
 								"patchline" : 								{
-									"destination" : [ "obj-6", 1 ],
+									"destination" : [ "obj-1", 0 ],
+									"order" : 0,
 									"source" : [ "obj-8", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-6", 1 ],
+									"order" : 1,
+									"source" : [ "obj-8", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-10", 0 ],
+									"source" : [ "obj-9", 0 ]
 								}
 
 							}
  ]
 					}
 ,
-					"patching_rect" : [ 517.543854713439941, 559.649117469787598, 49.0, 22.0 ],
+					"patching_rect" : [ 551.578941822052002, 500.0, 49.0, 22.0 ],
 					"text" : "jit.gl.pix"
 				}
 
@@ -1638,8 +2451,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 578.070169925689697, 283.333330631256104, 126.0, 22.0 ],
-					"text" : "jit.noise 4 char 120 68"
+					"patching_rect" : [ 578.070169925689697, 283.333330631256104, 119.0, 22.0 ],
+					"text" : "jit.noise 4 char 30 17"
 				}
 
 			}
@@ -2331,10 +3144,10 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 6560.526253223419189, 1845.614017486572266, 213.0, 22.0 ],
+					"patching_rect" : [ 6559.885907649993896, 2095.0, 213.0, 22.0 ],
 					"text" : "jit.gpu.shader @name upsampleFlow1",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow1; // livello L+1\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow0; // livello L\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 sizeHigh = imageSize(flow0);\n    ivec2 sizeLow = imageSize(flow1);\n    if (coord.x >= sizeHigh.x || coord.y >= sizeHigh.y) return;\n\n    // Coord corrispondente nel livello più piccolo\n    vec2 uvLow = vec2(coord) / 2.0;\n\n    uvLow = clamp(uvLow, vec2(0.0), vec2(sizeLow - 1));\n    ivec2 iuv = ivec2(floor(uvLow));\n    vec2 f = fract(uvLow);\n\n    vec2 a = imageLoad(flow1, iuv).xy;\n    vec2 b = imageLoad(flow1, iuv + ivec2(1, 0)).xy;\n    vec2 c = imageLoad(flow1, iuv + ivec2(0, 1)).xy;\n    vec2 d = imageLoad(flow1, iuv + ivec2(1, 1)).xy;\n\n    vec2 ab = mix(a, b, f.x);\n    vec2 cd = mix(c, d, f.x);\n    vec2 upsampledFlow = mix(ab, cd, f.y);\n\n\n    //vec2 upsampledFlow = bilinearSampleVec2(flowLowRes, uvLow, sizeLow);\n\n    // Scala il flow (perché 1 px in low = 2 px in high)\n    upsampledFlow *= 2.0;\n\n    imageStore(flow0, coord, vec4(upsampledFlow, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut1; // livello L+1\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow0; // livello L\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 sizeHigh = imageSize(flow0);\n    ivec2 sizeLow = imageSize(flowOut1);\n    if (coord.x >= sizeHigh.x || coord.y >= sizeHigh.y) return;\n\n    // Coord corrispondente nel livello più piccolo\n    vec2 uvLow = vec2(coord) / 2.0;\n\n    uvLow = clamp(uvLow, vec2(0.0), vec2(sizeLow - 1));\n    ivec2 iuv = ivec2(floor(uvLow));\n    vec2 f = fract(uvLow);\n\n    vec2 a = imageLoad(flowOut1, iuv).xy;\n    vec2 b = imageLoad(flowOut1, iuv + ivec2(1, 0)).xy;\n    vec2 c = imageLoad(flowOut1, iuv + ivec2(0, 1)).xy;\n    vec2 d = imageLoad(flowOut1, iuv + ivec2(1, 1)).xy;\n\n    vec2 ab = mix(a, b, f.x);\n    vec2 cd = mix(c, d, f.x);\n    vec2 upsampledFlow = mix(ab, cd, f.y);\n\n\n    //vec2 upsampledFlow = bilinearSampleVec2(flowLowRes, uvLow, sizeLow);\n\n    // Scala il flow (perché 1 px in low = 2 px in high)\n    upsampledFlow *= 2.0;\n\n    imageStore(flow0, coord, vec4(upsampledFlow, 0.0, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -2351,8 +3164,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6006.140293598175049, 1845.614017486572266, 478.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader upsampleFlow1 @threads 120 68 1 @read flow1 @write flow0"
+					"patching_rect" : [ 6005.885907649993896, 2095.0, 497.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader upsampleFlow1 @threads 120 68 1 @read flowOut1 @write flow0"
 				}
 
 			}
@@ -2362,7 +3175,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 5914.035031318664551, 1846.491210460662842, 85.0, 20.0 ],
+					"patching_rect" : [ 5913.885907649993896, 2096.0, 85.0, 20.0 ],
 					"text" : "upsample flow"
 				}
 
@@ -2378,7 +3191,7 @@
 					"patching_rect" : [ 6585.964849472045898, 909.64911413192749, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow1",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient1;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow1; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient1);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient1, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow1, coord).xy;\n    imageStore(flow1, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient1;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow1; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient1);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient1, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow1, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.x, det);\n    delta *= confidence;\n    imageStore(flow1, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -2518,10 +3331,10 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 5573.684157371520996, 1849.12278938293457, 213.0, 22.0 ],
+					"patching_rect" : [ 5562.824511528015137, 2095.0, 213.0, 22.0 ],
 					"text" : "jit.gpu.shader @name upsampleFlow2",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow2; // livello L+1\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow1; // livello L\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 sizeHigh = imageSize(flow1);\n    ivec2 sizeLow = imageSize(flow2);\n    if (coord.x >= sizeHigh.x || coord.y >= sizeHigh.y) return;\n\n    // Coord corrispondente nel livello più piccolo\n    vec2 uvLow = vec2(coord) / 2.0;\n\n    uvLow = clamp(uvLow, vec2(0.0), vec2(sizeLow - 1));\n    ivec2 iuv = ivec2(floor(uvLow));\n    vec2 f = fract(uvLow);\n\n    vec2 a = imageLoad(flow2, iuv).xy;\n    vec2 b = imageLoad(flow2, iuv + ivec2(1, 0)).xy;\n    vec2 c = imageLoad(flow2, iuv + ivec2(0, 1)).xy;\n    vec2 d = imageLoad(flow2, iuv + ivec2(1, 1)).xy;\n\n    vec2 ab = mix(a, b, f.x);\n    vec2 cd = mix(c, d, f.x);\n    vec2 upsampledFlow = mix(ab, cd, f.y);\n\n\n    //vec2 upsampledFlow = bilinearSampleVec2(flowLowRes, uvLow, sizeLow);\n\n    // Scala il flow (perché 1 px in low = 2 px in high)\n    upsampledFlow *= 2.0;\n\n    imageStore(flow1, coord, vec4(upsampledFlow, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut2; // livello L+1\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow1; // livello L\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 sizeHigh = imageSize(flow1);\n    ivec2 sizeLow = imageSize(flowOut2);\n    if (coord.x >= sizeHigh.x || coord.y >= sizeHigh.y) return;\n\n    // Coord corrispondente nel livello più piccolo\n    vec2 uvLow = vec2(coord) / 2.0;\n\n    uvLow = clamp(uvLow, vec2(0.0), vec2(sizeLow - 1));\n    ivec2 iuv = ivec2(floor(uvLow));\n    vec2 f = fract(uvLow);\n\n    vec2 a = imageLoad(flowOut2, iuv).xy;\n    vec2 b = imageLoad(flowOut2, iuv + ivec2(1, 0)).xy;\n    vec2 c = imageLoad(flowOut2, iuv + ivec2(0, 1)).xy;\n    vec2 d = imageLoad(flowOut2, iuv + ivec2(1, 1)).xy;\n\n    vec2 ab = mix(a, b, f.x);\n    vec2 cd = mix(c, d, f.x);\n    vec2 upsampledFlow = mix(ab, cd, f.y);\n\n\n    //vec2 upsampledFlow = bilinearSampleVec2(flowLowRes, uvLow, sizeLow);\n\n    // Scala il flow (perché 1 px in low = 2 px in high)\n    upsampledFlow *= 2.0;\n\n    imageStore(flow1, coord, vec4(upsampledFlow, 0.0, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -2538,8 +3351,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 5018.421004772186279, 1849.12278938293457, 471.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader upsampleFlow2 @threads 60 34 1 @read flow2 @write flow1"
+					"patching_rect" : [ 5007.824511528015137, 2095.0, 491.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader upsampleFlow2 @threads 60 34 1 @read flowOut2 @write flow1"
 				}
 
 			}
@@ -2549,7 +3362,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 4926.315742492675781, 1850.877175331115723, 85.0, 20.0 ],
+					"patching_rect" : [ 4915.824511528015137, 2097.0, 85.0, 20.0 ],
 					"text" : "upsample flow"
 				}
 
@@ -2565,7 +3378,7 @@
 					"patching_rect" : [ 5610.526262283325195, 909.64911413192749, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow2",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient2;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow2; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient2);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient2, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow2, coord).xy;\n    imageStore(flow2, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient2;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow2; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient2);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient2, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow2, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.x, det);\n    delta *= confidence;\n    imageStore(flow2, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -2705,10 +3518,10 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 4628.947324275970459, 1849.12278938293457, 213.0, 22.0 ],
+					"patching_rect" : [ 4627.385925769805908, 2095.0, 213.0, 22.0 ],
 					"text" : "jit.gpu.shader @name upsampleFlow3",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow3; // livello L+1\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow2; // livello L\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 sizeHigh = imageSize(flow2);\n    ivec2 sizeLow = imageSize(flow3);\n    if (coord.x >= sizeHigh.x || coord.y >= sizeHigh.y) return;\n\n    // Coord corrispondente nel livello più piccolo\n    vec2 uvLow = vec2(coord) / 2.0;\n\n    uvLow = clamp(uvLow, vec2(0.0), vec2(sizeLow - 1));\n    ivec2 iuv = ivec2(floor(uvLow));\n    vec2 f = fract(uvLow);\n\n    vec2 a = imageLoad(flow3, iuv).xy;\n    vec2 b = imageLoad(flow3, iuv + ivec2(1, 0)).xy;\n    vec2 c = imageLoad(flow3, iuv + ivec2(0, 1)).xy;\n    vec2 d = imageLoad(flow3, iuv + ivec2(1, 1)).xy;\n\n    vec2 ab = mix(a, b, f.x);\n    vec2 cd = mix(c, d, f.x);\n    vec2 upsampledFlow = mix(ab, cd, f.y);\n\n\n    //vec2 upsampledFlow = bilinearSampleVec2(flowLowRes, uvLow, sizeLow);\n\n    // Scala il flow (perché 1 px in low = 2 px in high)\n    upsampledFlow *= 2.0;\n\n    imageStore(flow2, coord, vec4(upsampledFlow, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut3; // livello L+1\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow2; // livello L\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 sizeHigh = imageSize(flow2);\n    ivec2 sizeLow = imageSize(flowOut3);\n    if (coord.x >= sizeHigh.x || coord.y >= sizeHigh.y) return;\n\n    // Coord corrispondente nel livello più piccolo\n    vec2 uvLow = vec2(coord) / 2.0;\n\n    uvLow = clamp(uvLow, vec2(0.0), vec2(sizeLow - 1));\n    ivec2 iuv = ivec2(floor(uvLow));\n    vec2 f = fract(uvLow);\n\n    vec2 a = imageLoad(flowOut3, iuv).xy;\n    vec2 b = imageLoad(flowOut3, iuv + ivec2(1, 0)).xy;\n    vec2 c = imageLoad(flowOut3, iuv + ivec2(0, 1)).xy;\n    vec2 d = imageLoad(flowOut3, iuv + ivec2(1, 1)).xy;\n\n    vec2 ab = mix(a, b, f.x);\n    vec2 cd = mix(c, d, f.x);\n    vec2 upsampledFlow = mix(ab, cd, f.y);\n\n\n    //vec2 upsampledFlow = bilinearSampleVec2(flowLowRes, uvLow, sizeLow);\n\n    // Scala il flow (perché 1 px in low = 2 px in high)\n    upsampledFlow *= 2.0;\n\n    imageStore(flow2, coord, vec4(upsampledFlow, 0.0, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -2725,8 +3538,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 4107.017504692077637, 1849.12278938293457, 471.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader upsampleFlow3 @threads 30 17 1 @read flow3 @write flow2"
+					"patching_rect" : [ 4105.385925769805908, 2095.0, 491.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader upsampleFlow3 @threads 30 17 1 @read flowOut3 @write flow2"
 				}
 
 			}
@@ -2736,7 +3549,7 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 4014.912242412567139, 1850.877175331115723, 85.0, 20.0 ],
+					"patching_rect" : [ 4013.385925769805908, 2097.0, 85.0, 20.0 ],
 					"text" : "upsample flow"
 				}
 
@@ -2752,7 +3565,7 @@
 					"patching_rect" : [ 4702.631534099578857, 908.771921157836914, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow3",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient3;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow3; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient3);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient3, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow3, coord).xy;\n    imageStore(flow3, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient3;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow3; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient3);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient3, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow3, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.x, det);\n    delta *= confidence;\n    imageStore(flow3, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -2892,10 +3705,10 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 3713.157859325408936, 1849.12278938293457, 213.0, 22.0 ],
+					"patching_rect" : [ 3714.857112288475037, 2095.0, 213.0, 22.0 ],
 					"text" : "jit.gpu.shader @name upsampleFlow4",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow4; // livello L+1\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow3; // livello L\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 sizeHigh = imageSize(flow3);\n    ivec2 sizeLow = imageSize(flow4);\n    if (coord.x >= sizeHigh.x || coord.y >= sizeHigh.y) return;\n\n    // Coord corrispondente nel livello più piccolo\n    vec2 uvLow = vec2(coord) / 2.0;\n\n    uvLow = clamp(uvLow, vec2(0.0), vec2(sizeLow - 1));\n    ivec2 iuv = ivec2(floor(uvLow));\n    vec2 f = fract(uvLow);\n\n    vec2 a = imageLoad(flow4, iuv).xy;\n    vec2 b = imageLoad(flow4, iuv + ivec2(1, 0)).xy;\n    vec2 c = imageLoad(flow4, iuv + ivec2(0, 1)).xy;\n    vec2 d = imageLoad(flow4, iuv + ivec2(1, 1)).xy;\n\n    vec2 ab = mix(a, b, f.x);\n    vec2 cd = mix(c, d, f.x);\n    vec2 upsampledFlow = mix(ab, cd, f.y);\n\n\n    //vec2 upsampledFlow = bilinearSampleVec2(flowLowRes, uvLow, sizeLow);\n\n    // Scala il flow (perché 1 px in low = 2 px in high)\n    upsampledFlow *= 2.0;\n\n    imageStore(flow3, coord, vec4(upsampledFlow, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut4; // livello L+1\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow3; // livello L\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 sizeHigh = imageSize(flow3);\n    ivec2 sizeLow = imageSize(flowOut4);\n    if (coord.x >= sizeHigh.x || coord.y >= sizeHigh.y) return;\n\n    // Coord corrispondente nel livello più piccolo\n    vec2 uvLow = vec2(coord) / 2.0;\n\n    uvLow = clamp(uvLow, vec2(0.0), vec2(sizeLow - 1));\n    ivec2 iuv = ivec2(floor(uvLow));\n    vec2 f = fract(uvLow);\n\n    vec2 a = imageLoad(flowOut4, iuv).xy;\n    vec2 b = imageLoad(flowOut4, iuv + ivec2(1, 0)).xy;\n    vec2 c = imageLoad(flowOut4, iuv + ivec2(0, 1)).xy;\n    vec2 d = imageLoad(flowOut4, iuv + ivec2(1, 1)).xy;\n\n    vec2 ab = mix(a, b, f.x);\n    vec2 cd = mix(c, d, f.x);\n    vec2 upsampledFlow = mix(ab, cd, f.y);\n\n\n    //vec2 upsampledFlow = bilinearSampleVec2(flowLowRes, uvLow, sizeLow);\n\n    // Scala il flow (perché 1 px in low = 2 px in high)\n    upsampledFlow *= 2.0;\n\n    imageStore(flow3, coord, vec4(upsampledFlow, 0.0, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -2912,8 +3725,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 3205.263127326965332, 1849.12278938293457, 465.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader upsampleFlow4 @threads 15 9 1 @read flow4 @write flow3"
+					"patching_rect" : [ 3206.857112288475037, 2095.0, 484.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader upsampleFlow4 @threads 15 9 1 @read flowOut4 @write flow3"
 				}
 
 			}
@@ -2939,7 +3752,7 @@
 					"patching_rect" : [ 3779.824525356292725, 909.64911413192749, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow4",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient4;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow4; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient4);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient4, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow4, coord).xy;\n    imageStore(flow4, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient4;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow4; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient4);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient4, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow4, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.x, det);\n    delta *= confidence;\n    imageStore(flow4, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -3073,28 +3886,16 @@
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-77",
-					"linecount" : 2,
-					"maxclass" : "comment",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 2497.368397235870361, 1806.140333652496338, 85.0, 33.0 ],
-					"text" : "insert here flow refinment"
-				}
-
-			}
-, 			{
-				"box" : 				{
 					"filename" : "none",
 					"id" : "obj-71",
 					"maxclass" : "newobj",
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 2823.684183597564697, 1849.12278938293457, 213.0, 22.0 ],
+					"patching_rect" : [ 2814.500069439411163, 2113.0, 213.0, 22.0 ],
 					"text" : "jit.gpu.shader @name upsampleFlow5",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow5; // livello L+1\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow4; // livello L\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 sizeHigh = imageSize(flow4);\n    ivec2 sizeLow = imageSize(flow5);\n    if (coord.x >= sizeHigh.x || coord.y >= sizeHigh.y) return;\n\n    // Coord corrispondente nel livello più piccolo\n    vec2 uvLow = vec2(coord) / 2.0;\n\n    uvLow = clamp(uvLow, vec2(0.0), vec2(sizeLow - 1));\n    ivec2 iuv = ivec2(floor(uvLow));\n    vec2 f = fract(uvLow);\n\n    vec2 a = imageLoad(flow5, iuv).xy;\n    vec2 b = imageLoad(flow5, iuv + ivec2(1, 0)).xy;\n    vec2 c = imageLoad(flow5, iuv + ivec2(0, 1)).xy;\n    vec2 d = imageLoad(flow5, iuv + ivec2(1, 1)).xy;\n\n    vec2 ab = mix(a, b, f.x);\n    vec2 cd = mix(c, d, f.x);\n    vec2 upsampledFlow = mix(ab, cd, f.y);\n\n    // Scala il flow (perché 1 px in low = 2 px in high)\n    upsampledFlow *= 2.0;\n\n    imageStore(flow4, coord, vec4(upsampledFlow, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut5; // livello L+1\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow4; // livello L\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 sizeHigh = imageSize(flow4);\n    ivec2 sizeLow = imageSize(flowOut5);\n    if (coord.x >= sizeHigh.x || coord.y >= sizeHigh.y) return;\n\n    // Coord corrispondente nel livello più piccolo\n    vec2 uvLow = vec2(coord) / 2.0;\n\n    uvLow = clamp(uvLow, vec2(0.0), vec2(sizeLow - 1));\n    ivec2 iuv = ivec2(floor(uvLow));\n    vec2 f = fract(uvLow);\n\n    vec2 a = imageLoad(flowOut5, iuv).xy;\n    vec2 b = imageLoad(flowOut5, iuv + ivec2(1, 0)).xy;\n    vec2 c = imageLoad(flowOut5, iuv + ivec2(0, 1)).xy;\n    vec2 d = imageLoad(flowOut5, iuv + ivec2(1, 1)).xy;\n\n    vec2 ab = mix(a, b, f.x);\n    vec2 cd = mix(c, d, f.x);\n    vec2 upsampledFlow = mix(ab, cd, f.y);\n\n    // Scala il flow (perché 1 px in low = 2 px in high)\n    upsampledFlow *= 2.0;\n\n    imageStore(flow4, coord, vec4(upsampledFlow, 0.0, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -3111,8 +3912,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 2329.824539184570312, 1849.12278938293457, 458.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader upsampleFlow5 @threads 8 5 1 @read flow5 @write flow4"
+					"patching_rect" : [ 2320.500069439411163, 2113.0, 477.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader upsampleFlow5 @threads 8 5 1 @read flowOut5 @write flow4"
 				}
 
 			}
@@ -3162,7 +3963,7 @@
 					"patching_rect" : [ 2886.842077732086182, 909.64911413192749, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow5",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient5;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow5; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient5);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient5, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow5, coord).xy;\n    imageStore(flow5, coord, vec4(currentFlow + delta, 0.0, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient5;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow5; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient5);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient5, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow5, coord).xy;\n    float confidence = smoothstep(settings.confidence.x, settings.confidence.x, det);\n    delta *= confidence;\n    imageStore(flow5, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -3952,18 +4753,6 @@
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-64",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 1,
-					"outlettype" : [ "" ],
-					"patching_rect" : [ 764.912273406982422, 494.491225242614746, 192.0, 22.0 ],
-					"text" : "loadmess sendoutput filter nearest"
-				}
-
-			}
-, 			{
-				"box" : 				{
 					"id" : "obj-57",
 					"maxclass" : "newobj",
 					"numinlets" : 2,
@@ -4588,8 +5377,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 764.912273406982422, 390.350873470306396, 173.0, 22.0 ],
-					"text" : "jit.gpu.totexture @source flow0"
+					"patching_rect" : [ 764.912273406982422, 390.350873470306396, 193.0, 22.0 ],
+					"text" : "jit.gpu.totexture @source flowOut0"
 				}
 
 			}
@@ -4772,6 +5561,13 @@
 			}
 , 			{
 				"patchline" : 				{
+					"destination" : [ "obj-364", 1 ],
+					"source" : [ "obj-140", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"destination" : [ "obj-166", 1 ],
 					"source" : [ "obj-142", 1 ]
 				}
@@ -4842,8 +5638,8 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-335", 0 ],
-					"source" : [ "obj-170", 0 ]
+					"destination" : [ "obj-63", 1 ],
+					"source" : [ "obj-170", 1 ]
 				}
 
 			}
@@ -5060,6 +5856,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-231", 0 ],
+					"midpoints" : [ 561.078941822052002, 532.0, 644.903160572052002, 532.0, 644.903160572052002, 440.877188682556152, 591.078941822052002, 440.877188682556152 ],
 					"order" : 1,
 					"source" : [ "obj-230", 0 ]
 				}
@@ -5110,7 +5907,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-63", 1 ],
+					"destination" : [ "obj-24", 1 ],
 					"source" : [ "obj-237", 1 ]
 				}
 
@@ -5126,6 +5923,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-238", 1 ],
 					"source" : [ "obj-239", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-350", 1 ],
+					"source" : [ "obj-24", 1 ]
 				}
 
 			}
@@ -5152,7 +5956,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-100", 1 ],
+					"destination" : [ "obj-25", 1 ],
 					"source" : [ "obj-245", 1 ]
 				}
 
@@ -5180,6 +5984,13 @@
 			}
 , 			{
 				"patchline" : 				{
+					"destination" : [ "obj-348", 1 ],
+					"source" : [ "obj-25", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"destination" : [ "obj-249", 1 ],
 					"source" : [ "obj-251", 1 ]
 				}
@@ -5194,7 +6005,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-128", 1 ],
+					"destination" : [ "obj-35", 1 ],
 					"source" : [ "obj-256", 1 ]
 				}
 
@@ -5236,7 +6047,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-142", 1 ],
+					"destination" : [ "obj-55", 1 ],
 					"source" : [ "obj-270", 1 ]
 				}
 
@@ -5278,7 +6089,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-156", 1 ],
+					"destination" : [ "obj-89", 1 ],
 					"source" : [ "obj-284", 1 ]
 				}
 
@@ -5301,13 +6112,6 @@
 				"patchline" : 				{
 					"destination" : [ "obj-5", 1 ],
 					"source" : [ "obj-29", 1 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-230", 0 ],
-					"source" : [ "obj-291", 0 ]
 				}
 
 			}
@@ -5341,7 +6145,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-337", 0 ],
+					"destination" : [ "obj-370", 2 ],
 					"source" : [ "obj-296", 0 ]
 				}
 
@@ -5439,7 +6243,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-7", 1 ],
+					"destination" : [ "obj-140", 1 ],
 					"source" : [ "obj-328", 1 ]
 				}
 
@@ -5737,8 +6541,113 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-170", 0 ],
+					"destination" : [ "obj-154", 0 ],
 					"source" : [ "obj-337", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-354", 1 ],
+					"source" : [ "obj-348", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-355", 1 ],
+					"source" : [ "obj-35", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-352", 1 ],
+					"source" : [ "obj-350", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-368", 1 ],
+					"source" : [ "obj-352", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-377", 1 ],
+					"source" : [ "obj-354", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-357", 1 ],
+					"source" : [ "obj-355", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-379", 1 ],
+					"source" : [ "obj-357", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-360", 1 ],
+					"source" : [ "obj-358", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-381", 1 ],
+					"source" : [ "obj-360", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-363", 1 ],
+					"source" : [ "obj-361", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-383", 1 ],
+					"source" : [ "obj-363", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-366", 1 ],
+					"source" : [ "obj-364", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-385", 1 ],
+					"source" : [ "obj-366", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-170", 1 ],
+					"source" : [ "obj-368", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-367", 0 ],
+					"source" : [ "obj-369", 0 ]
 				}
 
 			}
@@ -5746,6 +6655,125 @@
 				"patchline" : 				{
 					"destination" : [ "obj-40", 1 ],
 					"source" : [ "obj-37", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-371", 0 ],
+					"source" : [ "obj-370", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-335", 0 ],
+					"source" : [ "obj-371", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-100", 1 ],
+					"source" : [ "obj-372", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-370", 0 ],
+					"source" : [ "obj-373", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-370", 1 ],
+					"source" : [ "obj-374", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-374", 0 ],
+					"source" : [ "obj-375", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-373", 0 ],
+					"source" : [ "obj-376", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-372", 1 ],
+					"source" : [ "obj-377", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-128", 1 ],
+					"source" : [ "obj-378", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-378", 1 ],
+					"source" : [ "obj-379", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-142", 1 ],
+					"source" : [ "obj-380", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-380", 1 ],
+					"source" : [ "obj-381", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-156", 1 ],
+					"source" : [ "obj-382", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-382", 1 ],
+					"source" : [ "obj-383", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-7", 1 ],
+					"source" : [ "obj-384", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-384", 1 ],
+					"source" : [ "obj-385", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-337", 0 ],
+					"source" : [ "obj-387", 0 ]
 				}
 
 			}
@@ -5807,9 +6835,16 @@
 			}
 , 			{
 				"patchline" : 				{
+					"destination" : [ "obj-358", 1 ],
+					"source" : [ "obj-55", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-10", 0 ],
-					"order" : 109,
+					"order" : 139,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -5818,231 +6853,6 @@
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-100", 0 ],
-					"order" : 66,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-103", 0 ],
-					"order" : 99,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-105", 0 ],
-					"order" : 98,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-107", 0 ],
-					"order" : 97,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-109", 0 ],
-					"order" : 96,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-111", 0 ],
-					"order" : 95,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-113", 0 ],
-					"order" : 94,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-117", 0 ],
-					"order" : 63,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-120", 0 ],
-					"order" : 64,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-124", 0 ],
-					"order" : 65,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-128", 0 ],
-					"order" : 56,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-131", 0 ],
-					"order" : 47,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-134", 0 ],
-					"order" : 48,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-138", 0 ],
-					"order" : 49,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-142", 0 ],
-					"order" : 46,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-145", 0 ],
-					"order" : 31,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-148", 0 ],
-					"order" : 32,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-152", 0 ],
-					"order" : 33,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-156", 0 ],
-					"order" : 27,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-159", 0 ],
-					"order" : 21,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-162", 0 ],
-					"order" : 22,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-166", 0 ],
-					"order" : 23,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-172", 0 ],
-					"order" : 89,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-173", 0 ],
-					"order" : 90,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-174", 0 ],
-					"order" : 91,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-176", 0 ],
 					"order" : 86,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6051,8 +6861,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-177", 0 ],
-					"order" : 87,
+					"destination" : [ "obj-103", 0 ],
+					"order" : 129,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6060,8 +6870,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-178", 0 ],
-					"order" : 88,
+					"destination" : [ "obj-105", 0 ],
+					"order" : 128,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6069,8 +6879,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-180", 0 ],
-					"order" : 76,
+					"destination" : [ "obj-107", 0 ],
+					"order" : 127,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6078,8 +6888,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-181", 0 ],
-					"order" : 77,
+					"destination" : [ "obj-109", 0 ],
+					"order" : 126,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6087,8 +6897,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-182", 0 ],
-					"order" : 78,
+					"destination" : [ "obj-111", 0 ],
+					"order" : 125,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6096,8 +6906,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-184", 0 ],
-					"order" : 73,
+					"destination" : [ "obj-113", 0 ],
+					"order" : 121,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6105,187 +6915,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-185", 0 ],
-					"order" : 74,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-186", 0 ],
-					"order" : 75,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-188", 0 ],
-					"order" : 53,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-190", 0 ],
-					"order" : 54,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-193", 0 ],
-					"order" : 55,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-195", 0 ],
-					"order" : 50,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-197", 0 ],
-					"order" : 51,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-200", 0 ],
-					"order" : 52,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-202", 0 ],
-					"order" : 34,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-204", 0 ],
-					"order" : 35,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-207", 0 ],
-					"order" : 36,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-209", 0 ],
-					"order" : 37,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-211", 0 ],
-					"order" : 38,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-214", 0 ],
-					"order" : 39,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-216", 0 ],
-					"order" : 18,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-218", 0 ],
-					"order" : 19,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-221", 0 ],
-					"order" : 20,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-223", 0 ],
-					"order" : 15,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-225", 0 ],
-					"order" : 16,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-228", 0 ],
-					"order" : 17,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-233", 0 ],
+					"destination" : [ "obj-117", 0 ],
 					"order" : 83,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6294,7 +6924,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-234", 0 ],
+					"destination" : [ "obj-120", 0 ],
 					"order" : 84,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6303,7 +6933,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-235", 0 ],
+					"destination" : [ "obj-124", 0 ],
 					"order" : 85,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6312,8 +6942,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-237", 0 ],
-					"order" : 80,
+					"destination" : [ "obj-128", 0 ],
+					"order" : 74,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6321,124 +6951,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-238", 0 ],
-					"order" : 81,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-239", 0 ],
-					"order" : 82,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-241", 0 ],
-					"order" : 70,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-242", 0 ],
-					"order" : 71,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-243", 0 ],
-					"order" : 72,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-245", 0 ],
-					"order" : 67,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-246", 0 ],
-					"order" : 68,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-247", 0 ],
-					"order" : 69,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-249", 0 ],
-					"order" : 57,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-251", 0 ],
-					"order" : 58,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-254", 0 ],
-					"order" : 59,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-256", 0 ],
-					"order" : 60,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-258", 0 ],
-					"order" : 61,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-261", 0 ],
+					"destination" : [ "obj-131", 0 ],
 					"order" : 62,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6447,8 +6960,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-263", 0 ],
-					"order" : 40,
+					"destination" : [ "obj-134", 0 ],
+					"order" : 63,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6456,7 +6969,34 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-265", 0 ],
+					"destination" : [ "obj-138", 0 ],
+					"order" : 64,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-140", 0 ],
+					"order" : 16,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-142", 0 ],
+					"order" : 61,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-145", 0 ],
 					"order" : 41,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6465,7 +7005,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-268", 0 ],
+					"destination" : [ "obj-148", 0 ],
 					"order" : 42,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6474,7 +7014,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-270", 0 ],
+					"destination" : [ "obj-152", 0 ],
 					"order" : 43,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6483,8 +7023,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-272", 0 ],
-					"order" : 44,
+					"destination" : [ "obj-156", 0 ],
+					"order" : 32,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6492,34 +7032,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-275", 0 ],
-					"order" : 45,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-277", 0 ],
-					"order" : 24,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-279", 0 ],
-					"order" : 25,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-282", 0 ],
+					"destination" : [ "obj-159", 0 ],
 					"order" : 26,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6528,7 +7041,16 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-284", 0 ],
+					"destination" : [ "obj-162", 0 ],
+					"order" : 27,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-166", 0 ],
 					"order" : 28,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6537,7 +7059,520 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-286", 0 ],
+					"destination" : [ "obj-170", 0 ],
+					"order" : 122,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-172", 0 ],
+					"order" : 114,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-173", 0 ],
+					"order" : 115,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-174", 0 ],
+					"order" : 116,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-176", 0 ],
+					"order" : 111,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-177", 0 ],
+					"order" : 112,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-178", 0 ],
+					"order" : 113,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-180", 0 ],
+					"order" : 99,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-181", 0 ],
+					"order" : 100,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-182", 0 ],
+					"order" : 101,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-184", 0 ],
+					"order" : 96,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-185", 0 ],
+					"order" : 97,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-186", 0 ],
+					"order" : 98,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-188", 0 ],
+					"order" : 68,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-190", 0 ],
+					"order" : 69,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-193", 0 ],
+					"order" : 70,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-195", 0 ],
+					"order" : 65,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-197", 0 ],
+					"order" : 66,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-200", 0 ],
+					"order" : 67,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-202", 0 ],
+					"order" : 44,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-204", 0 ],
+					"order" : 45,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-207", 0 ],
+					"order" : 46,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-209", 0 ],
+					"order" : 47,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-211", 0 ],
+					"order" : 48,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-214", 0 ],
+					"order" : 49,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-216", 0 ],
+					"order" : 23,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-218", 0 ],
+					"order" : 24,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-221", 0 ],
+					"order" : 25,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-223", 0 ],
+					"order" : 20,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-225", 0 ],
+					"order" : 21,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-228", 0 ],
+					"order" : 22,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-233", 0 ],
+					"order" : 108,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-234", 0 ],
+					"order" : 109,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-235", 0 ],
+					"order" : 110,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-237", 0 ],
+					"order" : 105,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-238", 0 ],
+					"order" : 106,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-239", 0 ],
+					"order" : 107,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-24", 0 ],
+					"order" : 104,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-241", 0 ],
+					"order" : 93,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-242", 0 ],
+					"order" : 94,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-243", 0 ],
+					"order" : 95,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-245", 0 ],
+					"order" : 90,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-246", 0 ],
+					"order" : 91,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-247", 0 ],
+					"order" : 92,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-249", 0 ],
+					"order" : 71,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-25", 0 ],
+					"order" : 89,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-251", 0 ],
+					"order" : 72,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-254", 0 ],
+					"order" : 73,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-256", 0 ],
+					"order" : 78,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-258", 0 ],
+					"order" : 79,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-261", 0 ],
+					"order" : 80,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-263", 0 ],
+					"order" : 50,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-265", 0 ],
+					"order" : 51,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-268", 0 ],
+					"order" : 52,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-270", 0 ],
+					"order" : 58,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-272", 0 ],
+					"order" : 59,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-275", 0 ],
+					"order" : 60,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-277", 0 ],
 					"order" : 29,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6546,7 +7581,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-289", 0 ],
+					"destination" : [ "obj-279", 0 ],
 					"order" : 30,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6555,8 +7590,44 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-282", 0 ],
+					"order" : 31,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-284", 0 ],
+					"order" : 38,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-286", 0 ],
+					"order" : 39,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-289", 0 ],
+					"order" : 40,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-29", 0 ],
-					"order" : 111,
+					"order" : 141,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6646,7 +7717,7 @@
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-32", 0 ],
-					"order" : 93,
+					"order" : 120,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6655,24 +7726,6 @@
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-321", 0 ],
-					"order" : 9,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-323", 0 ],
-					"order" : 10,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-326", 0 ],
 					"order" : 11,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6681,7 +7734,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-328", 0 ],
+					"destination" : [ "obj-323", 0 ],
 					"order" : 12,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6690,7 +7743,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-330", 0 ],
+					"destination" : [ "obj-326", 0 ],
 					"order" : 13,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6699,8 +7752,152 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-328", 0 ],
+					"order" : 17,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-330", 0 ],
+					"order" : 18,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-333", 0 ],
-					"order" : 14,
+					"order" : 19,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-348", 0 ],
+					"order" : 88,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-35", 0 ],
+					"order" : 77,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-350", 0 ],
+					"order" : 119,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-352", 0 ],
+					"order" : 118,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-354", 0 ],
+					"order" : 87,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-355", 0 ],
+					"order" : 76,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-357", 0 ],
+					"order" : 75,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-358", 0 ],
+					"order" : 56,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-360", 0 ],
+					"order" : 55,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-361", 0 ],
+					"order" : 36,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-363", 0 ],
+					"order" : 35,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-364", 0 ],
+					"order" : 15,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-366", 0 ],
+					"order" : 10,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-368", 0 ],
+					"order" : 123,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6709,7 +7906,7 @@
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-37", 0 ],
-					"order" : 104,
+					"order" : 134,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6717,61 +7914,7 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-39", 0 ],
-					"order" : 92,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-40", 0 ],
-					"order" : 108,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-43", 0 ],
-					"order" : 107,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-46", 0 ],
-					"order" : 103,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-48", 0 ],
-					"order" : 106,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-5", 0 ],
-					"order" : 110,
-					"source" : [ "obj-56", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-51", 0 ],
+					"destination" : [ "obj-372", 0 ],
 					"order" : 102,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6780,8 +7923,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-57", 0 ],
-					"order" : 105,
+					"destination" : [ "obj-377", 0 ],
+					"order" : 103,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6789,8 +7932,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-60", 0 ],
-					"order" : 101,
+					"destination" : [ "obj-378", 0 ],
+					"order" : 81,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6798,8 +7941,8 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-63", 0 ],
-					"order" : 79,
+					"destination" : [ "obj-379", 0 ],
+					"order" : 82,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6807,7 +7950,61 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
-					"destination" : [ "obj-75", 0 ],
+					"destination" : [ "obj-380", 0 ],
+					"order" : 53,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-381", 0 ],
+					"order" : 54,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-382", 0 ],
+					"order" : 33,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-383", 0 ],
+					"order" : 34,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-384", 0 ],
+					"order" : 9,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-385", 0 ],
+					"order" : 14,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-39", 0 ],
 					"order" : 117,
 					"source" : [ "obj-56", 0 ]
 				}
@@ -6816,8 +8013,107 @@
 , 			{
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-40", 0 ],
+					"order" : 138,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-43", 0 ],
+					"order" : 137,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-46", 0 ],
+					"order" : 133,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-48", 0 ],
+					"order" : 136,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-5", 0 ],
+					"order" : 140,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-51", 0 ],
+					"order" : 132,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-55", 0 ],
+					"order" : 57,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-57", 0 ],
+					"order" : 135,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-60", 0 ],
+					"order" : 131,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-63", 0 ],
+					"order" : 124,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-75", 0 ],
+					"order" : 147,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-80", 0 ],
-					"order" : 116,
+					"order" : 146,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6826,7 +8122,7 @@
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-82", 0 ],
-					"order" : 115,
+					"order" : 145,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6835,7 +8131,7 @@
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-84", 0 ],
-					"order" : 114,
+					"order" : 144,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6844,7 +8140,7 @@
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-86", 0 ],
-					"order" : 113,
+					"order" : 143,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6853,7 +8149,16 @@
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-88", 0 ],
-					"order" : 112,
+					"order" : 142,
+					"source" : [ "obj-56", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
+					"destination" : [ "obj-89", 0 ],
+					"order" : 37,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6862,7 +8167,7 @@
 				"patchline" : 				{
 					"color" : [ 0.850980392156863, 0.490196078431373, 0.490196078431373, 1.0 ],
 					"destination" : [ "obj-99", 0 ],
-					"order" : 100,
+					"order" : 130,
 					"source" : [ "obj-56", 0 ]
 				}
 
@@ -6911,14 +8216,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-291", 0 ],
-					"source" : [ "obj-64", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-291", 0 ],
+					"destination" : [ "obj-230", 0 ],
 					"order" : 1,
 					"source" : [ "obj-7", 0 ]
 				}
@@ -6994,6 +8292,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-29", 1 ],
 					"source" : [ "obj-88", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-361", 1 ],
+					"source" : [ "obj-89", 1 ]
 				}
 
 			}
