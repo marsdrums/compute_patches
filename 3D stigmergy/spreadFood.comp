@@ -1,0 +1,20 @@
+#version 450
+
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(r32f, binding = 0) uniform image3D field;
+
+layout(std430, binding = 1) buffer modelBuff {
+    vec4 vertPos[]; 
+};
+
+void main()
+{
+    const int id = int(gl_GlobalInvocationID.x);
+    const int size = 10000;
+
+    if (id >= size) return;
+
+    ivec3 gridPos = ivec3((vertPos[id].xyz*0.5 + 0.5)*512);
+    imageStore(field, gridPos, vec4(100));
+}

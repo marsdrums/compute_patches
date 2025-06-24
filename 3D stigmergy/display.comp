@@ -1,0 +1,20 @@
+#version 450
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+layout(r32f, binding = 0) uniform image3D field;
+layout(r32f, binding = 1) uniform image2D displayImage;
+layout(binding = 2) uniform DisplayConfig {
+   int slice;
+} config;
+
+void main()
+{
+    const ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    const ivec3 size = imageSize(field);
+
+    if (coord.x >= size.x || coord.y >= size.y) return;
+
+    vec4 lookup = imageLoad(field, ivec3(coord, config.slice));
+    imageStore(displayImage, coord, lookup);
+}
