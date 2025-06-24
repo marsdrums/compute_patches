@@ -14,6 +14,74 @@
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
 				"box" : 				{
+					"id" : "obj-386",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 2199.0, 177.0, 77.0, 22.0 ],
+					"text" : "loadmess 50"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"format" : 6,
+					"id" : "obj-387",
+					"maxclass" : "flonum",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "bang" ],
+					"parameter_enable" : 0,
+					"patching_rect" : [ 2199.0, 220.0, 127.0, 22.0 ]
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-404",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 2199.0, 278.0, 121.0, 22.0 ],
+					"text" : "set strength $1, bang"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-408",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 5,
+					"outlettype" : [ "dictionary", "", "", "", "" ],
+					"patching_rect" : [ 2199.0, 325.0, 91.0, 22.0 ],
+					"saved_object_attributes" : 					{
+						"embed" : 0,
+						"legacy" : 0,
+						"parameter_enable" : 0,
+						"parameter_mappable" : 0
+					}
+,
+					"text" : "dict inpaint_dict"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-409",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "" ],
+					"patching_rect" : [ 2199.0, 362.0, 179.0, 22.0 ],
+					"text" : "jit.gpu.constants @name inpaint"
+				}
+
+			}
+, 			{
+				"box" : 				{
 					"id" : "obj-64",
 					"maxclass" : "jit.pwindow",
 					"numinlets" : 1,
@@ -259,8 +327,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6933.5, 2204.0, 478.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd0 @threads 120 68 1 @read flow0 @write flowOut0"
+					"patching_rect" : [ 6933.5, 2204.0, 513.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd0 @threads 120 68 1 @read flow0 level0 @write flowOut0"
 				}
 
 			}
@@ -271,8 +339,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6930.5, 2139.0, 483.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven0 @threads 120 68 1 @read flowOut0 @write flow0"
+					"patching_rect" : [ 6930.5, 2139.0, 518.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven0 @threads 120 68 1 @read flowOut0 level0 @write flow0"
 				}
 
 			}
@@ -283,8 +351,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6001.885907649993896, 2174.0, 471.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd1 @threads 60 34 1 @read flow1 @write flowOut1"
+					"patching_rect" : [ 6001.885907649993896, 2174.0, 506.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd1 @threads 60 34 1 @read flow1 level1 @write flowOut1"
 				}
 
 			}
@@ -295,8 +363,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6001.885907649993896, 2114.0, 476.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven1 @threads 60 34 1 @read flowOut1 @write flow1"
+					"patching_rect" : [ 6001.885907649993896, 2114.0, 511.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven1 @threads 60 34 1 @read flowOut1 level1 @write flow1"
 				}
 
 			}
@@ -307,8 +375,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 5022.938548564910889, 2153.0, 471.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd2 @threads 30 17 1 @read flow2 @write flowOut2"
+					"patching_rect" : [ 5022.938548564910889, 2153.0, 506.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd2 @threads 30 17 1 @read flow2 level2 @write flowOut2"
 				}
 
 			}
@@ -319,8 +387,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 5022.938548564910889, 2095.0, 476.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven2 @threads 30 17 1 @read flowOut2 @write flow2"
+					"patching_rect" : [ 5022.938548564910889, 2095.0, 511.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven2 @threads 30 17 1 @read flowOut2 level2 @write flow2"
 				}
 
 			}
@@ -331,8 +399,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 4100.385925769805908, 2155.0, 465.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd3 @threads 15 9 1 @read flow3 @write flowOut3"
+					"patching_rect" : [ 4100.385925769805908, 2155.0, 499.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd3 @threads 15 9 1 @read flow3 level3 @write flowOut3"
 				}
 
 			}
@@ -343,8 +411,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 4100.385925769805908, 2088.0, 469.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven3 @threads 15 9 1 @read flowOut3 @write flow3"
+					"patching_rect" : [ 4100.385925769805908, 2088.0, 504.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven3 @threads 15 9 1 @read flowOut3 level3 @write flow3"
 				}
 
 			}
@@ -355,8 +423,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 3205.263127326965332, 2163.0, 458.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd4 @threads 8 5 1 @read flow4 @write flowOut4"
+					"patching_rect" : [ 3205.263127326965332, 2163.0, 493.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd4 @threads 8 5 1 @read flow4 level4 @write flowOut4"
 				}
 
 			}
@@ -367,8 +435,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 3205.263127326965332, 2096.0, 463.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven4 @threads 8 5 1 @read flowOut4 @write flow4"
+					"patching_rect" : [ 3205.263127326965332, 2096.0, 497.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven4 @threads 8 5 1 @read flowOut4 level4 @write flow4"
 				}
 
 			}
@@ -379,8 +447,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 2325.000069439411163, 2152.0, 458.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd5 @threads 4 3 1 @read flow5 @write flowOut5"
+					"patching_rect" : [ 2325.000069439411163, 2152.0, 493.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd5 @threads 4 3 1 @read flow5 level5 @write flowOut5"
 				}
 
 			}
@@ -391,8 +459,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 2325.000069439411163, 2095.0, 463.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven5 @threads 4 3 1 @read flowOut5 @write flow5"
+					"patching_rect" : [ 2325.000069439411163, 2095.0, 497.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven5 @threads 4 3 1 @read flowOut5 level5 @write flow5"
 				}
 
 			}
@@ -423,8 +491,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6933.0, 2062.0, 478.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd0 @threads 120 68 1 @read flow0 @write flowOut0"
+					"patching_rect" : [ 6933.0, 2062.0, 513.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd0 @threads 120 68 1 @read flow0 level0 @write flowOut0"
 				}
 
 			}
@@ -435,8 +503,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6930.0, 1997.0, 483.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven0 @threads 120 68 1 @read flowOut0 @write flow0"
+					"patching_rect" : [ 6930.0, 1997.0, 518.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven0 @threads 120 68 1 @read flowOut0 level0 @write flow0"
 				}
 
 			}
@@ -447,8 +515,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6004.385907649993896, 2035.0, 471.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd1 @threads 60 34 1 @read flow1 @write flowOut1"
+					"patching_rect" : [ 6004.385907649993896, 2035.0, 506.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd1 @threads 60 34 1 @read flow1 level1 @write flowOut1"
 				}
 
 			}
@@ -459,8 +527,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6004.385907649993896, 1975.0, 476.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven1 @threads 60 34 1 @read flowOut1 @write flow1"
+					"patching_rect" : [ 6004.385907649993896, 1975.0, 511.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven1 @threads 60 34 1 @read flowOut1 level1 @write flow1"
 				}
 
 			}
@@ -471,8 +539,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 5025.438548564910889, 2023.0, 471.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd2 @threads 30 17 1 @read flow2 @write flowOut2"
+					"patching_rect" : [ 5025.438548564910889, 2023.0, 506.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd2 @threads 30 17 1 @read flow2 level2 @write flowOut2"
 				}
 
 			}
@@ -483,8 +551,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 5025.438548564910889, 1965.0, 476.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven2 @threads 30 17 1 @read flowOut2 @write flow2"
+					"patching_rect" : [ 5025.438548564910889, 1965.0, 511.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven2 @threads 30 17 1 @read flowOut2 level2 @write flow2"
 				}
 
 			}
@@ -495,8 +563,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 4102.385925769805908, 2024.0, 465.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd3 @threads 15 9 1 @read flow3 @write flowOut3"
+					"patching_rect" : [ 4102.385925769805908, 2024.0, 499.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd3 @threads 15 9 1 @read flow3 level3 @write flowOut3"
 				}
 
 			}
@@ -507,8 +575,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 4102.385925769805908, 1957.0, 469.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven3 @threads 15 9 1 @read flowOut3 @write flow3"
+					"patching_rect" : [ 4102.385925769805908, 1957.0, 504.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven3 @threads 15 9 1 @read flowOut3 level3 @write flow3"
 				}
 
 			}
@@ -519,8 +587,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 3202.763127326965332, 2028.0, 458.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd4 @threads 8 5 1 @read flow4 @write flowOut4"
+					"patching_rect" : [ 3202.763127326965332, 2028.0, 493.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd4 @threads 8 5 1 @read flow4 level4 @write flowOut4"
 				}
 
 			}
@@ -531,8 +599,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 3202.763127326965332, 1961.0, 463.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven4 @threads 8 5 1 @read flowOut4 @write flow4"
+					"patching_rect" : [ 3202.763127326965332, 1961.0, 497.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven4 @threads 8 5 1 @read flowOut4 level4 @write flow4"
 				}
 
 			}
@@ -543,8 +611,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 2327.500069439411163, 2024.0, 458.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd5 @threads 4 3 1 @read flow5 @write flowOut5"
+					"patching_rect" : [ 2327.500069439411163, 2024.0, 493.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd5 @threads 4 3 1 @read flow5 level5 @write flowOut5"
 				}
 
 			}
@@ -555,8 +623,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 2327.500069439411163, 1967.0, 463.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven5 @threads 4 3 1 @read flowOut5 @write flow5"
+					"patching_rect" : [ 2327.500069439411163, 1967.0, 497.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven5 @threads 4 3 1 @read flowOut5 level5 @write flow5"
 				}
 
 			}
@@ -567,7 +635,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 1512.0, 115.0, 70.0, 22.0 ],
+					"patching_rect" : [ 1544.0, 115.0, 70.0, 22.0 ],
 					"text" : "loadmess 0"
 				}
 
@@ -593,7 +661,7 @@
 					"numoutlets" : 2,
 					"outlettype" : [ "", "bang" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 1755.350860595703125, 186.0, 50.0, 22.0 ]
+					"patching_rect" : [ 1691.0, 186.0, 97.0, 22.0 ]
 				}
 
 			}
@@ -665,8 +733,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6932.324495315551758, 1925.0, 478.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd0 @threads 120 68 1 @read flow0 @write flowOut0"
+					"patching_rect" : [ 6932.324495315551758, 1925.0, 513.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd0 @threads 120 68 1 @read flow0 level0 @write flowOut0"
 				}
 
 			}
@@ -677,8 +745,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6929.824495315551758, 1860.0, 483.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven0 @threads 120 68 1 @read flowOut0 @write flow0"
+					"patching_rect" : [ 6929.824495315551758, 1860.0, 518.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven0 @threads 120 68 1 @read flowOut0 level0 @write flow0"
 				}
 
 			}
@@ -693,7 +761,7 @@
 					"patching_rect" : [ 7480.824495315551758, 1860.0, 199.0, 22.0 ],
 					"text" : "jit.gpu.shader @name inpaintEven0",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut0;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow0;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut0);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut0, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow0, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flowOut0, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flow0, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform writeonly image2D flow0;\nlayout(binding = 1, rgba32f) uniform readonly image2D flowOut0;\nlayout(binding = 2, rgba32f) uniform readonly image2D level0;\nlayout(binding = 3) uniform inpaint\n{\n    float strength;\n}\nsettings;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut0);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut0, coord);\n    float centerConf = thisFlow.b;\n    float centerIntensity = imageLoad(level0, coord).r;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow0, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flowOut0, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n            \n            float nIntensity = imageLoad(level0, nCoord).r;\n            float diff = abs(nIntensity - centerIntensity);\n            float range = exp(-diff * settings.strength); // più è diverso, meno influenza \n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf * range;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flow0, coord, vec4(newFlow, newConf, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -710,8 +778,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6004.385907649993896, 1919.0, 471.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd1 @threads 60 34 1 @read flow1 @write flowOut1"
+					"patching_rect" : [ 6004.385907649993896, 1919.0, 506.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd1 @threads 60 34 1 @read flow1 level1 @write flowOut1"
 				}
 
 			}
@@ -722,8 +790,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6004.385907649993896, 1859.0, 476.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven1 @threads 60 34 1 @read flowOut1 @write flow1"
+					"patching_rect" : [ 6004.385907649993896, 1859.0, 511.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven1 @threads 60 34 1 @read flowOut1 level1 @write flow1"
 				}
 
 			}
@@ -738,7 +806,7 @@
 					"patching_rect" : [ 6564.385907649993896, 1860.0, 199.0, 22.0 ],
 					"text" : "jit.gpu.shader @name inpaintEven1",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut1;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow1;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut1);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut1, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow1, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flowOut1, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flow1, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform writeonly image2D flow1;\nlayout(binding = 1, rgba32f) uniform readonly image2D flowOut1;\nlayout(binding = 2, rgba32f) uniform readonly image2D level1;\nlayout(binding = 3) uniform inpaint\n{\n    float strength;\n}\nsettings;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut1);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut1, coord);\n    float centerConf = thisFlow.b;\n    float centerIntensity = imageLoad(level1, coord).r;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow1, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flowOut1, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n            \n            float nIntensity = imageLoad(level1, nCoord).r;\n            float diff = abs(nIntensity - centerIntensity);\n            float range = exp(-diff * settings.strength); // più è diverso, meno influenza \n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf * range;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flow1, coord, vec4(newFlow, newConf, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -755,8 +823,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 5025.438548564910889, 1902.0, 471.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd2 @threads 30 17 1 @read flow2 @write flowOut2"
+					"patching_rect" : [ 5025.438548564910889, 1902.0, 506.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd2 @threads 30 17 1 @read flow2 level2 @write flowOut2"
 				}
 
 			}
@@ -767,8 +835,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 5025.438548564910889, 1843.333388268947601, 476.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven2 @threads 30 17 1 @read flowOut2 @write flow2"
+					"patching_rect" : [ 5025.438548564910889, 1843.333388268947601, 511.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven2 @threads 30 17 1 @read flowOut2 level2 @write flow2"
 				}
 
 			}
@@ -783,7 +851,7 @@
 					"patching_rect" : [ 5573.438548564910889, 1843.333388268947601, 199.0, 22.0 ],
 					"text" : "jit.gpu.shader @name inpaintEven2",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 1, rgba32f) uniform writeonly image2D flow2;\nlayout(binding = 0, rgba32f) uniform readonly image2D flowOut2;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut2);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut2, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow2, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flowOut2, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flow2, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform writeonly image2D flow2;\nlayout(binding = 1, rgba32f) uniform readonly image2D flowOut2;\nlayout(binding = 2, rgba32f) uniform readonly image2D level2;\nlayout(binding = 3) uniform inpaint\n{\n    float strength;\n}\nsettings;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut2);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut2, coord);\n    float centerConf = thisFlow.b;\n    float centerIntensity = imageLoad(level2, coord).r;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow2, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flowOut2, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n            \n            float nIntensity = imageLoad(level2, nCoord).r;\n            float diff = abs(nIntensity - centerIntensity);\n            float range = exp(-diff * settings.strength); // più è diverso, meno influenza \n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf * range;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flow2, coord, vec4(newFlow, newConf, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -800,8 +868,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 4104.385925769805908, 1910.0, 465.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd3 @threads 15 9 1 @read flow3 @write flowOut3"
+					"patching_rect" : [ 4104.385925769805908, 1910.0, 499.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd3 @threads 15 9 1 @read flow3 level3 @write flowOut3"
 				}
 
 			}
@@ -812,8 +880,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 4104.385925769805908, 1843.333388268947601, 469.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven3 @threads 15 9 1 @read flowOut3 @write flow3"
+					"patching_rect" : [ 4104.385925769805908, 1843.333388268947601, 504.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven3 @threads 15 9 1 @read flowOut3 level3 @write flow3"
 				}
 
 			}
@@ -825,10 +893,10 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 4603.385925769805908, 1843.333388268947601, 199.0, 22.0 ],
+					"patching_rect" : [ 4619.0, 1842.678554475307465, 199.0, 22.0 ],
 					"text" : "jit.gpu.shader @name inpaintEven3",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform writeonly image2D flow3;\nlayout(binding = 1, rgba32f) uniform readonly image2D flowOut3;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut3);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut3, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow3, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flowOut3, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flow3, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform writeonly image2D flow3;\nlayout(binding = 1, rgba32f) uniform readonly image2D flowOut3;\nlayout(binding = 2, rgba32f) uniform readonly image2D level3;\nlayout(binding = 3) uniform inpaint\n{\n    float strength;\n}\nsettings;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut3);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut3, coord);\n    float centerConf = thisFlow.b;\n    float centerIntensity = imageLoad(level3, coord).r;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow3, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flowOut3, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n            \n            float nIntensity = imageLoad(level3, nCoord).r;\n            float diff = abs(nIntensity - centerIntensity);\n            float range = exp(-diff * settings.strength); // più è diverso, meno influenza \n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf * range;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flow3, coord, vec4(newFlow, newConf, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -845,8 +913,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 3205.263127326965332, 1910.0, 458.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd4 @threads 8 5 1 @read flow4 @write flowOut4"
+					"patching_rect" : [ 3205.263127326965332, 1910.0, 493.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd4 @threads 8 5 1 @read flow4 level4 @write flowOut4"
 				}
 
 			}
@@ -857,8 +925,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 3205.263127326965332, 1843.333388268947601, 463.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven4 @threads 8 5 1 @read flowOut4 @write flow4"
+					"patching_rect" : [ 3205.263127326965332, 1843.333388268947601, 497.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven4 @threads 8 5 1 @read flowOut4 level4 @write flow4"
 				}
 
 			}
@@ -870,10 +938,10 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 3699.263127326965332, 1843.333388268947601, 199.0, 22.0 ],
+					"patching_rect" : [ 3718.0, 1843.678554475307465, 199.0, 22.0 ],
 					"text" : "jit.gpu.shader @name inpaintEven4",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform writeonly image2D flow4;\nlayout(binding = 1, rgba32f) uniform readonly image2D flowOut4;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut4);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut4, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow4, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flowOut4, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flow4, coord, vec4(newFlow, newConf, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform writeonly image2D flow4;\nlayout(binding = 1, rgba32f) uniform readonly image2D flowOut4;\nlayout(binding = 2, rgba32f) uniform readonly image2D level4;\nlayout(binding = 3) uniform inpaint\n{\n    float strength;\n}\nsettings;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut4);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut4, coord);\n    float centerConf = thisFlow.b;\n    float centerIntensity = imageLoad(level4, coord).r;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow4, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flowOut4, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n            \n            float nIntensity = imageLoad(level4, nCoord).r;\n            float diff = abs(nIntensity - centerIntensity);\n            float range = exp(-diff * settings.strength); // più è diverso, meno influenza \n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf * range;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flow4, coord, vec4(newFlow, newConf, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -890,8 +958,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 2330.000069439411163, 1900.666723310947418, 458.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd5 @threads 4 3 1 @read flow5 @write flowOut5"
+					"patching_rect" : [ 2330.000069439411163, 1900.666723310947418, 493.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd5 @threads 4 3 1 @read flow5 level5 @write flowOut5"
 				}
 
 			}
@@ -902,8 +970,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 2330.000069439411163, 1843.333388268947601, 463.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintEven5 @threads 4 3 1 @read flowOut5 @write flow5"
+					"patching_rect" : [ 2330.000069439411163, 1843.333388268947601, 497.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintEven5 @threads 4 3 1 @read flowOut5 level5 @write flow5"
 				}
 
 			}
@@ -915,10 +983,10 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 2824.000084161758423, 1843.333388268947601, 199.0, 22.0 ],
+					"patching_rect" : [ 2840.500069439411163, 1843.140333652496338, 199.0, 22.0 ],
 					"text" : "jit.gpu.shader @name inpaintEven5",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform writeonly image2D flow5;\nlayout(binding = 1, rgba32f) uniform readonly image2D flowOut5;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut5);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut5, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow5, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flowOut5, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flow5, coord, vec4(newFlow, newConf, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform writeonly image2D flow5;\nlayout(binding = 1, rgba32f) uniform readonly image2D flowOut5;\nlayout(binding = 2, rgba32f) uniform readonly image2D level5;\nlayout(binding = 3) uniform inpaint\n{\n    float strength;\n}\nsettings;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flowOut5);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flowOut5, coord);\n    float centerConf = thisFlow.b;\n    float centerIntensity = imageLoad(level5, coord).r;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flow5, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flowOut5, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n\n            float nIntensity = imageLoad(level5, nCoord).r;\n            float diff = abs(nIntensity - centerIntensity);\n            float range = exp(-diff * settings.strength); // più è diverso, meno influenza \n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf * range;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flow5, coord, vec4(newFlow, newConf, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -1019,8 +1087,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6929.824495315551758, 1804.661059975624084, 478.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd0 @threads 120 68 1 @read flow0 @write flowOut0"
+					"patching_rect" : [ 6929.824495315551758, 1804.661059975624084, 513.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd0 @threads 120 68 1 @read flow0 level0 @write flowOut0"
 				}
 
 			}
@@ -1035,7 +1103,7 @@
 					"patching_rect" : [ 7481.0, 1804.661059975624084, 194.0, 22.0 ],
 					"text" : "jit.gpu.shader @name inpaintOdd0",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow0;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut0;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow0);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow0, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut0, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flow0, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flowOut0, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow0;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut0;\nlayout(binding = 2, rgba32f) uniform readonly image2D level0;\nlayout(binding = 3) uniform inpaint\n{\n    float strength;\n}\nsettings;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow0);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow0, coord);\n    float centerConf = thisFlow.b;\n    float centerIntensity = imageLoad(level0, coord).r;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut0, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flow0, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n\n            float nIntensity = imageLoad(level0, nCoord).r;\n            float diff = abs(nIntensity - centerIntensity);\n            float range = exp(-diff * settings.strength); // più è diverso, meno influenza \n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf * range;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flowOut0, coord, vec4(newFlow, newConf, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -1052,8 +1120,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 6004.385907649993896, 1802.678554236888885, 471.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd1 @threads 60 34 1 @read flow1 @write flowOut1"
+					"patching_rect" : [ 6004.385907649993896, 1802.678554236888885, 506.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd1 @threads 60 34 1 @read flow1 level1 @write flowOut1"
 				}
 
 			}
@@ -1068,7 +1136,7 @@
 					"patching_rect" : [ 6564.534648954868317, 1802.906912267208099, 194.0, 22.0 ],
 					"text" : "jit.gpu.shader @name inpaintOdd1",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow1;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut1;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow1);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow1, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut1, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flow1, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flowOut1, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow1;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut1;\nlayout(binding = 2, rgba32f) uniform readonly image2D level1;\nlayout(binding = 3) uniform inpaint\n{\n    float strength;\n}\nsettings;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow1);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow1, coord);\n    float centerConf = thisFlow.b;\n    float centerIntensity = imageLoad(level1, coord).r;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut1, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flow1, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n\n            float nIntensity = imageLoad(level1, nCoord).r;\n            float diff = abs(nIntensity - centerIntensity);\n            float range = exp(-diff * settings.strength); // più è diverso, meno influenza \n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf * range;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flowOut1, coord, vec4(newFlow, newConf, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -1085,8 +1153,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 5025.438548564910889, 1777.678554475307465, 471.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd2 @threads 30 17 1 @read flow2 @write flowOut2"
+					"patching_rect" : [ 5025.438548564910889, 1777.678554475307465, 506.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd2 @threads 30 17 1 @read flow2 level2 @write flowOut2"
 				}
 
 			}
@@ -1101,7 +1169,7 @@
 					"patching_rect" : [ 5573.684157371520996, 1777.678554475307465, 194.0, 22.0 ],
 					"text" : "jit.gpu.shader @name inpaintOdd2",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow2;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut2;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow2);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow2, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut2, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flow2, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flowOut2, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow2;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut2;\nlayout(binding = 2, rgba32f) uniform readonly image2D level2;\nlayout(binding = 3) uniform inpaint\n{\n    float strength;\n}\nsettings;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow2);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow2, coord);\n    float centerConf = thisFlow.b;\n    float centerIntensity = imageLoad(level2, coord).r;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut2, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flow2, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n\n            float nIntensity = imageLoad(level2, nCoord).r;\n            float diff = abs(nIntensity - centerIntensity);\n            float range = exp(-diff * settings.strength); // più è diverso, meno influenza \n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf * range;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flowOut2, coord, vec4(newFlow, newConf, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -1118,8 +1186,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 4104.385925769805908, 1777.678554475307465, 465.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd3 @threads 15 9 1 @read flow3 @write flowOut3"
+					"patching_rect" : [ 4104.385925769805908, 1777.678554475307465, 499.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd3 @threads 15 9 1 @read flow3 level3 @write flowOut3"
 				}
 
 			}
@@ -1131,10 +1199,10 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 4603.399078905582428, 1777.678554475307465, 194.0, 22.0 ],
+					"patching_rect" : [ 4619.0, 1777.678554475307465, 194.0, 22.0 ],
 					"text" : "jit.gpu.shader @name inpaintOdd3",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow3;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut3;\n\nvoid main() {\n\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow3);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow3, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut3, coord, thisFlow);\n        return;\n    }\n\n    // Altrimenti, facciamo la media pesata dei vicini\n    vec2 sum = vec2(0.0);\n    float wSum = 0.0;\n\n    for (int dy = -1; dy <= 1; ++dy) {\n        for (int dx = -1; dx <= 1; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 nFlowConf = imageLoad(flow3, nCoord).xyz;\n\n            // Pesi maggiori ai pixel con confidence alta\n            float weight = nFlowConf.z;\n            sum += weight * nFlowConf.xy;\n            wSum += weight;\n        }\n    }\n\n    vec2 newFlow = (wSum > 0.0) ? (sum / wSum) : vec2(0.0);\n    imageStore(flowOut3, coord, vec4(newFlow, wSum/9, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow3;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut3;\nlayout(binding = 2, rgba32f) uniform readonly image2D level3;\nlayout(binding = 3) uniform inpaint\n{\n    float strength;\n}\nsettings;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow3);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow3, coord);\n    float centerConf = thisFlow.b;\n    float centerIntensity = imageLoad(level3, coord).r;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut3, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flow3, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n\n            float nIntensity = imageLoad(level3, nCoord).r;\n            float diff = abs(nIntensity - centerIntensity);\n            float range = exp(-diff * settings.strength); // più è diverso, meno influenza \n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf * range;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flowOut3, coord, vec4(newFlow, newConf, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -1151,8 +1219,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 3205.263127326965332, 1777.678554475307465, 458.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd4 @threads 8 5 1 @read flow4 @write flowOut4"
+					"patching_rect" : [ 3205.263127326965332, 1777.678554475307465, 493.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd4 @threads 8 5 1 @read flow4 level4 @write flowOut4"
 				}
 
 			}
@@ -1164,10 +1232,10 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 3699.013122618198395, 1777.678554475307465, 194.0, 22.0 ],
+					"patching_rect" : [ 3717.0, 1777.678554475307465, 194.0, 22.0 ],
 					"text" : "jit.gpu.shader @name inpaintOdd4",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow4;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut4;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow4);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow4, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut4, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flow4, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flowOut4, coord, vec4(newFlow, newConf, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow4;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut4;\nlayout(binding = 2, rgba32f) uniform readonly image2D level4;\nlayout(binding = 3) uniform inpaint\n{\n    float strength;\n}\nsettings;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow4);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow4, coord);\n    float centerConf = thisFlow.b;\n    float centerIntensity = imageLoad(level4, coord).r;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut4, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flow4, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n\n            float nIntensity = imageLoad(level4, nCoord).r;\n            float diff = abs(nIntensity - centerIntensity);\n            float range = exp(-diff * settings.strength); // più è diverso, meno influenza \n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf * range;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flowOut4, coord, vec4(newFlow, newConf, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -1184,8 +1252,8 @@
 					"numinlets" : 2,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 2329.824539184570312, 1782.140333652496338, 458.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader inpaintOdd5 @threads 4 3 1 @read flow5 @write flowOut5"
+					"patching_rect" : [ 2329.824539184570312, 1782.140333652496338, 493.0, 22.0 ],
+					"text" : "jit.gpu.compute @shader inpaintOdd5 @threads 4 3 1 @read flow5 level5 @write flowOut5"
 				}
 
 			}
@@ -1197,10 +1265,10 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 2823.684183597564697, 1782.140333652496338, 194.0, 22.0 ],
+					"patching_rect" : [ 2840.500069439411163, 1782.140333652496338, 194.0, 22.0 ],
 					"text" : "jit.gpu.shader @name inpaintOdd5",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow5;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut5;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow5);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow5, coord);\n    float centerConf = thisFlow.b;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut5, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flow5, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flowOut5, coord, vec4(newFlow, newConf, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D flow5;\nlayout(binding = 1, rgba32f) uniform writeonly image2D flowOut5;\nlayout(binding = 2, rgba32f) uniform readonly image2D level5;\nlayout(binding = 3) uniform inpaint\n{\n    float strength;\n}\nsettings;\n\n// Kernel Gaussiano 5×5 (simmetrico)\nconst float kernel[5][5] = float[5][5](\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](6.0,24.0,36.0,24.0,6.0),\n    float[5](4.0,16.0,24.0,16.0,4.0),\n    float[5](1.0, 4.0, 6.0, 4.0, 1.0)\n);\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(flow5);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    // Confidence corrente\n    vec4 thisFlow = imageLoad(flow5, coord);\n    float centerConf = thisFlow.b;\n    float centerIntensity = imageLoad(level5, coord).r;\n\n    // Se la confidence è già buona, non toccare il flow\n    if (centerConf > 0.75) {\n        imageStore(flowOut5, coord, thisFlow);\n        return;\n    }\n\n    vec2 sumFlow = vec2(0.0);\n    float sumWeights = 0.0;\n    float sumConf = 0.0;\n\n    for (int dy = -2; dy <= 2; ++dy) {\n        for (int dx = -2; dx <= 2; ++dx) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 nCoord = clamp(coord + offset, ivec2(0), size - 1);\n\n            vec4 nVal = imageLoad(flow5, nCoord); // r,g = flow, b = confidence\n            vec2 nFlow = nVal.xy;\n            float nConf = nVal.b;\n\n            float nIntensity = imageLoad(level5, nCoord).r;\n            float diff = abs(nIntensity - centerIntensity);\n            float range = exp(-diff * settings.strength); // più è diverso, meno influenza \n\n            float spatialWeight = kernel[dy + 2][dx + 2];\n            float combinedWeight = spatialWeight * nConf * range;\n\n            sumFlow += combinedWeight * nFlow;\n            sumConf += combinedWeight * nConf;\n            sumWeights += combinedWeight;\n        }\n    }\n\n    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);\n    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;\n\n    imageStore(flowOut5, coord, vec4(newFlow, newConf, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -1257,24 +1325,13 @@
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-341",
-					"maxclass" : "comment",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 1967.0, 159.0, 58.0, 20.0 ],
-					"text" : "threshold"
-				}
-
-			}
-, 			{
-				"box" : 				{
 					"id" : "obj-292",
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 1816.350860595703125, 115.0, 100.0, 22.0 ],
-					"text" : "loadmess 0.0001"
+					"patching_rect" : [ 1816.350860595703125, 115.0, 113.0, 22.0 ],
+					"text" : "loadmess 0.000001"
 				}
 
 			}
@@ -1653,7 +1710,7 @@
 					"patching_rect" : [ 7545.61396312713623, 909.64911413192749, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow0",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient0;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow0; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient0);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient0, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    float scale = 1;// / 1;\n\n    if (abs(det) > settings.threshold*scale) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow0, coord).xy;\n    float confidence = smoothstep(scale*settings.confidence.x, scale*settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow0, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient0;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow0; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient0);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient0, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    // Calcolo scala dinamica\n    float baseScale = 100.0;\n    float levelScale = float(size.x * size.y) / (1920.0 * 1080.0);\n    float scale = baseScale * levelScale;\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow0, coord).xy;\n    float confidence = smoothstep(scale*settings.confidence.x, scale*settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow0, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -3551,7 +3608,7 @@
 					"patching_rect" : [ 6585.964849472045898, 909.64911413192749, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow1",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient1;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow1; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient1);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient1, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    float scale = 1;// / 2;\n\n    if (abs(det) > settings.threshold*scale) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow1, coord).xy;\n    float confidence = smoothstep(scale*settings.confidence.x, scale*settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow1, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient1;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow1; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient1);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient1, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    // Calcolo scala dinamica\n    float baseScale = 100.0;\n    float levelScale = float(size.x * size.y) / (1920.0 * 1080.0);\n    float scale = baseScale * levelScale;\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow1, coord).xy;\n    float confidence = smoothstep(scale*settings.confidence.x, scale*settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow1, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -3738,7 +3795,7 @@
 					"patching_rect" : [ 5610.526262283325195, 909.64911413192749, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow2",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient2;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow2; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient2);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient2, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    float scale = 1;// / 4;\n\n    if (abs(det) > settings.threshold*scale) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow2, coord).xy;\n    float confidence = smoothstep(scale*settings.confidence.x, scale*settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow2, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient2;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow2; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient2);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient2, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    // Calcolo scala dinamica\n    float baseScale = 100.0;\n    float levelScale = float(size.x * size.y) / (1920.0 * 1080.0);\n    float scale = baseScale * levelScale;\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow2, coord).xy;\n    float confidence = smoothstep(scale*settings.confidence.x, scale*settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow2, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -3925,7 +3982,7 @@
 					"patching_rect" : [ 4702.631534099578857, 908.771921157836914, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow3",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient3;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow3; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient3);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient3, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    float scale = 1;// / 8;\n\n    if (abs(det) > settings.threshold*scale) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow3, coord).xy;\n    float confidence = smoothstep(scale*settings.confidence.x, scale*settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow3, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient3;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow3; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient3);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient3, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    // Calcolo scala dinamica\n    float baseScale = 100.0;\n    float levelScale = float(size.x * size.y) / (1920.0 * 1080.0);\n    float scale = baseScale * levelScale;\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow3, coord).xy;\n    float confidence = smoothstep(scale*settings.confidence.x, scale*settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow3, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -4112,7 +4169,7 @@
 					"patching_rect" : [ 3779.824525356292725, 909.64911413192749, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow4",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient4;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow4; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient4);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient4, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    float scale = 1;// / 16;\n\n    if (abs(det) > settings.threshold*scale) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow4, coord).xy;\n    float confidence = smoothstep(scale*settings.confidence.x, scale*settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow4, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient4;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow4; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient4);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient4, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    // Calcolo scala dinamica\n    float baseScale = 100.0;\n    float levelScale = float(size.x * size.y) / (1920.0 * 1080.0);\n    float scale = baseScale * levelScale;\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow4, coord).xy;\n    float confidence = smoothstep(scale*settings.confidence.x, scale*settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow4, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -4323,7 +4380,7 @@
 					"patching_rect" : [ 2886.842077732086182, 909.64911413192749, 196.0, 22.0 ],
 					"text" : "jit.gpu.shader @name opticalFlow5",
 					"textfile" : 					{
-						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient5;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow5; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient5);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient5, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    float scale = 1;// / 32;\n\n    if (abs(det) > settings.threshold*scale) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow5, coord).xy;\n    float confidence = smoothstep(scale*settings.confidence.x, scale*settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow5, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
+						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(binding = 0, rgba32f) uniform readonly image2D gradient5;  // (Ix, Iy, It)\nlayout(binding = 1, rgba32f) uniform image2D flow5; // (du, dv)\nlayout(binding = 2) uniform flow_settings\n{\n    float threshold;\n    vec2 confidence;\n}\nsettings;\n\nvoid main() {\n    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(gradient5);\n    if (coord.x >= size.x || coord.y >= size.y) return;\n\n    float kernel[5][5] = float[5][5](\n        float[5](1, 4, 6, 4, 1),\n        float[5](4,16,24,16,4),\n        float[5](6,24,36,24,6),\n        float[5](4,16,24,16,4),\n        float[5](1, 4, 6, 4, 1)\n    );\n\n    float A11 = 0.0, A12 = 0.0, A22 = 0.0;\n    float b1  = 0.0, b2  = 0.0;\n\n    for (int dy = -2; dy <= 2; dy++) {\n        for (int dx = -2; dx <= 2; dx++) {\n            ivec2 offset = ivec2(dx, dy);\n            ivec2 pos = clamp(coord + offset, ivec2(0), size - 1);\n            vec3 g = imageLoad(gradient5, pos).rgb;\n\n            float Ix = g.r;\n            float Iy = g.g;\n            float It = g.b;\n            float w = kernel[dy + 2][dx + 2];\n\n            A11 += w * Ix * Ix;\n            A12 += w * Ix * Iy;\n            A22 += w * Iy * Iy;\n\n            b1  += w * Ix * It;\n            b2  += w * Iy * It;\n        }\n    }\n\n    // Risolvi il sistema lineare 2x2\n    float det = A11 * A22 - A12 * A12;\n    vec2 delta = vec2(0.0);\n\n    // Calcolo scala dinamica\n    float baseScale = 100.0;\n    float levelScale = float(size.x * size.y) / (1920.0 * 1080.0);\n    float scale = baseScale * levelScale;\n\n    if (abs(det) > settings.threshold) {\n        delta.x = (A22 * -b1 + A12 * b2) / det;\n        delta.y = (A11 * -b2 + A12 * b1) / det;\n    }\n\n    //add delta to previous flow\n    vec2 currentFlow = imageLoad(flow5, coord).xy;\n    float confidence = smoothstep(scale*settings.confidence.x, scale*settings.confidence.y, det);\n    delta *= confidence;\n    imageStore(flow5, coord, vec4(currentFlow + delta, confidence, 0.0));\n}\n",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -5548,18 +5605,6 @@
 					"outlettype" : [ "", "" ],
 					"patching_rect" : [ 108.982455730438232, 696.49122142791748, 404.0, 22.0 ],
 					"text" : "jit.gpu.image @name inImg @format RGBA32_FLOAT @dim 1920 1080 1"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-9",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 3,
-					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 108.982455730438232, 655.2631516456604, 175.0, 22.0 ],
-					"text" : "jit.gpu.fromtexture @dest inImg"
 				}
 
 			}
@@ -7131,6 +7176,20 @@
 			}
 , 			{
 				"patchline" : 				{
+					"destination" : [ "obj-387", 0 ],
+					"source" : [ "obj-386", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-404", 0 ],
+					"source" : [ "obj-387", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"destination" : [ "obj-63", 1 ],
 					"source" : [ "obj-388", 1 ]
 				}
@@ -7231,6 +7290,398 @@
 				"patchline" : 				{
 					"destination" : [ "obj-46", 1 ],
 					"source" : [ "obj-40", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-408", 0 ],
+					"source" : [ "obj-404", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-409", 0 ],
+					"source" : [ "obj-408", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-140", 0 ],
+					"order" : 6,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-170", 0 ],
+					"order" : 38,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-24", 0 ],
+					"order" : 37,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-25", 0 ],
+					"order" : 32,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-348", 0 ],
+					"order" : 31,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-35", 0 ],
+					"order" : 23,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-350", 0 ],
+					"order" : 36,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-352", 0 ],
+					"order" : 35,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-354", 0 ],
+					"order" : 30,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-355", 0 ],
+					"order" : 22,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-357", 0 ],
+					"order" : 21,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-358", 0 ],
+					"order" : 17,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-360", 0 ],
+					"order" : 16,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-361", 0 ],
+					"order" : 10,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-363", 0 ],
+					"order" : 9,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-364", 0 ],
+					"order" : 5,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-366", 0 ],
+					"order" : 2,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-368", 0 ],
+					"order" : 39,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-372", 0 ],
+					"order" : 33,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-377", 0 ],
+					"order" : 34,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-378", 0 ],
+					"order" : 24,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-379", 0 ],
+					"order" : 25,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-380", 0 ],
+					"order" : 14,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-381", 0 ],
+					"order" : 15,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-382", 0 ],
+					"order" : 7,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-383", 0 ],
+					"order" : 8,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-384", 0 ],
+					"order" : 1,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-385", 0 ],
+					"order" : 4,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-388", 0 ],
+					"order" : 40,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-389", 0 ],
+					"order" : 41,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-390", 0 ],
+					"order" : 28,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-391", 0 ],
+					"order" : 29,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-392", 0 ],
+					"order" : 26,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-393", 0 ],
+					"order" : 27,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-394", 0 ],
+					"order" : 19,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-395", 0 ],
+					"order" : 20,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-396", 0 ],
+					"order" : 12,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-397", 0 ],
+					"order" : 13,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-398", 0 ],
+					"order" : 0,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-399", 0 ],
+					"order" : 3,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-55", 0 ],
+					"order" : 18,
+					"source" : [ "obj-409", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"color" : [ 0.87843137254902, 0.945098039215686, 0.125490196078431, 1.0 ],
+					"destination" : [ "obj-89", 0 ],
+					"order" : 11,
+					"source" : [ "obj-409", 0 ]
 				}
 
 			}
@@ -8739,15 +9190,15 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-75", 0 ],
-					"source" : [ "obj-61", 0 ]
+					"destination" : [ "obj-11", 0 ],
+					"source" : [ "obj-61", 1 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-9", 0 ],
-					"source" : [ "obj-61", 1 ]
+					"destination" : [ "obj-75", 0 ],
+					"source" : [ "obj-61", 0 ]
 				}
 
 			}
