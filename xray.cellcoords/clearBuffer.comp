@@ -1,0 +1,21 @@
+#version 450
+
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+layout(std430, binding = 0) buffer pixCoord {
+    vec4 pix[]; 
+};
+
+layout(r32ui, binding = 1) uniform uimage2D counterImg;
+
+void main()
+{
+    const int coord = int(gl_GlobalInvocationID.x);
+    const int size = 300000;
+    if (coord.x >= size.x) return;
+    pix[coord] = vec4(0.0);
+
+    if(coord == 0){
+        imageStore(counterImg, ivec2(0), uvec4(0));
+    }
+}

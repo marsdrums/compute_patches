@@ -1,0 +1,57 @@
+#version 460
+layout(local_size_x = 1, local_size_y = 16) in;
+
+layout(binding = 0, rg32f) uniform image2D levelImg;
+
+layout(binding = 1) uniform Config {
+    ivec2 size;
+    int readOffset;
+    int writeOffset;
+} config;
+
+// +4 for the borders above and below
+shared float column[16 + 4];
+
+void main() {
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy); 
+    ivec2 lid = ivec2(gl_LocalInvocationID.xy);  
+    ivec2 size = config.size / ivec2(2,1);
+
+    int sharedIndex = lid.y + 2;
+    int limit = size.y - 1;
+    int shiftedX = gid.x + config.readOffset;
+
+    // Load the central pixel
+    int yCenter = clamp(gid.y, 0, limit);
+    column[sharedIndex] = imageLoad(levelImg, ivec2(shiftedX, yCenter)).g;
+
+    // Load upper borders
+    if (lid.y < 2) {
+        int borderY = clamp(gid.y - 2, 0, limit);
+        column[lid.y] = imageLoad(levelImg, ivec2(shiftedX, borderY)).g;
+    }
+
+    // Load lower borders
+    if (lid.y >= 14) {
+        int borderY = clamp(gid.y + 2, 0, limit);
+        column[sharedIndex + 2] = imageLoad(levelImg, ivec2(shiftedX, borderY)).g;
+    }
+
+    barrier();
+
+    // Apply vertical Gaussian blur
+    float kernel[5] = float[](1.0, 4.0, 6.0, 4.0, 1.0);
+
+    float res = 0.0;
+    for (int i = -2; i <= 2; ++i) {
+        res += column[sharedIndex + i] * kernel[i + 2];
+    }
+    res /= 16.0;
+
+    // Write the result
+    if (gid.x < size.x && gid.y < size.y && gid.y % 2 == 0) {
+        ivec2 halfCoord = gid / ivec2(1,2);
+        ivec2 writeCoord = halfCoord + ivec2(config.writeOffset, 0);
+        imageStore(levelImg, writeCoord, vec4(res));
+    }
+}

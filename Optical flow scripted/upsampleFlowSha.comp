@@ -1,0 +1,40 @@
+#version 460
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(binding = 0, rgba32f) uniform image2D flowImg; 
+layout(binding = 1) uniform Config
+{
+    ivec2 sizeLow;
+    ivec2 sizeHigh;
+    int readOffset;
+    int writeOffset;
+}
+config;
+
+void main() {
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+
+    if (gid.x >= config.sizeHigh.x || gid.y >= config.sizeHigh.y) return;
+
+    // correspondig gid in the lower level
+    vec2 uvLow = vec2(gid) / 2.0;
+
+    uvLow = clamp(uvLow, vec2(0.0), vec2(config.sizeLow - 1));
+    ivec2 iuv = ivec2(floor(uvLow)) + ivec2(config.readOffset, 0);
+    vec2 f = fract(uvLow);
+
+    vec2 a = imageLoad(flowImg, iuv).xy;
+    vec2 b = imageLoad(flowImg, iuv + ivec2(1, 0)).xy;
+    vec2 c = imageLoad(flowImg, iuv + ivec2(0, 1)).xy;
+    vec2 d = imageLoad(flowImg, iuv + ivec2(1, 1)).xy;
+
+    vec2 ab = mix(a, b, f.x);
+    vec2 cd = mix(c, d, f.x);
+    vec2 upsampledFlow = mix(ab, cd, f.y);
+
+    // Scale the flow (because 1 px in low = 2 px in high)
+    upsampledFlow *= 2.0;
+
+    imageStore(flowImg, gid + ivec2(config.writeOffset, 0), vec4(upsampledFlow, 0.0, 0.0));
+}

@@ -1,0 +1,63 @@
+#version 460
+
+layout(binding = 0, rgba32f) uniform image2D posImg;
+layout(binding = 1, rgba32f) uniform image2D prevPosImg;
+layout(binding = 2, rgba32f) uniform image2D finalRender;
+
+layout(binding = 3) uniform Cfg {
+    vec4 p0;
+    vec4 p1;
+    vec4 p2;
+    vec4 p3;
+    vec4 v0;
+    vec4 v1;
+    vec4 v2;
+    vec4 v3;
+    float radius;
+    
+};
+
+layout(local_size_x = 32, local_size_y = 32) in;
+
+void main(){
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(posImg);
+
+    if(gid.x >= size.x || gid.y >= size.y) return;
+
+    mat4 V = mat4(v0, v1, v2, v3);
+    mat4 P = mat4(-p0, p1, -p2, p3);
+
+    vec4 wPos = vec4(imageLoad(posImg, gid).xyz, 1.0);
+    vec4 vPos = V * wPos;
+
+    //return if the particle is behind the camera
+    if(vPos.z > 0.0 || vPos.z < -100) return;
+
+    vec4 cPos = P * vPos;
+    cPos.xyz /= cPos.w;
+
+    ivec2 finalRenderSize = imageSize(finalRender);
+    vec2 uv = vec2(finalRenderSize) * (cPos.xy*0.5 + 0.5);
+
+    float divisor = max(0.01, -vPos.z);
+    ivec2 coord;
+    float sos = max(1.0, 2*radius / divisor);
+    for(coord.x = int(floor(uv.x-sos)); 
+        coord.x <= int(floor(uv.x+sos)); 
+        coord.x++){
+
+        for(coord.y = int(floor(uv.y-sos)); 
+            coord.y <= int(floor(uv.y+sos)); 
+            coord.y++){
+
+            if( coord.x < 0 || 
+                coord.y < 0 || 
+                coord.x >= finalRenderSize.x || 
+                coord.y >= finalRenderSize.y) {continue; }
+
+            imageStore(finalRender, coord, vec4(1.0));
+        }
+    }    
+}

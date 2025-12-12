@@ -466,26 +466,6 @@
 			}
 , 			{
 				"box" : 				{
-					"filename" : "jit.fx.cf.bilateral.jxs",
-					"id" : "obj-291",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 2,
-					"outlettype" : [ "jit_gl_texture", "" ],
-					"patching_rect" : [ 904.0, 476.0, 88.0, 22.0 ],
-					"text" : "jit.fx.cf.bilateral",
-					"textfile" : 					{
-						"filename" : "jit.fx.cf.bilateral.jxs",
-						"flags" : 0,
-						"embed" : 0,
-						"autowatch" : 1
-					}
-
-				}
-
-			}
-, 			{
-				"box" : 				{
 					"id" : "obj-384",
 					"maxclass" : "newobj",
 					"numinlets" : 2,
@@ -1318,7 +1298,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 814.035079956054688, 611.403502941131592, 201.0, 22.0 ],
+					"patching_rect" : [ 557.0, 563.0, 201.0, 22.0 ],
 					"text" : "jit.gl.videoplane @transform_reset 2"
 				}
 
@@ -5806,7 +5786,7 @@
 					"numinlets" : 0,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 1291.228057861328125, 768.421045303344727, 179.0, 22.0 ],
+					"patching_rect" : [ 1283.350864887237549, 709.649116039276123, 179.0, 22.0 ],
 					"text" : "jit.gpu.shader @name rgb2luma",
 					"textfile" : 					{
 						"text" : "#version 460\nlayout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;\n\nlayout(binding = 0, rgba32f) readonly uniform image2D inImg;\nlayout(binding = 1, rgba32f) writeonly uniform image2D level0;\n\nvoid main() {\n\n    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(level0);\n\n    if(gid.x >= size.x || gid.y >= size.y) return;\n\n    vec3 col = imageLoad(inImg, gid).rgb;\n    col = floor(col*256);\n    float luma = (col.x + col.y*256 + col.z*65536)/16777216;\n    //float luma = dot(vec3(0.299, 0.587, 0.114), col);\n    //float luma = length(col);\n    imageStore(level0, gid, vec4(luma));\n}",
@@ -5840,6 +5820,19 @@
 					"outlettype" : [ "jit_matrix", "bang", "" ],
 					"patching_rect" : [ 43.859648704528809, 97.368420124053955, 197.0, 22.0 ],
 					"text" : "jit.world @floating 1 @size 960 540"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"attr" : "format",
+					"id" : "obj-9",
+					"maxclass" : "attrui",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"parameter_enable" : 0,
+					"patching_rect" : [ 76.0, 1351.0, 150.0, 22.0 ]
 				}
 
 			}
@@ -6268,7 +6261,7 @@
 				"patchline" : 				{
 					"destination" : [ "obj-231", 0 ],
 					"midpoints" : [ 561.078941822052002, 532.0, 644.903160572052002, 532.0, 644.903160572052002, 440.877188682556152, 591.078941822052002, 440.877188682556152 ],
-					"order" : 1,
+					"order" : 0,
 					"source" : [ "obj-230", 0 ]
 				}
 
@@ -6276,7 +6269,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-342", 0 ],
-					"order" : 0,
+					"order" : 1,
 					"source" : [ "obj-230", 0 ]
 				}
 
@@ -9302,6 +9295,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-361", 1 ],
 					"source" : [ "obj-89", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-70", 0 ],
+					"source" : [ "obj-9", 0 ]
 				}
 
 			}

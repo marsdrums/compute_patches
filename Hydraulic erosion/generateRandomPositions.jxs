@@ -1,0 +1,43 @@
+#version 450
+
+layout(std430, set = 0, binding = 0) buffer droplets {
+    uint count;
+    vec3 droplet[];
+};
+
+layout(set = 0, rgba32f, binding = 1) uniform image2D terrainImg;
+
+layout(binding = 2) uniform Config {
+    float frame;
+};
+
+layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
+
+//Random functions
+uint wang_hash(inout uint seed)
+{
+    seed = uint(seed ^ uint(61)) ^ uint(seed >> uint(16));
+    seed *= uint(9);
+    seed = seed ^ (seed >> 4);
+    seed *= uint(0x27d4eb2d);
+    seed = seed ^ (seed >> 15);
+    return seed;
+}
+ 
+float RandomFloat01(inout uint seed)
+{
+    return float(wang_hash(seed)) / 4294967296.0;
+}
+
+void main(){
+
+    uint gid = gl_GlobalInvocationID.x;
+    vec2 size = vec2(imageSize(terrainImg).xy);
+
+    if(gid >= 1024) return;
+    uint seed = gid + uint(frame*1024) + 9999u;
+
+    droplet[gid] = vec3(    RandomFloat01(seed)*size.x,
+                            RandomFloat01(seed)*size.y,
+                            0.0);
+}

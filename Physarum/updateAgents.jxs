@@ -1,0 +1,133 @@
+#version 450
+
+struct Agent {
+    vec2 pos;
+    vec2 vel;
+    float angle;
+};
+
+layout(std430, set = 0, binding = 0) buffer agentsBuff {
+    uint count;
+    Agent agents[];
+};
+
+layout(set = 0, r32f, binding = 1) uniform image2D rendImg;
+layout(set = 0, rgba32f, binding = 2) uniform image2D shadedImg;
+
+layout(binding = 3) uniform Cfg {
+    float senseAngle;
+    float turnAngle;
+    float senseDist;
+    float speed;
+    uint frame;
+    float maxPheromone;
+    float evaporate;
+};
+
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+#define HALFPI 1.5707963267948966
+
+//___ RNG functions
+uint wang_hash(inout uint seed){
+
+    seed = uint(seed ^ uint(61)) ^ uint(seed >> uint(16));
+    seed *= uint(9);
+    seed = seed ^ (seed >> 4);
+    seed *= uint(0x27d4eb2d);
+    seed = seed ^ (seed >> 15);
+    return seed;
+}
+ 
+float RandomFloat01(inout uint seed){
+
+    return float(wang_hash(seed)) / 4294967296.0;
+}
+
+vec3 RandomUnitVector(inout uint seed){
+
+    float z = RandomFloat01(seed) * 2.0f - 1.0f;
+    float a = RandomFloat01(seed) * 6.28318530718;
+    float r = sqrt(1.0f - z * z);
+    float x = r * cos(a);
+    float y = r * sin(a);
+    return vec3(x, y, z);
+}
+
+uint getRandSeed(uint idx){ 
+	return  idx + frame*count; 
+}
+
+ivec2 contain(ivec2 iuv){
+    return max(ivec2(0), min(ivec2(1919, 1079), iuv));
+}
+
+float findNewAngle( in float ang, 
+                    in vec2 pos, 
+                    in float sa, 
+                    in float ta,
+                    in float dist, 
+                    inout uint seed){
+
+    float testAngle, fVal, lVal, rVal;
+    ivec2 iuv;
+
+    //forward
+    testAngle = ang;// + f*sa;
+    iuv = ivec2(pos + vec2(cos(testAngle), sin(testAngle)) * dist);
+    fVal = imageLoad(rendImg, contain(iuv)).r;
+
+    //left
+    testAngle = ang - sa;
+    iuv = ivec2(pos + vec2(cos(testAngle), sin(testAngle)) * dist);
+    lVal = imageLoad(rendImg, contain(iuv)).r;
+
+    //right
+    testAngle = ang + sa;
+    iuv = ivec2(pos + vec2(cos(testAngle), sin(testAngle)) * dist);
+    rVal = imageLoad(rendImg, contain(iuv)).r;
+
+    float rand = RandomFloat01(seed);
+ 
+    if (fVal >= lVal && fVal >= rVal) { return ang; } 
+    else if (fVal < lVal && fVal < rVal) { return ang + (rand - 0.5) * 2 * ta; } 
+    else if (lVal > rVal) { return ang + rand * ta; } 
+    else if (rVal > lVal) { return ang + -rand * ta; } 
+    else { return ang; }
+}
+
+void main(){
+
+    uint idx = gl_GlobalInvocationID.x;
+    vec2 rendImgSize = vec2(imageSize(rendImg));
+
+    if (idx >= count) return;
+    
+    Agent a = agents[idx];
+
+    uint seed = getRandSeed(idx);
+
+    a.angle = findNewAngle(a.angle, a.pos, senseAngle*0.5, turnAngle*0.5, senseDist, seed);
+/*
+    vec2 shift = vec2(cos(a.angle), sin(a.angle))*speed;
+    vec2 newPos = a.pos + shift;
+    if(newPos.x < 0){
+        a.angle += shift.y < 0 ? HALFPI : -HALFPI;
+    }
+    if(newPos.y < 0){
+        a.angle += shift.x > 0 ? HALFPI : -HALFPI;
+    }
+    if(newPos.x >= rendImgSize.x){
+        a.angle += shift.y > 0 ? HALFPI : -HALFPI;
+    }
+    if(newPos.y >= rendImgSize.y){
+        a.angle += shift.x < 0 ? HALFPI : -HALFPI;
+    }
+*/
+    a.pos += vec2(cos(a.angle), sin(a.angle))*speed;
+    a.pos += rendImgSize*10;
+    a.pos = mod(a.pos, rendImgSize);
+
+    agents[idx] = a;
+
+}

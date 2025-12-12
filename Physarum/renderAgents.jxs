@@ -1,0 +1,39 @@
+#version 450
+
+struct Agent {
+    vec2 pos;
+    vec2 vel;
+    float angle;
+};
+
+layout(std430, set = 0, binding = 0) buffer agentsBuff {
+    uint count;
+    Agent agents[];
+};
+
+layout(set = 0, r32f, binding = 1) uniform image2D rendImg;
+layout(set = 0, rgba32f, binding = 2) uniform image2D shadedImg;
+
+layout(binding = 3) uniform Cfg {
+    float senseAngle;
+    float turnAngle;
+    float senseDist;
+    float speed;
+    uint frame;
+    float maxPheromone;
+    float evaporate;
+};
+
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+void main(){
+
+    uint idx = gl_GlobalInvocationID.x;
+
+    if (idx >= count) return;
+    
+    Agent a = agents[idx];
+
+    float curr = imageLoad(rendImg, ivec2(a.pos)).r;
+    imageStore(rendImg, ivec2(a.pos), vec4(min(300, 1.0 + curr)));
+}

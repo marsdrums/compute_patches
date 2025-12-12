@@ -1,0 +1,117 @@
+<jittershader name="fill-flat-triangles">
+	<description>Default Shader </description>
+	<param name="position" type="vec3" state="POSITION" />
+	<param name="instancePos" type="vec3" state="VERTEX_ATTR0" />
+	<param name="heightMap" type="int" default="0" />
+	<param name="norTex" type="int" default="1" />
+	<param name="voronoiTex" type="int" default="2" />
+	<param name="heightMapDim" type="vec2" state="TEXDIM1" />
+	<param name="modelViewProjectionMatrix" type="mat4" state="MODELVIEW_PROJECTION_MATRIX" />
+	<param name="tree_density" type="float" default="1.5" />
+	<param name="tree_height" type="float" default="0.02" />
+	<param name="tree_size" type="float" default="1.0" />
+	<language name="glsl" version="1.5">
+		<bind param="position" program="vp" />
+		<bind param="instancePos" program="vp" />
+		<bind param="voronoiTex" program="fp" />
+		<bind param="norTex" program="fp" />
+		<bind param="heightMap" program="vp" />
+		<bind param="heightMap" program="fp" />
+		<bind param="heightMapDim" program="vp" />
+		<bind param="modelViewProjectionMatrix" program="vp" />
+		<bind param="tree_density" program="fp" />
+		<bind param="tree_height" program="vp" />
+		<bind param="tree_size" program="fp" />
+		<program name="vp" type="vertex">
+<![CDATA[
+#version 330 core
+uniform mat4 modelViewProjectionMatrix;
+uniform sampler2DRect heightMap;
+uniform vec2 heightMapDim;
+in vec3 position, instancePos;
+uniform float tree_height;
+
+out jit_PerVertex {
+	smooth vec2 uv;
+	flat float instance;
+} jit_out;
+
+void main() {	
+
+	float h = texture(heightMap, vec2(1-position.x, position.y)*(1024-1)).r;
+	h += 0.002;
+	float shifter = max(0.0, instancePos.y*1.3 - 0.3);
+	vec3 p = vec3((1-position.x)*2-1, h + shifter*tree_height, position.y*2-1);
+	gl_Position = modelViewProjectionMatrix * vec4(p, 1.);	
+	jit_out.instance = instancePos.y*1.3 - 0.3;
+	jit_out.uv = vec2(1-position.x, position.y);
+}
+]]>
+		</program>
+		<program name="fp" type="fragment">
+<![CDATA[
+#version 330 core
+
+uniform sampler2D voronoiTex;
+uniform sampler2DRect norTex, heightMap;
+uniform float tree_density, tree_size;
+
+in jit_PerVertex {
+	smooth vec2 uv;
+	flat float instance;
+} jit_in;
+
+out vec4 color;
+
+const vec3 ligDir = normalize(vec3(1,-0.4,0.4));
+
+void main() {
+
+	float shifter = max(0.0, -jit_in.instance);
+	vec4 vorNorRad = texture(voronoiTex, jit_in.uv*tree_density + shifter*ligDir.xz*0.06);
+	vec4 Nsha = texture(norTex, jit_in.uv*1024);
+	vec4 lookup = texture(heightMap, jit_in.uv*1024);
+
+	float treeRadius = vorNorRad.w-abs(jit_in.instance*0.8);
+	bool isFirst = jit_in.instance < 0.0 && Nsha.w == 1.0;
+
+	float variance1 = sin(100*(lookup.w + lookup.r + lookup.g))*0.5 + 0.5;
+	float variance2 = sin(150*(1 + lookup.w + lookup.r + 2*lookup.g + Nsha.x + Nsha.y + Nsha.z))*0.5 + 0.5;
+
+	if(	treeRadius <= (0.1 + variance2*0.05)*3 || 
+		Nsha.y < 0.5 || 
+		lookup.r > 0.7 || 
+		lookup.w < 0.2 ||
+		(jit_in.instance < 0.0 && Nsha.w == 0.0)){
+		discard;
+		return;
+	}
+
+	vec3 ligCol = vec3(3,2.5,2)*5;
+	float diff = max(0.0, dot(ligDir, vorNorRad.xyz));
+
+	//vec3 alb = mix(	vec3(0.1, 0.3, 0.1)*0.3, 
+	//				vec3(0.8), 
+	//				smoothstep(0.35,0.4,lookup.r)
+	//				);
+
+	vec3 alb = mix(	vec3(0.25, 0.3, 0.1)*0.3, 
+					vec3(0.35, 0.25, 0.1)*0.3, 
+					variance1);
+
+	alb = mix(	alb, 
+				vec3(0.8),
+				float((variance2-0.5)*0.1 + min(lookup.r,0.55) > 0.5)
+				);
+
+	float selfOcclusion = isFirst ? 1.0 : max(0.15, mix(1 - vorNorRad.w*1.4, 1.0, jit_in.instance));
+	vec3 res = isFirst ? vec3(0.0) : alb*diff*ligCol*Nsha.w*selfOcclusion;
+	res += vec3(0.5, 0.5, 1)*1.5*alb*selfOcclusion;
+	res *= isFirst ? 0.1 : 1.0;
+ 
+	color = vec4(res, isFirst ? 0.9 : 1.0);
+}	
+]]>
+		</program>
+	</language>
+</jittershader>

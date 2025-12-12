@@ -1,0 +1,20 @@
+#version 460
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(binding = 0, rgba32f) readonly uniform image2D inImg;
+layout(binding = 1, rg32f) writeonly uniform image2D levelImg;
+
+void main() {
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(inImg).xy;
+
+    if(gid.x >= size.x || gid.y >= size.y) return;
+
+    vec3 col = imageLoad(inImg, gid).rgb;
+    //col = floor(col*256);
+    //float luma = (col.x + col.y*256 + col.z*65536)/16777216;
+    float luma = dot(vec3(0.299, 0.587, 0.114), col);
+    //float luma = length(col);
+    imageStore(levelImg, gid, vec4(luma));
+}

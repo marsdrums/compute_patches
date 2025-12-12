@@ -1,0 +1,74 @@
+#version 460
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(binding = 0, rgba32f) uniform readonly image2D flowImg;
+layout(binding = 1, rgba32f) uniform writeonly image2D flowOutImg;
+layout(binding = 2, rg32f) uniform readonly image2D levelImg;
+layout(binding = 3) uniform Config
+{
+    ivec2 size;
+    int readOffset;
+    int writeOffset;
+    float strength;
+}
+config;
+
+// Gaussian Kernel 5×5 
+const float kernel[5][5] = float[5][5](
+    float[5](1.0, 4.0, 6.0, 4.0, 1.0),
+    float[5](4.0,16.0,24.0,16.0,4.0),
+    float[5](6.0,24.0,36.0,24.0,6.0),
+    float[5](4.0,16.0,24.0,16.0,4.0),
+    float[5](1.0, 4.0, 6.0, 4.0, 1.0)
+);
+
+void main() {
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+
+    if (gid.x >= config.size.x || gid.y >= config.size.y) return;
+
+    ivec2 readOffset = ivec2(config.readOffset, 0);
+    ivec2 gidOffset = gid + readOffset;
+
+    // Current confidence
+    vec4 thisFlow = imageLoad(flowImg, gidOffset);
+    float centerConf = thisFlow.b;
+    float centerIntensity = imageLoad(levelImg, gidOffset).r;
+
+    // If confidence is good already, leave the flow untouched
+    if (centerConf > 0.75) {
+        imageStore(flowOutImg, gidOffset, thisFlow);
+        return;
+    }
+
+    vec2 sumFlow = vec2(0.0);
+    float sumWeights = 0.0;
+    float sumConf = 0.0;
+
+    for (int dy = -2; dy <= 2; ++dy) {
+        for (int dx = -2; dx <= 2; ++dx) {
+            ivec2 offset = ivec2(dx, dy);
+            ivec2 nCoord = clamp(gid + offset, ivec2(0), config.size - 1) + readOffset;
+
+            vec4 nVal = imageLoad(flowImg, nCoord); // r,g = flow, b = confidence
+            vec2 nFlow = nVal.xy;
+            float nConf = nVal.b;
+
+            float nIntensity = imageLoad(levelImg, nCoord).r;
+            float diff = abs(nIntensity - centerIntensity);
+            float range = exp(-diff * config.strength); // more difference = less influence
+
+            float spatialWeight = kernel[dy + 2][dx + 2];
+            float combinedWeight = spatialWeight * nConf * range;
+
+            sumFlow += combinedWeight * nFlow;
+            sumConf += combinedWeight * nConf;
+            sumWeights += combinedWeight;
+        }
+    }
+
+    vec2 newFlow = (sumWeights > 0.0) ? (sumFlow / sumWeights) : vec2(0.0);
+    float newConf = (sumWeights > 0.0) ? (sumConf / sumWeights) : 0.0;
+
+    imageStore(flowOutImg, gidOffset, vec4(newFlow, newConf, 0.0));
+}

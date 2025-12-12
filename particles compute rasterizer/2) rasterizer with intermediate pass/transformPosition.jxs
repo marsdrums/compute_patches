@@ -1,0 +1,162 @@
+#version 460
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(binding = 0, rgba32f) uniform image2D posImg;
+
+layout(std430, binding = 1) buffer countBuff {
+    uint count;      // non usato direttamente, ma resta per layout
+    uint counter[];  // contatori per cella (tutti i livelli)
+};
+
+layout(std430, set = 0, binding = 2) buffer grid {
+    uint cell[];     // liste di particelle per cella (tutti i livelli)
+};
+
+layout(binding = 3) uniform Config {
+    vec4 v0;
+    vec4 v1;
+    vec4 v2;
+    vec4 v3;
+    vec4 p0;
+    vec4 p1;
+    vec4 p2;
+    vec4 p3;
+    vec2 viewPort;   // dimensioni in pixel della finestra
+    uint numLevels;  // numero di livelli della griglia
+};
+
+const float radiusWorld = 0.003; // radius in world space
+const uint MAX_COUNT = 1024u;
+const float focal_dist = 2.0;
+const float dof = 4.0;
+
+shared mat4 V;
+shared mat4 P;
+
+uint getLinearID(ivec2 gid, ivec2 size) {
+    return uint(gid.x + gid.y * size.x);
+}
+
+// Ritorna la più piccola potenza di due >= n, e il livello corrispondente
+uint nextPow2(uint n, out uint level) {
+    uint thisPower = 1u;
+    for (uint i = 0u; i < numLevels; ++i) {
+        if (n <= thisPower) {
+            level = i;
+            return thisPower;
+        }
+        thisPower <<= 1; // *= 2
+    }
+
+    // Se n è più grande dell'ultimo livello, clamp all'ultimo
+    level = numLevels - 1u;
+    return thisPower >> 1; // ultima potenza valida
+}
+
+// Offset nel buffer di contatori/ celle per il livello richiesto
+uint calcOffset(uint level) {
+    float thisPower = 1.0;
+    uint offset = 0u;
+    // Somma tutte le celle dei livelli precedenti
+    for (uint i = 0u; i < level; ++i) {
+        offset += uint(ceil(viewPort.x / thisPower)) *
+                  uint(ceil(viewPort.y / thisPower));
+        thisPower *= 2.0;
+    }
+    return offset;
+}
+
+void main() {
+
+    ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(posImg);
+    if (gid.x >= size.x || gid.y >= size.y) return;
+
+    uint partID = getLinearID(gid, size);
+    vec3 pos    = imageLoad(posImg, gid).xyz;
+
+    if(gl_LocalInvocationIndex == 0){
+
+        // Build matrices
+        V = mat4(v0, v1, v2, v3);
+        P = mat4(-p0, p1, -p2, p3);
+    }
+
+    barrier();
+
+    vec4 vPos     = V * vec4(pos, 1.0);
+    vec4 projPos  = P * vPos;
+    vec2 ndcPos   = projPos.xy / projPos.w;  // NDC [-1,1]
+
+    if(
+        ndcPos.x < -1.0 || ndcPos.x > 1.0 ||
+        ndcPos.y < -1.0 || ndcPos.y > 1.0 ||
+        vPos.z >= 0.0){
+
+        return;
+    }
+
+    // NDC -> [0,1] -> pixel
+    vec2 screenPos = (ndcPos * 0.5 + 0.5) * viewPort;
+
+    vec4 offsetPos   = vPos + vec4(radiusWorld, 0.0, 0.0, 0.0);
+    vec4 offsetProj  = P * offsetPos;
+    vec2 offsetNDC   = offsetProj.xy / offsetProj.w;
+    vec2 offsetPixel = (offsetNDC * 0.5 + 0.5) * viewPort;
+
+    float radiusOnScreen = abs(offsetPixel.x - screenPos.x);
+    //radiusOnScreen *= dof*abs(-vPos.z - focal_dist) + 1.0;
+    radiusOnScreen       = max(0.5, radiusOnScreen); // at least half-pixel
+
+    // Store position in pixels + radius
+    imageStore(posImg, gid, vec4(screenPos.xy, radiusOnScreen * radiusOnScreen, 0.0));
+
+    // Diameter size in pixels
+    uint sizeOnScreen = uint(ceil(radiusOnScreen * 2.0));
+
+    // Select the level based on the size on screen
+    uint level = 0u;
+    uint cellSizePixels = nextPow2(sizeOnScreen, level);  // cellSize = 1,2,4,...
+
+    // Compute base offset for this level
+    uint offset = calcOffset(level);
+
+    float cellSize     = float(cellSizePixels);
+    float invCellSize  = 1.0 / cellSize;
+
+    float minXf = (screenPos.x - radiusOnScreen) * invCellSize;
+    float maxXf = (screenPos.x + radiusOnScreen) * invCellSize;
+    float minYf = (screenPos.y - radiusOnScreen) * invCellSize;
+    float maxYf = (screenPos.y + radiusOnScreen) * invCellSize;
+
+    int mapWidth  = int(ceil(viewPort.x * invCellSize));
+    int mapHeight = int(ceil(viewPort.y * invCellSize));
+
+    // Quantization + clamping (inclusive)
+    int ixMin = int(floor(minXf));
+    int ixMax = int(ceil (maxXf)) - 1;
+    int iyMin = int(floor(minYf));
+    int iyMax = int(ceil (maxYf)) - 1;
+
+
+    if (ixMax < ixMin || iyMax < iyMin) return;
+
+    for (int y = iyMin; y <= iyMax; ++y) {
+
+        int row = y * mapWidth;
+
+        for (int x = ixMin; x <= ixMax; ++x) {
+
+            uint coord = offset + uint(x + row);
+
+            // Atomically update the counter
+            uint oldCount = atomicAdd(counter[coord], 1u);
+
+            // Store this particle ID
+            if (oldCount < MAX_COUNT) {
+                cell[coord * MAX_COUNT + oldCount] = partID;
+            }
+        }
+    }
+}

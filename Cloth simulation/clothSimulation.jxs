@@ -1,0 +1,113 @@
+#version 460
+
+layout(rgba32f, set = 0, binding = 0) uniform image2D posImg;
+layout(rgba32f, set = 0, binding = 1) uniform image2D velImg;
+
+layout(set = 0, binding = 2) uniform Config
+{
+    float gravity;
+    float mass;
+    float springK;
+    float deltaT;
+    float damping;
+    float restLengthHoriz;
+    float restLengthVert;
+    float restLengthDiag;
+    int   evenOdd;
+};
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+// shared tile with a 1-pixel halo on each side
+const int TILE_X = int(gl_WorkGroupSize.x);
+const int TILE_Y = int(gl_WorkGroupSize.y);
+shared vec3 p[(TILE_X + 2) * (TILE_Y + 2)];
+
+int id2Index(ivec2 lid) { return lid.x + lid.y * (TILE_X + 2); }
+
+//read from shared array (adds +1 halo offset)
+vec3 readShared(ivec2 lid) {
+    ivec2 sh = lid + ivec2(1);
+    return p[id2Index(sh)];
+}
+
+// cooperative loading of (TILE_X+2)x(TILE_Y+2)
+void loadTileWithHalo(ivec2 groupOrigin, ivec2 size, ivec2 readBase)
+{
+    ivec2 lid = ivec2(gl_LocalInvocationID.xy);
+
+    // every thread loads one or more texels into shared memory
+    for (int y = lid.y; y < TILE_Y + 2; y += TILE_Y){
+        for (int x = lid.x; x < TILE_X + 2; x += TILE_X){
+            ivec2 local = ivec2(x, y);
+            ivec2 global = groupOrigin + local - ivec2(1);
+            global = clamp(global, ivec2(0), size - ivec2(1));
+            p[id2Index(local)] = imageLoad(posImg, global + readBase).xyz;
+        }
+    }
+
+    barrier();
+}
+
+vec3 calcSpringForce(ivec2 offset, float dist, float springK)
+{
+    ivec2 lid = ivec2(gl_LocalInvocationID.xy);
+    vec3 v = readShared(lid + offset) - readShared(lid);
+
+    float l2 = dot(v, v);
+    if (l2 < 1e-6) return vec3(0.0);
+
+    float invL = inversesqrt(l2);
+    float diff = (1.0 / invL) - dist;
+    return v * springK * diff * invL;
+}
+
+void main()
+{
+    ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 lid = ivec2(gl_LocalInvocationID.xy);
+    ivec2 size = imageSize(posImg) / ivec2(2, 1);
+    if (gid.x >= size.x || gid.y >= size.y) return;
+
+    ivec2 groupOrigin = ivec2(gl_WorkGroupID.xy) * ivec2(TILE_X, TILE_Y);
+    ivec2 readBase = ivec2(evenOdd * size.x, 0);
+
+    //cooperative tile load 
+    loadTileWithHalo(groupOrigin, size, readBase);
+
+    ivec2 writeUV = gid + ivec2((1 - evenOdd) * size.x, 0);
+
+    // fixed points
+    if (gid.y == size.y - 1) {
+        if (gid.x == 0 || gid.x == int(size.x * 0.333) ||
+            gid.x == int(size.x * 0.6666) || gid.x == size.x - 1) {
+            imageStore(posImg, writeUV, vec4(readShared(lid), 1.0));
+            return;
+        }
+    }
+
+    // constants cached locally
+    float m = mass, k = springK, dt = deltaT, damp = damping;
+
+    vec3 force = m * vec3(0.0, gravity, 0.0);
+
+    // spring-mass model
+    force += calcSpringForce(ivec2(+0, -1), restLengthVert,  k);
+    force += calcSpringForce(ivec2(+0, +1), restLengthVert,  k);
+    force += calcSpringForce(ivec2(-1, +0), restLengthHoriz, k);
+    force += calcSpringForce(ivec2(+1, +0), restLengthHoriz, k);
+    force += calcSpringForce(ivec2(-1, -1), restLengthDiag,  k);
+    force += calcSpringForce(ivec2(+1, -1), restLengthDiag,  k);
+    force += calcSpringForce(ivec2(-1, +1), restLengthDiag,  k);
+    force += calcSpringForce(ivec2(+1, +1), restLengthDiag,  k);
+
+    vec3 vel = imageLoad(velImg, gid).xyz;
+    force += -vel * damp;
+
+    vec3 a = force / m;
+    vec3 newVel = vel + a * dt;
+    vec3 newPos = readShared(lid) + newVel * dt + 0.5 * a * dt * dt;
+
+    imageStore(posImg, writeUV, vec4(newPos, 1.0));
+    imageStore(velImg, gid,    vec4(newVel, 1.0));
+}

@@ -1,0 +1,53 @@
+#version 460
+layout(local_size_x = 16, local_size_y = 16) in;
+
+// Images in grey scale (channel R)
+layout(binding = 0, rg32f) uniform readonly image2D levelImg;        // Previous frame
+layout(binding = 1, rg32f) uniform image2D prevLevelImg; // Current frame warped
+layout(binding = 2, rgba32f) uniform writeonly image2D gradientImg;  // Output: (Ix, Iy, It, 0)
+layout(binding = 3) uniform Config {
+    ivec2 size;
+    int readOffset;
+    int writeOffset;
+} config;
+
+void main() {
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+
+    if (gid.x >= config.size.x || gid.y >= config.size.y) return;
+
+    // neighboring pixels coordinates
+    int x0 = max(gid.x - 1, 0);
+    int x1 = min(gid.x + 1, config.size.x - 1);
+    int y0 = max(gid.y - 1, 0);
+    int y1 = min(gid.y + 1, config.size.y - 1);
+
+    ivec2 readOffset = ivec2(config.readOffset, 0);
+
+    // Read intensity at frame0
+    float I0_left   = imageLoad(levelImg, ivec2(x0, gid.y) + readOffset).r;
+    float I0_right  = imageLoad(levelImg, ivec2(x1, gid.y) + readOffset).r;
+    float I0_top    = imageLoad(levelImg, ivec2(gid.x, y0) + readOffset).r;
+    float I0_bottom = imageLoad(levelImg, ivec2(gid.x, y1) + readOffset).r;
+    float I0_center = imageLoad(levelImg, gid + readOffset).r;
+
+    // Read intensity at frame1 warped
+    float I1_left   = imageLoad(prevLevelImg, ivec2(x0, gid.y) + readOffset).g;
+    float I1_right  = imageLoad(prevLevelImg, ivec2(x1, gid.y) + readOffset).g;
+    float I1_top    = imageLoad(prevLevelImg, ivec2(gid.x, y0) + readOffset).g;
+    float I1_bottom = imageLoad(prevLevelImg, ivec2(gid.x, y1) + readOffset).g;
+    float I1_center = imageLoad(prevLevelImg, gid + readOffset).g;
+
+    // Compute spatial gradients
+    float Ix = 0.25 * ((I0_right - I0_left) + (I1_right - I1_left));
+    float Iy = 0.25 * ((I0_bottom - I0_top) + (I1_bottom - I1_top));
+
+    // Compute temporal gradient
+    float It = I1_center - I0_center;
+
+    imageStore(gradientImg, gid + readOffset, vec4(Ix, Iy, It, 0.0));
+
+    //move wrapped to the fist plane
+    //float wrapped = imageLoad(prevLevelImg, gid).g;
+    //imageStore(prevLevelImg, gid, vec4(wrapped));
+}

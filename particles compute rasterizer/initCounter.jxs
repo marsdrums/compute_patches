@@ -1,0 +1,15 @@
+#version 460
+
+layout(binding = 0, r32ui) uniform uimage2D countImg;
+
+layout(local_size_x = 32, local_size_y = 32) in;
+
+void main(){
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(countImg);
+
+    if(gid.x >= size.x || gid.y >= size.y) return;
+
+    imageStore(countImg, gid, uvec4(0));
+}

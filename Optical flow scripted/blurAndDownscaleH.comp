@@ -1,0 +1,58 @@
+#version 460
+layout(local_size_x = 16, local_size_y = 1) in;
+
+layout(binding = 0, rg32f) uniform image2D levelImg;
+
+layout(binding = 1) uniform Config {
+    ivec2 size;
+    int readOffset;
+    int writeOffset;
+} config;
+
+// +4 for left and right borders
+shared float tile[16 + 4];
+
+void main() {
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 lid = ivec2(gl_LocalInvocationID.xy);
+
+    int sharedIndex = lid.x + 2;
+    int limit = config.size.x - 1;
+
+    // load the central pixel
+    int globalX = clamp(gid.x, 0, limit) + config.readOffset;
+    tile[sharedIndex] = imageLoad(levelImg, ivec2(globalX, gid.y)).r;
+
+    // load left borders
+    if (lid.x < 2) {
+        int borderX = clamp(gid.x - 2, 0, limit) + config.readOffset;
+        tile[lid.x] = imageLoad(levelImg, ivec2(borderX, gid.y)).r;
+    }
+
+    // Load right borders
+    if (lid.x >= 14) {
+        int borderX = clamp(gid.x + 2, 0, limit) + config.readOffset;
+        tile[sharedIndex + 2] = imageLoad(levelImg, ivec2(borderX, gid.y)).r;
+    }
+
+    // Sync to ensure all shared memory is loaded
+    barrier();
+
+    // Apply the blur
+    float kernel[5] = float[](1.0, 4.0, 6.0, 4.0, 1.0);
+
+    float res = 0;
+    for (int i = -2; i <= 2; ++i) {
+        res += tile[sharedIndex + i] * kernel[i + 2];
+    }
+
+    res /= 16;
+
+    // Write the result in the green channel
+    if (gid.x < config.size.x && gid.y < config.size.y && gid.x % 2 == 0) {
+        ivec2 halfCoord = gid / ivec2(2,1);
+        ivec2 writeCoord = halfCoord + ivec2(config.readOffset, 0);
+        float original = imageLoad(levelImg, writeCoord).r;
+        imageStore(levelImg, writeCoord, vec4(original, res, 0,0));
+    }
+}

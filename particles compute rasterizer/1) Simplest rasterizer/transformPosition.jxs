@@ -1,0 +1,43 @@
+//Transform position
+
+#version 460
+
+layout(local_size_x = 16, local_size_y = 16) in;
+layout(binding = 0, rgba32f) readonly uniform image2D posImg;
+layout(binding = 1, rgba32f) writeonly uniform image2D canvasImg;
+layout(binding = 2) uniform Config {
+    vec4 v0;
+    vec4 v1;
+    vec4 v2;
+    vec4 v3;
+    vec4 p0;
+    vec4 p1;
+    vec4 p2;
+    vec4 p3;
+    vec2 viewPort;
+};
+
+void main() {
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(posImg);
+    if(gid.x >= size.x || gid.y >= size.y) return;
+
+    vec3 pos = imageLoad(posImg, gid).xyz;
+
+    mat4 V = mat4(v0, v1, v2, v3);
+    mat4 P = mat4(-p0, p1, -p2, p3);
+    vec4 vPos = V * vec4(pos, 1.0);
+    vec4 projPos = P * vPos;
+    vec2 screenPos = projPos.xy / projPos.w; 
+
+    bool outsideScreen =    screenPos.x < -1.0 || screenPos.x > 1.0 ||
+                            screenPos.y < -1.0 || screenPos.y > 1.0 ||
+                            vPos.z > 0.0;
+
+    if(outsideScreen) return;
+
+    screenPos = (screenPos*0.5 + 0.5) * viewPort;
+
+    imageStore(canvasImg, ivec2(screenPos), vec4(1.0));
+}

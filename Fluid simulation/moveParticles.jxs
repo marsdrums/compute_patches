@@ -1,0 +1,20 @@
+#version 450
+
+layout(set = 0, rgba32f, binding = 0) uniform image2D myImage;
+
+layout(binding = 0) uniform Config {
+    float myValue;
+};
+
+layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+
+void main(){
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(myImage);
+    
+    if(gid.x >= size.x || gid.y >= size.y) return;
+
+    vec4 color = imageLoad(myImage, gid);
+    imageStore(myImage, gid, color*myValue);
+}

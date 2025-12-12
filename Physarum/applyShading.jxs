@@ -1,0 +1,183 @@
+#version 450
+
+struct Agent {
+    vec2 pos;
+    vec2 vel;
+    float angle;
+};
+
+layout(std430, set = 0, binding = 0) buffer agentsBuff {
+	uint count;
+    Agent agents[];
+};
+
+layout(set = 0, r32f, binding = 1) uniform image2D rendImg;
+layout(set = 0, rgba32f, binding = 2) uniform image2D shadedImg;
+
+layout(binding = 3) uniform Cfg {
+    float senseAngle;
+    float turnAngle;
+    float senseDist;
+    float speed;
+    uint frame;
+    float maxPheromone;
+    float evaporate;
+};
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+
+//___ RNG functions
+uint wang_hash(inout uint seed){
+
+    seed = uint(seed ^ uint(61)) ^ uint(seed >> uint(16));
+    seed *= uint(9);
+    seed = seed ^ (seed >> 4);
+    seed *= uint(0x27d4eb2d);
+    seed = seed ^ (seed >> 15);
+    return seed;
+}
+ 
+float RandomFloat01(inout uint seed){
+
+    return float(wang_hash(seed)) / 4294967296.0;
+}
+
+vec3 RandomUnitVector(inout uint seed){
+
+    float z = RandomFloat01(seed) * 2.0f - 1.0f;
+    float a = RandomFloat01(seed) * 6.28318530718;
+    float r = sqrt(1.0f - z * z);
+    float x = r * cos(a);
+    float y = r * sin(a);
+    return vec3(x, y, z);
+}
+
+uint getRandSeed(uint idx){ 
+    return  idx + frame*count; 
+}
+
+
+float sampleTerrain(ivec2 uv, ivec2 size){
+
+    uv = clamp(uv, ivec2(0), size-1);
+	return imageLoad(rendImg, uv).r;
+}
+
+float traceShadow(vec3 ro, vec3 rd, ivec2 size, uint seed){
+
+    float d = 2;
+    rd = normalize(rd + RandomUnitVector(seed)*0.05);
+    vec3 p;
+    float h;
+    ivec2 iuv;
+    float sha = 1.0;
+    for(int i = 0; i < 80; i++){
+        p = ro + rd*d;
+        iuv = ivec2(p.xy);
+        if(iuv.x < 0 || iuv.y < 0 || iuv.x >= size.x || iuv.y >= size.y){
+            return sha;
+        }
+        float diff =  p.z - imageLoad(rendImg, iuv).r;
+
+        if(diff < 0.0001) return 0.0;
+
+        sha = min( sha, h/d );
+        if(sha <= 0){
+            return 0.0;
+        }
+        d += 4;
+    }
+    return sha;
+}
+
+float calcAO(ivec2 gid, ivec2 size, vec3 ro, vec3 N, uint seed){
+
+    int numSectors = 12;
+    float occ = float(numSectors);
+    for(int i = 0; i < numSectors; i++){
+
+        float randAngle = RandomFloat01(seed)*3.1415*2;
+        vec2 rd = vec2(cos(randAngle), sin(randAngle));
+        float highest = ro.z;
+        vec3 tallestPoint = ro;
+        for(float d = 2.2; d < 200; ){
+            vec2 sampleUV = clamp(ro.xy + rd*d, vec2(0.0), vec2(size-1));
+            float sampledH = imageLoad(rendImg, ivec2(sampleUV)).r;
+            if(sampledH > highest){
+                highest = sampledH;
+                tallestPoint = vec3(sampleUV, highest);
+            }
+            d *= 1.2;
+        }
+        vec3 freeDir = normalize(tallestPoint - ro);
+        float cosine = max(0.0, dot(freeDir, N));
+        occ -= cosine;
+    }
+
+    return occ / float(numSectors);
+}
+/*
+float calcAO(ivec2 gid, ivec2 size, vec3 ro, vec3 N){
+
+    uint seed = getRandSeed(gid.x + gid.y*uint(size.x) + 9999u);
+    float maxRadius = 40;
+    float occ = 0.0;
+    int numSamples = 40;
+    for(int i = 0; i < numSamples; i++){
+        vec3 dir = RandomUnitVector(seed);
+        dir *= sign(dot(dir, N));
+        float rand = sqrt(RandomFloat01(seed));
+        float r = rand*maxRadius + 1.0;
+        vec3 expectedPos = ro + dir*r;
+        float h = imageLoad(rendImg, ivec2(expectedPos.xy)).r;
+        occ += h > expectedPos.z ? max(0.0, dot(N, dir)) : 0.0;
+    }
+    return max(0.0, 1 - 3*occ/float(numSamples));
+}
+*/
+void main(){
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(rendImg).xy;
+
+    uint seed = getRandSeed(gid.x + gid.y*uint(size.x) + 9999u);
+
+    float h = imageLoad(rendImg, gid).r;
+
+    if (gid.x >= size.x || gid.y >= size.y) return;
+
+    float l = sampleTerrain(gid - ivec2(1,0), size);
+    float r = sampleTerrain(gid + ivec2(1,0), size);
+    float d = sampleTerrain(gid - ivec2(0,1), size);
+    float u = sampleTerrain(gid + ivec2(0,1), size);
+
+    vec3 right = normalize(vec3(2,0,r-l));
+    vec3 up = normalize(vec3(0,2,u-d));
+    vec3 N = normalize(cross(right, up));
+
+    vec3 ro = vec3(gid.x, gid.y, h);
+    vec3 res = vec3(0.0);
+    float occ = calcAO(gid, ivec2(size), ro, N, seed);
+    vec3 alb = vec3(0.8);//0.5 + 0.5*cos((1 - h/30)*vec3(1,2,3));
+
+    //vec3 normPos = 2*vec3(gid, h) / vec3(size.xyy) - 1;
+    //vec3 V = normalize(normPos);
+    {
+        vec3 ligDir = normalize(vec3(1,4,0.9));
+        vec3 ligCol = vec3(3,2.5,2);
+        float diff = max(0.0, dot(ligDir, N));
+        float sha = 1.0;
+        if(diff > 0){
+            sha = traceShadow(ro, ligDir, size, seed);
+            sha += traceShadow(ro, ligDir, size, seed);
+            sha += traceShadow(ro, ligDir, size, seed);
+            sha /= 3;          
+        }
+        res += ligCol * diff * sha;
+        res += ligCol * occ * 0.4;
+    }
+
+    res *= alb;
+    imageStore(shadedImg, gid, vec4(res, 1.0));
+}

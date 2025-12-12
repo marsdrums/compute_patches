@@ -1,0 +1,31 @@
+#version 450
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(rgba32f, binding = 0) readonly uniform image2D imgIn;
+layout(r32ui, binding = 1) uniform uimage2D counterImg;
+layout(std430, binding = 2) buffer pixCoord {
+    vec4 pix[]; 
+};
+//layout(rgba32f, binding = 3) writeonly uniform image2D InteropTexture;
+
+float rgb2luma(vec3 col){
+    return dot(col, vec3(0.299, 0.587, 0.144));
+}
+
+void main()
+{
+    const ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    const ivec2 size = imageSize(imgIn).xy;
+
+    if (coord.x >= size.x || coord.y >= size.y) return;
+
+    if (rgb2luma(imageLoad(imgIn, coord).rgb) > 0.9) {
+        uint index = imageAtomicAdd(counterImg, ivec2(0), 1u);
+        vec2 normCoord = 2*vec2(coord) / vec2(size) - 1;
+        normCoord *= vec2(float(size.x) / float(size.y), -1);
+        pix[index] = vec4(normCoord,0,0);
+        //int iindex = int(index);
+        //imageStore(InteropTexture, ivec2(iindex % 256, floor(iindex/256)), vec4(normCoord,0,0));
+    }
+}

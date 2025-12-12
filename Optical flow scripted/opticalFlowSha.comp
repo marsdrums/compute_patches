@@ -1,0 +1,72 @@
+#version 460
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(binding = 0, rgba32f) uniform readonly image2D gradientImg;  // (Ix, Iy, It)
+layout(binding = 1, rgba32f) uniform image2D flowImg; // (du, dv)
+layout(binding = 2) uniform Config
+{
+    ivec2 size;
+    int readOffset;
+    int writeOffset;
+    float threshold;
+    vec2 confidence;
+}
+config;
+
+void main() {
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    if (gid.x >= config.size.x || gid.y >= config.size.y) return;
+
+    ivec2 readOffset = ivec2(config.readOffset, 0);
+
+    float kernel[5][5] = float[5][5](
+        float[5](1, 4, 6, 4, 1),
+        float[5](4,16,24,16,4),
+        float[5](6,24,36,24,6),
+        float[5](4,16,24,16,4),
+        float[5](1, 4, 6, 4, 1)
+    );
+
+    float A11 = 0.0, A12 = 0.0, A22 = 0.0;
+    float b1  = 0.0, b2  = 0.0;
+
+    for (int dy = -2; dy <= 2; dy++) {
+        for (int dx = -2; dx <= 2; dx++) {
+            ivec2 offset = ivec2(dx, dy);
+            ivec2 pos = clamp(gid + offset, ivec2(0), config.size - 1);
+            vec3 g = imageLoad(gradientImg, pos + readOffset).rgb;
+
+            float Ix = g.r;
+            float Iy = g.g;
+            float It = g.b;
+            float w = kernel[dy + 2][dx + 2];
+
+            A11 += w * Ix * Ix;
+            A12 += w * Ix * Iy;
+            A22 += w * Iy * Iy;
+
+            b1  += w * Ix * It;
+            b2  += w * Iy * It;
+        }
+    }
+
+    // Solve linear 2x2 system
+    float det = A11 * A22 - A12 * A12;
+    vec2 delta = vec2(0.0);
+
+    // Compute dynamic scale
+    float baseScale = 100.0;
+    float levelScale = float(config.size.x * config.size.y) / (1920.0 * 1080.0);
+    float scale = baseScale * levelScale;
+
+    if (abs(det) > config.threshold) {
+        delta.x = (A22 * -b1 + A12 * b2) / det;
+        delta.y = (A11 * -b2 + A12 * b1) / det;
+    }
+
+    //add delta to previous flow
+    vec2 currentFlow = imageLoad(flowImg, gid + readOffset).xy;
+    float confidence = smoothstep(scale*config.confidence.x, scale*config.confidence.y, det);
+    delta *= confidence;
+    imageStore(flowImg, gid + readOffset, vec4(currentFlow + delta, confidence, 0.0));
+}

@@ -1,0 +1,17 @@
+#version 450
+
+layout(std430, set = 0, binding = 0) buffer buff {
+    uint count;
+    float val[];
+};
+
+layout(local_size_x = 128) in;
+
+void main(){
+
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gid >= count) return;
+
+    val[gid] = 0.0;
+}

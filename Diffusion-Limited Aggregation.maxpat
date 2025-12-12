@@ -10,7 +10,7 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 34.0, 100.0, 1407.0, 893.0 ],
+		"rect" : [ 106.0, 100.0, 1407.0, 893.0 ],
 		"gridsize" : [ 15.0, 15.0 ],
 		"boxes" : [ 			{
 				"box" : 				{
@@ -602,8 +602,8 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 431.0, 480.0, 149.0, 22.0 ],
-					"text" : "jit.coerce 4 float32 400000"
+					"patching_rect" : [ 431.0, 480.0, 156.0, 22.0 ],
+					"text" : "jit.coerce 4 float32 1600000"
 				}
 
 			}
@@ -815,7 +815,7 @@
 					"patching_rect" : [ 748.0, 249.0, 152.0, 22.0 ],
 					"text" : "jit.gpu.shader @name step",
 					"textfile" : 					{
-						"text" : "#version 450\n\nlayout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;\n\nlayout(std430, binding = 0) buffer posBuff {\n    vec4 pos[]; \n};\n\nlayout(std430, binding = 1) buffer dirBuff {\n    vec4 dir[]; \n};\n\nlayout(r32f, binding = 2) uniform image3D field;\n\nlayout(binding = 3) uniform Config {\n   float time;\n} config;\n\n#define TWOPI 6.28318530718 \n\nivec3 pos2grid(vec3 p){ return ivec3(p*256 + 256); }\n\nuint wang_hash(inout uint seed){\n\n    seed = uint(seed ^ uint(61)) ^ uint(seed >> uint(16));\n    seed *= uint(9);\n    seed = seed ^ (seed >> 4);\n    seed *= uint(0x27d4eb2d);\n    seed = seed ^ (seed >> 15);\n    return seed;\n}\n \nfloat RandomFloat01(inout uint seed) { \n    return float(wang_hash(seed)) / 4294967296.0; \n}\n\nvec3 RandomVec301(inout uint seed) { \n    return vec3(    RandomFloat01(seed),\n                    RandomFloat01(seed),\n                    RandomFloat01(seed)); \n}\n\nvec3 randomUnitVector3(inout uint seed){\n\n    float z = RandomFloat01(seed) * 2.0f - 1.0f;\n    float a = RandomFloat01(seed) * TWOPI;\n    float r = sqrt(1.0f - z * z);\n    float x = r * cos(a);\n    float y = r * sin(a);\n    return vec3(x, y, z);\n}\n\nivec3 traverseVoxelGrid(vec3 rayOrigin, vec3 rayDir) {\n\n    rayOrigin = (rayOrigin*0.5 + 0.5)*512;\n\n    vec3 invDir = 1.0 / rayDir;\n\n    ivec3 voxel = ivec3(floor(rayOrigin));\n    ivec3 prevVoxel = voxel;\n\n    vec3 voxelPos = vec3(voxel);\n\n    vec3 tMax = ((voxelPos + step(vec3(0.0), rayDir) - rayOrigin) * invDir);\n    vec3 tDelta = abs(invDir);\n\n    ivec3 stepDir = ivec3(sign(rayDir));\n\n    for (int i = 0; i < 512; i++) {\n\n        if (tMax.x < tMax.y && tMax.x < tMax.z) {\n            voxel.x += stepDir.x;\n            tMax.x += tDelta.x;\n        } else if (tMax.y < tMax.z) {\n            voxel.y += stepDir.y;\n            tMax.y += tDelta.y;\n        } else {\n            voxel.z += stepDir.z;\n            tMax.z += tDelta.z;\n        }\n\n        if (imageLoad(field, voxel).x == 1){\n            return prevVoxel;\n        }\n\n        prevVoxel = voxel;\n    }\n}\n\nvoid main()\n{\n    const int gid = int(gl_GlobalInvocationID.x);\n    const int size = 400000;\n\n    if (gid >= size || pos[gid].w > 0) return;\n\n    uint seed = uint(gid) + uint((pos[gid].x+2.0)*9999) + uint((pos[gid].y+2.0)*9999) + uint((pos[gid].z+2.0)*9999);\n\n    vec3 randStep = randomUnitVector3(seed)*0.01;\n\n    vec3 newPos = pos[gid].xyz + randStep;\n    vec3 change = vec3( float(newPos.x > -1.0 && newPos.x < 1.0),\n                        float(newPos.y > -1.0 && newPos.y < 1.0),\n                        float(newPos.z > -1.0 && newPos.z < 1.0))*2 - 1;\n\n    randStep *= change;\n    randStep -= pos[gid].xyz*0.001;\n    newPos = pos[gid].xyz + randStep;\n\n    float gridState = imageLoad(field, pos2grid(newPos)).x;\n\n    if(gridState > 0){\n\n        //find the closest populated voxel\n        ivec3 hitVoxel = traverseVoxelGrid(pos[gid].xyz, normalize(randStep));\n        imageStore(field, hitVoxel, vec4(1));     \n        pos[gid].xyz = (vec3(hitVoxel)/256 - 1);\n        pos[gid].xyz += + mix(vec3(-0.003), vec3(0.003), RandomVec301(seed));\n        pos[gid].w = config.time; \n    } else {\n        pos[gid].xyz = newPos;\n    }\n\n\n    \n}",
+						"text" : "#version 450\n\nlayout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;\n\nlayout(std430, binding = 0) buffer posBuff {\n    vec4 pos[]; \n};\n\nlayout(std430, binding = 1) buffer dirBuff {\n    vec4 dir[]; \n};\n\nlayout(r32f, binding = 2) uniform image3D field;\n\nlayout(binding = 3) uniform Config {\n   float time;\n} config;\n\n#define TWOPI 6.28318530718 \n\nivec3 pos2grid(vec3 p){ return ivec3(p*256 + 256); }\n\nuint wang_hash(inout uint seed){\n\n    seed = uint(seed ^ uint(61)) ^ uint(seed >> uint(16));\n    seed *= uint(9);\n    seed = seed ^ (seed >> 4);\n    seed *= uint(0x27d4eb2d);\n    seed = seed ^ (seed >> 15);\n    return seed;\n}\n \nfloat RandomFloat01(inout uint seed) { \n    return float(wang_hash(seed)) / 4294967296.0; \n}\n\nvec3 RandomVec301(inout uint seed) { \n    return vec3(    RandomFloat01(seed),\n                    RandomFloat01(seed),\n                    RandomFloat01(seed)); \n}\n\nvec3 randomUnitVector3(inout uint seed){\n\n    float z = RandomFloat01(seed) * 2.0f - 1.0f;\n    float a = RandomFloat01(seed) * TWOPI;\n    float r = sqrt(1.0f - z * z);\n    float x = r * cos(a);\n    float y = r * sin(a);\n    return vec3(x, y, z);\n}\n\nivec3 traverseVoxelGrid(vec3 rayOrigin, vec3 rayDir) {\n\n    rayOrigin = (rayOrigin*0.5 + 0.5)*512;\n\n    vec3 invDir = 1.0 / rayDir;\n\n    ivec3 voxel = ivec3(floor(rayOrigin));\n    ivec3 prevVoxel = voxel;\n\n    vec3 voxelPos = vec3(voxel);\n\n    vec3 tMax = ((voxelPos + step(vec3(0.0), rayDir) - rayOrigin) * invDir);\n    vec3 tDelta = abs(invDir);\n\n    ivec3 stepDir = ivec3(sign(rayDir));\n\n    for (int i = 0; i < 512; i++) {\n\n        if (tMax.x < tMax.y && tMax.x < tMax.z) {\n            voxel.x += stepDir.x;\n            tMax.x += tDelta.x;\n        } else if (tMax.y < tMax.z) {\n            voxel.y += stepDir.y;\n            tMax.y += tDelta.y;\n        } else {\n            voxel.z += stepDir.z;\n            tMax.z += tDelta.z;\n        }\n\n        if (imageLoad(field, voxel).x == 1){\n            return prevVoxel;\n        }\n\n        prevVoxel = voxel;\n    }\n}\n\nvoid main()\n{\n    const int gid = int(gl_GlobalInvocationID.x);\n    const int size = 1600000;\n\n    if (gid >= size || pos[gid].w > 0) return;\n\n    uint seed = uint(gid) + uint((pos[gid].x+2.0)*9999) + uint((pos[gid].y+2.0)*9999) + uint((pos[gid].z+2.0)*9999);\n\n    vec3 randStep = randomUnitVector3(seed)*0.01;\n\n    vec3 newPos = pos[gid].xyz + randStep;\n    vec3 change = vec3( float(newPos.x > -1.0 && newPos.x < 1.0),\n                        float(newPos.y > -1.0 && newPos.y < 1.0),\n                        float(newPos.z > -1.0 && newPos.z < 1.0))*2 - 1;\n\n    randStep *= change;\n    randStep -= pos[gid].xyz*0.0005;\n    newPos = pos[gid].xyz + randStep;\n\n    float gridState = imageLoad(field, pos2grid(newPos)).x;\n\n    if(gridState > 0){\n\n        //find the closest populated voxel\n        ivec3 hitVoxel = traverseVoxelGrid(pos[gid].xyz, normalize(randStep));\n        imageStore(field, hitVoxel, vec4(1));     \n        pos[gid].xyz = (vec3(hitVoxel)/256 - 1);\n        pos[gid].xyz += + mix(vec3(-0.003), vec3(0.003), RandomVec301(seed));\n        pos[gid].w = config.time; \n    } else {\n        pos[gid].xyz = newPos;\n    }\n\n\n    \n}",
 						"filename" : "none",
 						"flags" : 0,
 						"embed" : 1,
@@ -833,7 +833,7 @@
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
 					"patching_rect" : [ 128.0, 249.0, 601.0, 22.0 ],
-					"text" : "jit.gpu.compute @shader step @readwrite posBuff dirBuff field @read Config @shader step @threads 1563 1 1"
+					"text" : "jit.gpu.compute @shader step @readwrite posBuff dirBuff field @read Config @shader step @threads 6250 1 1"
 				}
 
 			}
@@ -844,21 +844,20 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 862.0, 422.0, 142.0, 22.0 ],
-					"text" : "jit.noise 4 float32 400000"
+					"patching_rect" : [ 862.0, 422.0, 149.0, 22.0 ],
+					"text" : "jit.noise 4 float32 1600000"
 				}
 
 			}
 , 			{
 				"box" : 				{
 					"id" : "obj-12",
-					"linecount" : 3,
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 862.0, 492.0, 123.0, 49.0 ],
-					"text" : "jit.gpu.buffer @name dirBuff @item_count 400000"
+					"patching_rect" : [ 862.0, 492.0, 282.0, 22.0 ],
+					"text" : "jit.gpu.buffer @name dirBuff @item_count 1600000"
 				}
 
 			}
@@ -881,21 +880,20 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "jit_matrix", "" ],
-					"patching_rect" : [ 710.0, 422.0, 142.0, 22.0 ],
-					"text" : "jit.noise 4 float32 400000"
+					"patching_rect" : [ 710.0, 422.0, 149.0, 22.0 ],
+					"text" : "jit.noise 4 float32 1600000"
 				}
 
 			}
 , 			{
 				"box" : 				{
 					"id" : "obj-4",
-					"linecount" : 3,
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 710.0, 492.0, 127.0, 49.0 ],
-					"text" : "jit.gpu.buffer @name posBuff @item_count 400000"
+					"patching_rect" : [ 710.0, 492.0, 288.0, 22.0 ],
+					"text" : "jit.gpu.buffer @name posBuff @item_count 1600000"
 				}
 
 			}
@@ -934,6 +932,19 @@
 					"outlettype" : [ "" ],
 					"parameter_enable" : 0,
 					"patching_rect" : [ 1056.0, 33.0, 150.0, 22.0 ]
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"attr" : "enable",
+					"id" : "obj-42",
+					"maxclass" : "attrui",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"parameter_enable" : 0,
+					"patching_rect" : [ 838.0, 578.0, 150.0, 22.0 ]
 				}
 
 			}
@@ -1142,6 +1153,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-31", 0 ],
 					"source" : [ "obj-41", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-22", 0 ],
+					"source" : [ "obj-42", 0 ]
 				}
 
 			}

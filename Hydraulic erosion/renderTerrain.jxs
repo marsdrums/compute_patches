@@ -1,0 +1,151 @@
+<jittershader name="fill-flat-triangles">
+	<description>Default Shader </description>
+	<param name="pos" type="vec3" state="POSITION" />
+	<param name="MVP" type="mat4" state="MODELVIEW_PROJECTION_MATRIX" />
+	<param name="M" type="mat4" state="WORLD_MATRIX" />
+	<param name="heightTex" type="int" default="0" />
+	<param name="randTex" type="int" default="1" />
+	<param name="norTex" type="int" default="2" />
+	<param name="heightTexDim" type="vec2" state="TEXDIM0" />
+	<param name="eye" type="vec3" state="CAMERA_POSITION" />
+	<language name="glsl" version="1.5">
+		<bind param="pos" program="vp" />
+		<bind param="MVP" program="vp" />
+		<bind param="M" program="vp" />
+		<bind param="heightTex" program="vp" />
+		<bind param="randTex" program="fp" />
+		<bind param="norTex" program="fp" />
+		<bind param="heightTexDim" program="vp" />
+		<bind param="eye" program="vp" />
+		<program name="vp" type="vertex">
+<![CDATA[
+#version 330 core
+uniform mat4 MVP, M;
+uniform sampler2DRect heightTex;
+uniform vec2 heightTexDim;
+uniform vec3 eye;
+in vec3 pos;
+
+out jit_PerVertex {	
+	smooth vec3 wPos;
+	smooth float sha;
+	smooth float ao;
+	smooth vec3 V;
+	smooth float canal;
+} jit_out;
+
+void main() {	
+
+	vec4 lookup = texelFetch(heightTex, ivec2(pos.xy*heightTexDim));
+	float h = lookup.r;
+	jit_out.sha = lookup.g;
+	jit_out.ao = max(0.0, 1 - (1 - lookup.b)*1.6);
+	vec3 terrainPos = vec3(pos.x, h, pos.y);
+	terrainPos.xz = terrainPos.xz*2 - 1;
+	gl_Position = MVP * vec4(terrainPos, 1.0);	
+	jit_out.wPos = (M * vec4(terrainPos, 1.0)).xyz;
+	jit_out.V = jit_out.wPos - eye;
+	jit_out.canal = lookup.w;
+}
+]]>
+</program>
+<program name="fp" type="fragment">
+<![CDATA[
+#version 330 core
+
+uniform sampler2DRect randTex, norTex;
+
+in jit_PerVertex {
+	smooth vec3 wPos;
+	smooth float sha;
+	smooth float ao;
+	smooth vec3 V;
+	smooth float canal;
+} jit_in;
+
+out vec4 color;
+
+void main() {
+
+	float strata = jit_in.wPos.y + 1 + jit_in.wPos.z*0.35;
+	strata *= 512;
+	strata = floor(strata);// + smoothstep(0.49, 0.51, fract(strata));
+	strata /= 512;
+	vec2 normUV = vec2(strata, jit_in.wPos.x);//jit_in.wPos.xz*0.5+jit_in.wPos.y + 0.5;
+	vec2 uvRect = floor(mod(normUV*512*5, vec2(512)));
+	float rand = texture(randTex, uvRect).r;
+	uvRect = floor(mod(normUV*512*30, vec2(512)));
+	rand += texture(randTex, uvRect).r;
+
+	vec3 snow = vec3(0.8);
+	vec3 rock = mix(vec3(0.3, 0.2, 0.02)*0.15, vec3(0.5,0.4,0.4)*0.2,rand*0.5);//*(N.y*0.5 + 0.5);
+
+	vec3 randNor = vec3(0.0);
+	//randNor.x = texture(randTex, mod(jit_in.wPos.xz*512*10 + vec2(0.0), vec2(512))).r - 0.5;
+	//randNor.y = texture(randTex, mod(jit_in.wPos.xz*512*10 + vec2(200), vec2(512))).r - 0.5;
+	//randNor.z = texture(randTex, mod(jit_in.wPos.xz*512*10 + vec2(400), vec2(512))).r - 0.5;
+	randNor += texture(randTex, mod(jit_in.wPos.xz*512*1, vec2(512))).gba - 0.5;
+	randNor += texture(randTex, mod(jit_in.wPos.xz*512*30 + vec2(300), vec2(512))).gba - 0.5;
+
+	//rand *= float(rand > 0.7);
+	vec3 N = normalize(texture(norTex, (jit_in.wPos.xz*0.5 + 0.5) * 1024).xyz + 0.5*randNor);
+	vec3 V = normalize(jit_in.V);
+	vec3 R = reflect(V, N);
+
+
+	rand = texture(randTex, mod((jit_in.wPos.xz*0.5 + 0.5 + vec2(jit_in.wPos.y+N.y,N.y-jit_in.wPos))*512*30, vec2(512))).r;
+	vec3 grass = mix(vec3(0.25, 0.25, 0.015)*rock, vec3(0.3, 0.4, 0.05), rand)*0.15;
+
+	vec3 water = vec3(0.1, 0.1, 0.5)*0.3;
+	vec3 canal = vec3(0.2, 0.2, 0.1)*0.3;//*rand;
+
+	//float sedimentStipe = cos(floor(jit_in.wPos.y*40 + rand*4))*0.5 + 0.5;
+	//rock *= sedimentStipe;
+
+	
+
+	//mix between rock and grass depending on the mountain's slope
+	vec3 rockGrass = mix(rock, grass, smoothstep(0.5,0.56,N.y));
+
+	//add erosion canals
+	rockGrass = mix(canal, rockGrass, smoothstep(0.1,0.3,jit_in.canal));
+
+	vec3 alb = mix(	rockGrass, 
+					snow, 
+					smoothstep(0.3,0.4,2*N.y) * smoothstep(0.4, 0.5, jit_in.wPos.y)
+					);
+
+	//alb = mix(	alb, 
+	//			snow, 
+	//			smoothstep(0.4,0.5,(1-4*jit_in.canal) * smoothstep(0.2, 0.3, jit_in.wPos.y))
+	//			);
+
+	//vec3 grassSnow = mix(grass, snow, smoothstep(0.4,0.6,jit_in.wPos.y));
+	//rand = fract(rand*3.1415);
+	//vec3 alb = mix(soil, grassSnow, smoothstep(0.8,0.9,jit_in.nor.y + 0.2*(rand-0.5)));
+	//vec3 alb = mix(rock, grassSnow, smoothstep(0.45,0.5,N.y));
+	//alb = mix(vec3(0.2, 0.2, 0.1)*0.5, alb, clamp(jit_in.canal,0,1));
+
+	//alb = jit_in.wPos.y < 0.2 ? water : alb;
+
+	vec3 ligCol = vec3(3,2.5,2)*3;
+	vec3 ligDir = normalize(vec3(1,1,0.4));
+	float diff = max(0.0, dot(ligDir, N));
+	float ref = max(0.0, dot(ligDir, R));
+	ref = pow(ref, 60);
+
+	ref *= smoothstep(0.4,0.6,jit_in.wPos.y);
+
+	float occ = jit_in.ao * jit_in.canal + jit_in.ao*0.3;
+	vec3 res = ligCol*diff*jit_in.sha;
+	res += occ*vec3(0.5, 0.5, 1)*2;
+	res += ref * ligCol;
+	res *= alb;
+	color = vec4(res, 1);
+	//color = vec4(jit_in.canal);
+	//color = vec4(N.y, N.y, N.y, 1.0);
+}	
+]]>
+		</program>
+	</language>
+</jittershader>

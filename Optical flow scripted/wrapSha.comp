@@ -1,0 +1,37 @@
+#version 460
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(binding = 0, rgba32f) uniform readonly image2D flowImg;
+layout(binding = 1, rg32f) uniform image2D prevLevelImg;
+layout(binding = 2) uniform Config {
+    ivec2 size;
+    int readOffset;
+    int writeOffset;
+} config;
+
+void main() {
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+
+    if(gid.x >= config.size.x || gid.y >= config.size.y) return;
+
+    ivec2 readOffset = ivec2(config.readOffset, 0);
+    ivec2 gidOffset = gid + readOffset;
+
+    vec2 displacement = imageLoad(flowImg, gidOffset).xy;
+    vec2 wrappedCoord = clamp(vec2(gid) + displacement, vec2(0.0), vec2(config.size) - vec2(1.0));
+
+    ivec2 iuv = ivec2(floor(wrappedCoord)) + readOffset;
+    vec2 f = fract(wrappedCoord);
+
+    float a = imageLoad(prevLevelImg, iuv).r;                   
+    float b = imageLoad(prevLevelImg, iuv + ivec2(1, 0)).r;     
+    float c = imageLoad(prevLevelImg, iuv + ivec2(0, 1)).r;   
+    float d = imageLoad(prevLevelImg, iuv + ivec2(1, 1)).r;     
+
+    float ab = mix(a, b, f.x); 
+    float cd = mix(c, d, f.x); 
+    float warped = mix(ab, cd, f.y); 
+
+    float original = imageLoad(prevLevelImg, gidOffset).r;
+    imageStore(prevLevelImg, gidOffset, vec4(original, warped, 0, 0));
+}

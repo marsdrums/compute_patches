@@ -1,0 +1,20 @@
+#version 460
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(binding = 0, rg32f) readonly uniform image2D flowImg;
+layout(binding = 1, rgba32f) writeonly uniform image2D outImg;
+layout(binding = 2) uniform Config {
+    ivec2 size;
+    int readOffset;
+} config;
+
+void main() {
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(outImg);
+
+    if(gid.x >= size.x || gid.y >= size.y) return;
+
+    //imageStore(outImg, gid, vec4(imageLoad(flowOutImg, gid + ivec2(config.readOffset, 0)).xy, 0.0, 0.0));
+    imageStore(outImg, gid, vec4(imageLoad(flowImg, gid).xy, 0.0, 0.0));
+}
