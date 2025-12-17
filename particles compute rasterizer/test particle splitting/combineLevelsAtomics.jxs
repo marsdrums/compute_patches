@@ -1,0 +1,63 @@
+//Reset the canvas
+#version 460
+
+layout(local_size_x = 32, local_size_y = 32) in;
+layout(std430, set = 0, binding = 0) buffer grid {
+    uint cell[]; 
+};
+layout(binding = 1, rgba32f) writeonly uniform image2D renderImg;
+layout(binding = 2) uniform Config {
+    uint bufferSize;
+};
+
+shared int levelWidth[11];
+shared int offset[11];
+
+uint coord2id(ivec2 coord, int level){
+
+    return uint(coord.x + coord.y*levelWidth[level] + offset[level]);
+}
+
+void main() {
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    vec2 fgid = vec2(gid);
+    ivec2 size = imageSize(renderImg);
+
+    if(gl_LocalInvocationIndex == 0u){
+        int runningOffset = 0;
+        float divisor = 1.0;
+        vec2 fsize = vec2(size);
+        for(int i = 0; i < 11; i++){
+            float w = ceil(fsize.x * divisor);
+            float h = ceil(fsize.y * divisor);
+            levelWidth[i] = int(w);
+            offset[i] = runningOffset;
+            runningOffset += int(w * h);
+            divisor /= 2.0;
+        } 
+    }
+
+    barrier();
+
+    if(gid.x >= size.x || gid.y >= size.y) return;
+    
+    float res = 0.0;
+    //float line = 0.0;
+
+    float power = 1;
+    for(int i = 0; i < 11; ++i){
+
+        ivec2 coord = ivec2(fgid / power);
+        uint id = coord2id(coord, i);
+        id = min(id, uint(offset[i+1]-1));
+
+        res += float(cell[id]) / 4294967295.0;
+        power *= 2.0;
+        //line += gid.x % power == 0 || gid.y % power == 0 ? 0.1 : 0.0;
+    }
+
+    vec3 col = vec3(res);
+    //col *= (cos(line*vec3(1,2,3))*0.5 + 0.5);
+    imageStore(renderImg, gid, vec4(col, 1.0));
+}

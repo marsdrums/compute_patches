@@ -19,6 +19,8 @@ layout(binding = 4) uniform Config {
     uint numLevels;
 };
 
+layout(binding = 5, r32ui) uniform uimage2D smallParticlesCanvas;
+
 const uint MAX_COUNT = 1024u;
 shared vec3 center_radius[MAX_COUNT];
 shared vec3 res[1024u];
@@ -65,8 +67,16 @@ void main() {
                                     vec3(0,1,1),
                                     vec3(1,0,1));
 
+    {
+        //skip the level 0
+        //uint levelWidth  = uint(ceil(fsize.x * invCellSize));
+        //uint levelHeight = uint(ceil(fsize.y * invCellSize));
+        baseOffset += uint(size.x*size.y);//levelWidth * levelHeight;
+        invCellSize = 0.5;
+    }
+
     // Per ogni livello
-    for (uint level = 0u; level < min(numLevels, 4); ++level) {
+    for (uint level = 1u; level < min(numLevels, 4); ++level) {
     //for (uint level = 0u; level < numLevels; ++level) {
 
         uint levelWidth  = uint(ceil(fsize.x * invCellSize));
@@ -106,8 +116,8 @@ void main() {
             uint sliceEnd = min(sliceStart + partPerSlice, particleCount);
             uint first = coord * MAX_COUNT;
 
-            vec3 color = colors[level % 6] * 0.001;
-            //vec3 color = vec3(0.003);
+            //vec3 color = colors[level % 6] * 0.001;
+            vec3 color = vec3(0.003);
 
             for (uint k = sliceStart; k < sliceEnd; ++k) {
 
@@ -189,8 +199,8 @@ void main() {
             uint sliceEnd = min(sliceStart + partPerSlice, particleCount);
             uint first = coord * MAX_COUNT;
 
-            vec3 color = colors[level % 6] * 0.001;
-            //vec3 color = vec3(0.003);
+            //vec3 color = colors[level % 6] * 0.001;
+            vec3 color = vec3(0.003);
 
             for (uint k = sliceStart; k < sliceEnd; ++k) {
 
@@ -216,6 +226,8 @@ void main() {
         for(uint i = 0; i < gl_WorkGroupSize.z; i++){
             accum += res[xyLocalInvocationIndex + threadCount*i];
         }
+
+        accum += vec3(float(imageLoad(smallParticlesCanvas, gid).x)/4294967295.0);
         imageStore(canvasImg, gid, vec4(accum, 1.0));
     }
 }

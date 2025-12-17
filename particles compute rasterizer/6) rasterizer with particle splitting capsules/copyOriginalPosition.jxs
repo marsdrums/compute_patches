@@ -1,0 +1,18 @@
+//Copy original Position
+
+#version 460
+
+layout(local_size_x = 32, local_size_y = 32) in;
+
+layout(binding = 0, rgba32f) writeonly uniform image2D posImg;
+layout(binding = 1, rgba32f) readonly uniform image2D originalPosImg;
+
+void main() {
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(posImg);
+
+    if(gid.x >= size.x || gid.y >= size.y) return;
+
+    imageStore(posImg, gid, imageLoad(originalPosImg, gid));
+}

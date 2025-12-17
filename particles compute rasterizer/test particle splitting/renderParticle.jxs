@@ -1,0 +1,163 @@
+#version 460
+
+layout(local_size_x = 1, local_size_y = 1) in;
+
+layout(binding = 0, rgba32f) uniform image2D grid;
+
+layout(binding = 1) uniform Config {
+    vec2 particlePos;
+    float particleRad;
+};
+
+struct particle{
+    vec2 ce;
+    float r;
+    float r2;
+    float d;
+};
+
+// l = 2^level (in pixel)
+float cellSize(int level) { return float(1 << level); }
+
+// true se cella (ij, level) è completamente dentro il cerchio
+bool cellFullyInsideCircle_r2_level(ivec2 ij, int level, in particle p)
+{
+    float l = cellSize(level);
+    vec2 mn = vec2(ij) * l;
+    vec2 mx = mn + vec2(l);
+
+    float dx = max(abs(p.ce.x - mn.x), abs(p.ce.x - mx.x));
+    float dy = max(abs(p.ce.y - mn.y), abs(p.ce.y - mx.y));
+    float d2 = dx*dx + dy*dy;
+
+    const float EPS = 1e-6;
+    return d2 <= p.r2 + EPS;
+}
+
+// true se cella (ij, level) è completamente fuori dal cerchio (nessuna intersezione)
+bool cellFullyOutsideCircle_r2_level(ivec2 ij, int level, in particle p)
+{
+    float l = cellSize(level);
+    vec2 mn = vec2(ij) * l;
+    vec2 mx = mn + vec2(l);
+
+    // punto del quadrato più vicino al centro (clamp)
+    vec2 closest = clamp(p.ce, mn, mx);
+
+    vec2 diff = p.ce - closest;
+    float d2 = dot(diff, diff);
+
+    const float EPS = 1e-6;
+    return d2 > p.r2 + EPS;
+}
+
+// Esempio: dichiarala tu come vuoi (SSBO append, imageStore, ecc.)
+void emitCell(ivec2 ij, int level){
+
+    imageStore(grid, ij + ivec2(level*512, 0), vec4(1.0));
+}
+
+void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p)
+{
+    // Dimensione stack: scegli un budget ragionevole per il tuo caso.
+    // Se il cerchio è grande e maxLevel alto, il worst-case teorico esplode.
+    const int MAX_STACK = 128;
+    const int MAX_ITERS = 2048;
+
+    ivec2 stackIJ[MAX_STACK];
+    int   stackLv[MAX_STACK];
+    int sp = 0;
+
+    // push root
+    stackIJ[sp] = rootIJ;
+    stackLv[sp] = maxLevel;
+    sp++;
+
+    int iters = 0;
+    while (sp > 0 && iters < MAX_ITERS)
+    {
+        iters++;
+
+        // pop
+        sp--;
+        ivec2 ij = stackIJ[sp];
+        int level = stackLv[sp];
+
+        // pruning
+        if (cellFullyOutsideCircle_r2_level(ij, level, p))
+            continue;
+
+        if (cellFullyInsideCircle_r2_level(ij, level, p))
+        {
+            emitCell(ij, level);
+            continue;
+        }
+
+        // intersezione parziale
+        if (level == 0)
+        {
+            // al livello 0 (1 pixel) non puoi più splittare.
+            // Decidi qui cosa fare: scartare, o trattare come "boundary".
+            // Esempio: non emetto (perché non è completamente dentro).
+            emitCell(ij, level);
+            continue;
+        }
+
+        int childLevel = level - 1;
+        ivec2 base = ij * 2;
+
+        // push 4 children (DFS). Controllo stack overflow.
+        if (sp + 4 <= MAX_STACK)
+        {
+            stackIJ[sp] = base + ivec2(0,0); stackLv[sp] = childLevel; sp++;
+            stackIJ[sp] = base + ivec2(1,0); stackLv[sp] = childLevel; sp++;
+            stackIJ[sp] = base + ivec2(0,1); stackLv[sp] = childLevel; sp++;
+            stackIJ[sp] = base + ivec2(1,1); stackLv[sp] = childLevel; sp++;
+        }
+        else
+        {
+            // Stack pieno: fallback.
+            // Opzioni: aumentare MAX_STACK, oppure fermarti, oppure fare split parziale.
+            // Qui: mi fermo e non esploro oltre.
+            return;
+        }
+    }
+}
+
+
+void main() {
+
+    ivec2 size = ivec2(512);//imageSize(grid).xy;
+
+    particle p;
+    p.ce = particlePos;
+    p.r = particleRad;
+    p.r2 = p.r*p.r;
+    p.d = p.r*2.0;
+
+    // Select the level based on the size on screen
+    int level = int(floor(log2(p.d)));
+    float cellSizePixels = cellSize(level);//uint(pow(2.0, float(level)));  // cellSize = 1,2,4,...
+
+    float invCellSize  = 1.0 / cellSizePixels;
+
+    float minXf = (p.ce.x - p.r) * invCellSize;
+    float maxXf = (p.ce.x + p.r) * invCellSize;
+    float minYf = (p.ce.y - p.r) * invCellSize;
+    float maxYf = (p.ce.y + p.r) * invCellSize;
+
+    // Quantization + clamping (inclusive)
+    int ixMin = int(floor(minXf));
+    int ixMax = int(ceil (maxXf)) - 1;
+    int iyMin = int(floor(minYf));
+    int iyMax = int(ceil (maxYf)) - 1;
+
+    for(int i = ixMin; i <= ixMax; i++){
+        for(int j = iyMin; j <= iyMax; j++){
+            coverCircleFromRoot(    ivec2(i,j), //root
+                                    level, //max level
+                                    p //particle to rasterize
+                                    );
+        }
+    }  
+}

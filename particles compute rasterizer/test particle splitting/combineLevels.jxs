@@ -1,0 +1,29 @@
+//Reset the canvas
+#version 460
+
+layout(local_size_x = 32, local_size_y = 32) in;
+layout(binding = 0, rgba32f) readonly uniform image2D grid;
+layout(binding = 1, rgba32f) writeonly uniform image2D renderImg;
+
+void main() {
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(renderImg);
+
+    if(gid.x >= size.x || gid.y >= size.y) return;
+
+    //for the moment, just display level0
+    
+    float res = 0.0;
+    float line = 0.0;
+
+    for(int i = 0; i < 10; ++i){
+        int power = 1 << i;
+        res += imageLoad(grid, gid/power + ivec2(512*i, 0)).r*float(i+1);
+        line += gid.x % power == 0 || gid.y % power == 0 ? 0.1 : 0.0;
+    }
+
+    vec3 col = sin(vec3(res, res + 1, res + 3)*17.2)*0.5 + 0.5;
+    col *= (cos(line*vec3(1,2,3))*0.5 + 0.5);
+    imageStore(renderImg, gid, vec4(col, 1.0));
+}

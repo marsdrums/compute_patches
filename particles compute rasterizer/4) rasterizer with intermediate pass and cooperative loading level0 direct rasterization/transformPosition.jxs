@@ -3,17 +3,18 @@
 layout(local_size_x = 32, local_size_y = 32) in;
 
 layout(binding = 0, rgba32f) uniform image2D posImg;
+layout(binding = 1, r32ui) uniform uimage2D smallParticlesCanvas;
 
-layout(std430, binding = 1) buffer countBuff {
+layout(std430, binding = 2) buffer countBuff {
     uint count;      // non usato direttamente, ma resta per layout
     uint counter[];  // contatori per cella (tutti i livelli)
 };
 
-layout(std430, set = 0, binding = 2) buffer grid {
+layout(std430, set = 0, binding = 3) buffer grid {
     uint cell[];     // liste di particelle per cella (tutti i livelli)
 };
 
-layout(binding = 3) uniform Config {
+layout(binding = 4) uniform Config {
     vec4 v0;
     vec4 v1;
     vec4 v2;
@@ -26,13 +27,15 @@ layout(binding = 3) uniform Config {
     uint numLevels;  // numero di livelli della griglia
 };
 
-const float radiusWorld = 0.0005; // radius in world space
+const float radiusWorld = 0.001; // radius in world space
 const uint MAX_COUNT = 1024u;
 const float focal_dist = 2.0;
-const float dof = 4.0;
+const float dof = 8.0;
 
 shared mat4 V;
 shared mat4 P;
+shared uint offset[12];
+shared vec4 radiusOffsetProj;
 
 uint getLinearID(ivec2 gid, ivec2 size) {
     return uint(gid.x + gid.y * size.x);
@@ -67,6 +70,33 @@ uint calcOffset(uint level) {
     return offset;
 }
 
+void build_matrices(){
+
+    if(gl_LocalInvocationIndex == 0){
+
+        // Build matrices
+        V = mat4(v0, v1, v2, v3);
+        P = mat4(-p0, p1, -p2, p3);
+    }
+}
+
+void compute_pyramid_data(){
+
+    if(gl_LocalInvocationIndex < 12){
+
+        // Compute base offset for this level
+        offset[gl_LocalInvocationIndex] = calcOffset(gl_LocalInvocationIndex);
+    }
+}
+
+void compute_radius_offset_in_clip_space(){
+
+    if(gl_LocalInvocationIndex == 0){
+
+        radiusOffsetProj = P * vec4(radiusWorld, 0.0, 0.0, 0.0);
+    }
+}
+
 void main() {
 
     ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
@@ -76,13 +106,13 @@ void main() {
     uint partID = getLinearID(gid, size);
     vec3 pos    = imageLoad(posImg, gid).xyz;
 
-    if(gl_LocalInvocationIndex == 0){
+    build_matrices();
+    barrier();
 
-        // Build matrices
-        V = mat4(v0, v1, v2, v3);
-        P = mat4(-p0, p1, -p2, p3);
-    }
+    compute_pyramid_data();
+    barrier();
 
+    compute_radius_offset_in_clip_space();
     barrier();
 
     vec4 vPos     = V * vec4(pos, 1.0);
@@ -92,7 +122,7 @@ void main() {
     if(
         ndcPos.x < -1.0 || ndcPos.x > 1.0 ||
         ndcPos.y < -1.0 || ndcPos.y > 1.0 ||
-        vPos.z >= 0.0){
+        vPos.z >= -0.01){
 
         return;
     }
@@ -100,62 +130,75 @@ void main() {
     // NDC -> [0,1] -> pixel
     vec2 screenPos = (ndcPos * 0.5 + 0.5) * viewPort;
 
-    vec4 offsetPos   = vPos + vec4(radiusWorld, 0.0, 0.0, 0.0);
-    vec4 offsetProj  = P * offsetPos;
+    vec4 offsetProj  = projPos + radiusOffsetProj;
     vec2 offsetNDC   = offsetProj.xy / offsetProj.w;
     vec2 offsetPixel = (offsetNDC * 0.5 + 0.5) * viewPort;
 
-    float radiusOnScreen = abs(offsetPixel.x - screenPos.x);
-    radiusOnScreen *= dof*abs(-vPos.z - focal_dist) + 1.0;
-    radiusOnScreen       = max(0.5, radiusOnScreen); // at least half-pixel
+    float radiusOnScreen = offsetPixel.x - screenPos.x;
+    //radiusOnScreen *= dof*abs(-vPos.z - focal_dist) + 1.0;
+    
 
-    // Store position in pixels + radius
-    imageStore(posImg, gid, vec4(screenPos.xy, radiusOnScreen * radiusOnScreen, 0.0));
+    if(radiusOnScreen <= 0.5){
+        //rasterize directly
 
-    // Diameter size in pixels
-    uint sizeOnScreen = uint(ceil(radiusOnScreen * 2.0));
+        float dimmer = 2*radiusOnScreen;
+        dimmer *= dimmer;
+        uint colorToAdd = uint(4294967295.0 * 0.003 * dimmer);
+        //uint colorToAdd = uint(4294967295.0 * 0.003);
+        imageAtomicAdd(smallParticlesCanvas, ivec2(screenPos.xy), colorToAdd);
 
-    // Select the level based on the size on screen
-    uint level = 0u;
-    uint cellSizePixels = nextPow2(sizeOnScreen, level);  // cellSize = 1,2,4,...
+    } else {
 
-    // Compute base offset for this level
-    uint offset = calcOffset(level);
+        //use the intermediate grid
 
-    float cellSize     = float(cellSizePixels);
-    float invCellSize  = 1.0 / cellSize;
+        //radiusOnScreen = max(0.5, radiusOnScreen); // at least half-pixel
 
-    float minXf = (screenPos.x - radiusOnScreen) * invCellSize;
-    float maxXf = (screenPos.x + radiusOnScreen) * invCellSize;
-    float minYf = (screenPos.y - radiusOnScreen) * invCellSize;
-    float maxYf = (screenPos.y + radiusOnScreen) * invCellSize;
+        // Store position in pixels + radius
+        imageStore(posImg, gid, vec4(screenPos.xy, radiusOnScreen * radiusOnScreen, 0.0));
 
-    int mapWidth  = int(ceil(viewPort.x * invCellSize));
-    int mapHeight = int(ceil(viewPort.y * invCellSize));
+        // Diameter size in pixels
+        float fSizeOnfScreen = ceil(radiusOnScreen * 2.0);
+        uint sizeOnScreen = uint(fSizeOnfScreen);
 
-    // Quantization + clamping (inclusive)
-    int ixMin = int(floor(minXf));
-    int ixMax = int(ceil (maxXf)) - 1;
-    int iyMin = int(floor(minYf));
-    int iyMax = int(ceil (maxYf)) - 1;
+        // Select the level based on the size on screen
+        uint level = uint(floor(log2(fSizeOnfScreen)));
+        uint cellSizePixels = 1u << level;//uint(pow(2.0, float(level)));  // cellSize = 1,2,4,...
+
+        float cellSize     = float(cellSizePixels);
+        float invCellSize  = 1.0 / cellSize;
+
+        float minXf = (screenPos.x - radiusOnScreen) * invCellSize;
+        float maxXf = (screenPos.x + radiusOnScreen) * invCellSize;
+        float minYf = (screenPos.y - radiusOnScreen) * invCellSize;
+        float maxYf = (screenPos.y + radiusOnScreen) * invCellSize;
+
+        int mapWidth  = int(ceil(viewPort.x * invCellSize));
+        int mapHeight = int(ceil(viewPort.y * invCellSize));
+
+        // Quantization + clamping (inclusive)
+        int ixMin = int(floor(minXf));
+        int ixMax = int(ceil (maxXf)) - 1;
+        int iyMin = int(floor(minYf));
+        int iyMax = int(ceil (maxYf)) - 1;
 
 
-    if (ixMax < ixMin || iyMax < iyMin) return;
+        //if (ixMax < ixMin || iyMax < iyMin) return;
 
-    for (int y = iyMin; y <= iyMax; ++y) {
+        for (int y = iyMin; y <= iyMax; ++y) {
 
-        int row = y * mapWidth;
+            int row = y * mapWidth;
 
-        for (int x = ixMin; x <= ixMax; ++x) {
+            for (int x = ixMin; x <= ixMax; ++x) {
 
-            uint coord = offset + uint(x + row);
+                uint coord = offset[level] + uint(x + row);
 
-            // Atomically update the counter
-            uint oldCount = atomicAdd(counter[coord], 1u);
+                // Atomically update the counter
+                uint oldCount = atomicAdd(counter[coord], 1u);
 
-            // Store this particle ID
-            if (oldCount < MAX_COUNT) {
-                cell[coord * MAX_COUNT + oldCount] = partID;
+                // Store this particle ID
+                if (oldCount < MAX_COUNT) {
+                    cell[coord * MAX_COUNT + oldCount] = partID;
+                }
             }
         }
     }

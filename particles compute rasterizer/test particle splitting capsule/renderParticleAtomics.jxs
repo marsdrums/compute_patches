@@ -1,0 +1,425 @@
+#version 460
+
+// One invocation rasterizes ONE capsule into the multires "grid" buffer.
+// Capsule is given via uniforms (2D pixel-space endpoints + radius).
+
+layout(local_size_x = 1, local_size_y = 1) in;
+
+layout(std430, set = 0, binding = 0) buffer grid {
+    uint cell[];
+};
+
+layout(binding = 1) uniform Config {
+    vec2  capA;       // capsule endpoint A (pixel space)
+    vec2  capB;       // capsule endpoint B (pixel space)
+    float capRadius;  // capsule radius (pixels)
+    vec2  viewPort;   // image size in pixels (e.g. 1920,1080)
+};
+
+#define MAX_LEVELS 11
+
+shared int   levelWidth[MAX_LEVELS];
+shared int   levelHeight[MAX_LEVELS];
+shared int   offset[MAX_LEVELS];
+shared ivec2 gImgSize;
+shared ivec2 gImgSizeMinus1;
+
+struct capsule {
+    vec2 a;
+    vec2 b;
+    float r;
+    float r2;
+};
+
+// ------------------------------------------------------------
+// Grid addressing helpers
+// ------------------------------------------------------------
+
+uint coord2id(ivec2 coord, int level)
+{
+    return uint(coord.x + coord.y * levelWidth[level] + offset[level]);
+}
+
+ivec2 gridSizeAtLevel(int level)
+{
+    return ivec2(levelWidth[level], levelHeight[level]);
+}
+
+bool inBounds(ivec2 ij, int level)
+{
+    ivec2 gs = gridSizeAtLevel(level);
+    return all(greaterThanEqual(ij, ivec2(0))) && all(lessThan(ij, gs));
+}
+
+// Integer cell bounds in base pixel space, clipped to image rectangle
+void cellBoundsClippedInt(ivec2 ij, int level, out ivec2 mnI, out ivec2 mxI)
+{
+    int s = 1 << level;        // cell size in pixels (2^level)
+    mnI = ij << level;         // ij * s
+    mxI = mnI + ivec2(s);
+    mxI = min(mxI, gImgSize);  // clip right/bottom edge
+}
+
+// ------------------------------------------------------------
+// Geometry helpers
+// ------------------------------------------------------------
+
+float pointSegmentDistanceSq(vec2 p, vec2 a, vec2 b)
+{
+    vec2 ab = b - a;
+    float denom = dot(ab, ab);
+    if (denom <= 1e-20)
+    {
+        vec2 d = p - a; // degenerate segment -> circle at a
+        return dot(d, d);
+    }
+
+    float t = dot(p - a, ab) / denom;
+    t = clamp(t, 0.0, 1.0);
+    vec2 c = a + t * ab;
+    vec2 d = p - c;
+    return dot(d, d);
+}
+
+float pointAABBDistanceSq(vec2 p, vec2 mn, vec2 mx)
+{
+    vec2 q = clamp(p, mn, mx);
+    vec2 d = p - q;
+    return dot(d, d);
+}
+
+// Segment vs AABB intersection (2D slab test)
+bool segmentIntersectsAABB(vec2 p0, vec2 p1, vec2 mn, vec2 mx)
+{
+    vec2 d = p1 - p0;
+    float t0 = 0.0;
+    float t1 = 1.0;
+
+    // X slab
+    if (abs(d.x) < 1e-20)
+    {
+        if (p0.x < mn.x || p0.x > mx.x) return false;
+    }
+    else
+    {
+        float inv = 1.0 / d.x;
+        float tNear = (mn.x - p0.x) * inv;
+        float tFar  = (mx.x - p0.x) * inv;
+        if (tNear > tFar) { float tmp = tNear; tNear = tFar; tFar = tmp; }
+        t0 = max(t0, tNear);
+        t1 = min(t1, tFar);
+        if (t0 > t1) return false;
+    }
+
+    // Y slab
+    if (abs(d.y) < 1e-20)
+    {
+        if (p0.y < mn.y || p0.y > mx.y) return false;
+    }
+    else
+    {
+        float inv = 1.0 / d.y;
+        float tNear = (mn.y - p0.y) * inv;
+        float tFar  = (mx.y - p0.y) * inv;
+        if (tNear > tFar) { float tmp = tNear; tNear = tFar; tFar = tmp; }
+        t0 = max(t0, tNear);
+        t1 = min(t1, tFar);
+        if (t0 > t1) return false;
+    }
+
+    return true;
+}
+
+// Robust segment-segment distance squared (Ericson-style)
+float segmentSegmentDistanceSq(vec2 p1, vec2 q1, vec2 p2, vec2 q2)
+{
+    vec2 d1 = q1 - p1;
+    vec2 d2 = q2 - p2;
+    vec2 r  = p1 - p2;
+
+    float a = dot(d1, d1);
+    float e = dot(d2, d2);
+    float f = dot(d2, r);
+
+    float s, t;
+
+    if (a <= 1e-20 && e <= 1e-20) {
+        return dot(p1 - p2, p1 - p2);
+    }
+    if (a <= 1e-20) {
+        s = 0.0;
+        t = clamp(f / e, 0.0, 1.0);
+    } else {
+        float c = dot(d1, r);
+        if (e <= 1e-20) {
+            t = 0.0;
+            s = clamp(-c / a, 0.0, 1.0);
+        } else {
+            float b = dot(d1, d2);
+            float denom = a*e - b*b;
+
+            if (denom != 0.0) s = clamp((b*f - c*e) / denom, 0.0, 1.0);
+            else s = 0.0;
+
+            float tnom = b*s + f;
+            if (tnom < 0.0) {
+                t = 0.0;
+                s = clamp(-c / a, 0.0, 1.0);
+            } else if (tnom > e) {
+                t = 1.0;
+                s = clamp((b - c) / a, 0.0, 1.0);
+            } else {
+                t = tnom / e;
+            }
+        }
+    }
+
+    vec2 c1 = p1 + d1 * s;
+    vec2 c2 = p2 + d2 * t;
+    vec2 diff = c1 - c2;
+    return dot(diff, diff);
+}
+
+// Exact distance^2 between segment AB and rectangle [mn,mx]
+float segmentAABBDistanceSq(vec2 a, vec2 b, vec2 mn, vec2 mx)
+{
+    // If segment intersects the rectangle, distance is 0
+    if (segmentIntersectsAABB(a, b, mn, mx))
+        return 0.0;
+
+    // Otherwise, min of:
+    // - endpoints to AABB
+    // - segment to each rectangle edge segment
+    float best = min(pointAABBDistanceSq(a, mn, mx), pointAABBDistanceSq(b, mn, mx));
+
+    vec2 e0 = vec2(mn.x, mn.y);
+    vec2 e1 = vec2(mx.x, mn.y);
+    vec2 e2 = vec2(mx.x, mx.y);
+    vec2 e3 = vec2(mn.x, mx.y);
+
+    best = min(best, segmentSegmentDistanceSq(a, b, e0, e1));
+    best = min(best, segmentSegmentDistanceSq(a, b, e1, e2));
+    best = min(best, segmentSegmentDistanceSq(a, b, e2, e3));
+    best = min(best, segmentSegmentDistanceSq(a, b, e3, e0));
+
+    return best;
+}
+
+// ------------------------------------------------------------
+// Capsule predicates for a cell
+// ------------------------------------------------------------
+
+// Fully inside: capsule is convex, so a rectangle is inside iff all 4 corners are inside.
+bool cellFullyInsideCapsule_r2_level(ivec2 ij, int level, in capsule cap)
+{
+    ivec2 mnI, mxI;
+    cellBoundsClippedInt(ij, level, mnI, mxI);
+
+    vec2 mn = vec2(mnI);
+    vec2 mx = vec2(mxI);
+
+    vec2 c0 = vec2(mn.x, mn.y);
+    vec2 c1 = vec2(mx.x, mn.y);
+    vec2 c2 = vec2(mn.x, mx.y);
+    vec2 c3 = vec2(mx.x, mx.y);
+
+    float d0 = pointSegmentDistanceSq(c0, cap.a, cap.b);
+    float d1 = pointSegmentDistanceSq(c1, cap.a, cap.b);
+    float d2 = pointSegmentDistanceSq(c2, cap.a, cap.b);
+    float d3 = pointSegmentDistanceSq(c3, cap.a, cap.b);
+
+    float dmax = max(max(d0, d1), max(d2, d3));
+    return dmax <= cap.r2 + 1e-6;
+}
+
+// Fully outside (2-stage):
+// 1) Cheap reject: if AB doesn't intersect the rect expanded by r (L∞), it's definitely outside
+// 2) Exact: if Euclidean dist(segment, rect) > r, it's outside
+bool cellFullyOutsideCapsule_r2_level(ivec2 ij, int level, in capsule cap)
+{
+    ivec2 mnI, mxI;
+    cellBoundsClippedInt(ij, level, mnI, mxI);
+
+    vec2 mn = vec2(mnI);
+    vec2 mx = vec2(mxI);
+
+    // Stage 1: very cheap "not even close" test (expanded AABB)
+    vec2 mnExp = mn - vec2(cap.r);
+    vec2 mxExp = mx + vec2(cap.r);
+    if (!segmentIntersectsAABB(cap.a, cap.b, mnExp, mxExp))
+        return true;
+
+    // Stage 2: exact Euclidean distance
+    float d2 = segmentAABBDistanceSq(cap.a, cap.b, mn, mx);
+    return d2 > cap.r2 + 1e-6;
+}
+
+// ------------------------------------------------------------
+// Emission + traversal
+// ------------------------------------------------------------
+
+void emitCell(ivec2 ij, int level, float alpha)
+{
+    uint addv = uint(4294967295.0 * alpha);
+    atomicAdd(cell[coord2id(ij, level)], addv);
+}
+
+void coverCapsuleFromRoot(ivec2 rootIJ, int maxLevel, in capsule cap)
+{
+    const int MAX_STACK = 128;
+    const int MAX_ITERS = 1024;
+
+    ivec2 stackIJ[MAX_STACK];
+    int   stackLv[MAX_STACK];
+    int sp = 0;
+
+    stackIJ[sp] = rootIJ;
+    stackLv[sp] = maxLevel;
+    sp++;
+
+    int iters = 0;
+    while (sp > 0 && iters < MAX_ITERS)
+    {
+        iters++;
+
+        sp--;
+        ivec2 ij = stackIJ[sp];
+        int level = stackLv[sp];
+
+        if (!inBounds(ij, level))
+            continue;
+
+        if (cellFullyOutsideCapsule_r2_level(ij, level, cap))
+            continue;
+
+        if (cellFullyInsideCapsule_r2_level(ij, level, cap))
+        {
+            emitCell(ij, level, 0.25);
+            continue;
+        }
+
+        if (level == 0)
+        {
+            // IMPORTANT: do an exact intersection test at pixel level.
+            // This avoids square/box artifacts and restores rounded capsule ends.
+            ivec2 mnI, mxI;
+            cellBoundsClippedInt(ij, level, mnI, mxI);
+            vec2 mn = vec2(mnI);
+            vec2 mx = vec2(mxI);
+
+            float d2 = segmentAABBDistanceSq(cap.a, cap.b, mn, mx);
+            if (d2 <= cap.r2 + 1e-6)
+                emitCell(ij, level, 0.25);
+
+            continue;
+        }
+
+        int childLevel = level - 1;
+        ivec2 base = ij * 2;
+
+        if (sp + 4 <= MAX_STACK)
+        {
+            stackIJ[sp] = base + ivec2(0,0); stackLv[sp] = childLevel; sp++;
+            stackIJ[sp] = base + ivec2(1,0); stackLv[sp] = childLevel; sp++;
+            stackIJ[sp] = base + ivec2(0,1); stackLv[sp] = childLevel; sp++;
+            stackIJ[sp] = base + ivec2(1,1); stackLv[sp] = childLevel; sp++;
+        }
+        else
+        {
+            return;
+        }
+    }
+}
+
+// Root range from capsule AABB (integer + shifts). Inclusive [minIJ, maxIJ].
+void rootsFromCapsuleAABB_fast(int maxLevel, in capsule cap, out ivec2 minIJ, out ivec2 maxIJ)
+{
+    // Capsule AABB = min(a,b)-r  ..  max(a,b)+r
+    vec2 segMin = min(cap.a, cap.b) - vec2(cap.r);
+    vec2 segMax = max(cap.a, cap.b) + vec2(cap.r);
+
+    // Pixel bounds (inclusive), clamped to [0..size-1]
+    int minX = int(floor(segMin.x));
+    int minY = int(floor(segMin.y));
+    int maxX = int(floor(segMax.x - 1e-6));
+    int maxY = int(floor(segMax.y - 1e-6));
+
+    minX = clamp(minX, 0, gImgSizeMinus1.x);
+    minY = clamp(minY, 0, gImgSizeMinus1.y);
+    maxX = clamp(maxX, 0, gImgSizeMinus1.x);
+    maxY = clamp(maxY, 0, gImgSizeMinus1.y);
+
+    if (maxX < minX || maxY < minY)
+    {
+        minIJ = ivec2(1);
+        maxIJ = ivec2(0); // empty
+        return;
+    }
+
+    // Pixel -> cell idx by dividing by 2^level (shift)
+    minIJ = ivec2(minX >> maxLevel, minY >> maxLevel);
+    maxIJ = ivec2(maxX >> maxLevel, maxY >> maxLevel);
+
+    // Clamp to valid cell indices
+    ivec2 gs   = gridSizeAtLevel(maxLevel);
+    ivec2 last = gs - ivec2(1);
+    minIJ = clamp(minIJ, ivec2(0), last);
+    maxIJ = clamp(maxIJ, ivec2(0), last);
+}
+
+void main()
+{
+    // Build pyramid once (integer ceil-div) + cache image size
+    if (gl_LocalInvocationIndex == 0u)
+    {
+        gImgSize       = ivec2(viewPort);
+        gImgSizeMinus1 = gImgSize - ivec2(1);
+
+        int runningOffset = 0;
+        for (int L = 0; L < MAX_LEVELS; ++L)
+        {
+            int s = 1 << L;
+            int w = (gImgSize.x + (s - 1)) >> L; // ceil(size / 2^L)
+            int h = (gImgSize.y + (s - 1)) >> L;
+
+            levelWidth[L]  = w;
+            levelHeight[L] = h;
+
+            offset[L] = runningOffset;
+            runningOffset += w * h;
+        }
+    }
+
+    barrier();
+
+    capsule cap;
+    cap.a  = capA;
+    cap.b  = capB;
+    cap.r  = capRadius;
+    cap.r2 = cap.r * cap.r;
+
+    // Choose starting level based on capsule "diameter" (segment length + 2r)
+    float segLen = length(cap.b - cap.a);
+    float dSafe  = max(segLen + 2.0 * cap.r, 1.0);
+    int level = int(floor(log2(dSafe)));
+    level = clamp(level, 0, MAX_LEVELS - 1);
+
+    // Root range at that level
+    ivec2 rootMin, rootMax;
+    rootsFromCapsuleAABB_fast(level, cap, rootMin, rootMax);
+
+    // Empty range => nothing to do
+    if (rootMin.x > rootMax.x || rootMin.y > rootMax.y)
+        return;
+
+    // Optional early pruning at root level
+    for (int i = rootMin.x; i <= rootMax.x; ++i)
+    {
+        for (int j = rootMin.y; j <= rootMax.y; ++j)
+        {
+            ivec2 root = ivec2(i, j);
+            if (!cellFullyOutsideCapsule_r2_level(root, level, cap))
+                coverCapsuleFromRoot(root, level, cap);
+        }
+    }
+}

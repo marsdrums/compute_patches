@@ -1,0 +1,215 @@
+#version 460
+
+layout(local_size_x = 1, local_size_y = 1) in;
+
+layout(std430, set = 0, binding = 0) buffer grid {
+    uint cell[];
+};
+
+layout(binding = 1) uniform Config {
+    vec2 particlePos;
+    float particleRad;
+};
+
+shared int levelWidth[11];
+shared int levelHeight[11];
+shared int offset[11];
+
+const ivec2 IMG = ivec2(1920, 1080);
+
+struct particle{
+    vec2 ce;
+    float r;
+    float r2;
+    float d;
+};
+
+uint coord2id(ivec2 coord, int level){
+    return uint(coord.x + coord.y * levelWidth[level] + offset[level]);
+}
+
+// l = 2^level (in pixel)
+float cellSize(int level) { return float(1 << level); }
+
+// dimensione griglia (numero celle) per livello, già calcolata in shared
+ivec2 gridSizeAtLevel(int level)
+{
+    return ivec2(levelWidth[level], levelHeight[level]);
+}
+
+bool inBounds(ivec2 ij, int level)
+{
+    ivec2 gs = gridSizeAtLevel(level);
+    return all(greaterThanEqual(ij, ivec2(0))) && all(lessThan(ij, gs));
+}
+
+// bounds della cella in coordinate pixel-base, CLIPPATI al rettangolo immagine
+void cellBoundsClipped(ivec2 ij, int level, out vec2 mn, out vec2 mx)
+{
+    float l = cellSize(level);
+    mn = vec2(ij) * l;
+    mx = min(mn + vec2(l), vec2(IMG));
+}
+
+// true se cella (ij, level) è completamente dentro il cerchio (considerando il clipping ai bordi)
+bool cellFullyInsideCircle_r2_level(ivec2 ij, int level, in particle p)
+{
+    vec2 mn, mx;
+    cellBoundsClipped(ij, level, mn, mx);
+
+    float dx = max(abs(p.ce.x - mn.x), abs(p.ce.x - mx.x));
+    float dy = max(abs(p.ce.y - mn.y), abs(p.ce.y - mx.y));
+    float d2 = dx*dx + dy*dy;
+
+    const float EPS = 1e-6;
+    return d2 <= p.r2 + EPS;
+}
+
+// true se cella (ij, level) è completamente fuori dal cerchio (nessuna intersezione)
+bool cellFullyOutsideCircle_r2_level(ivec2 ij, int level, in particle p)
+{
+    vec2 mn, mx;
+    cellBoundsClipped(ij, level, mn, mx);
+
+    vec2 closest = clamp(p.ce, mn, mx);
+    vec2 diff = p.ce - closest;
+
+    const float EPS = 1e-6;
+    return dot(diff, diff) > p.r2 + EPS;
+}
+
+void emitCell(ivec2 ij, int level, float particleAlpha)
+{
+    uint colorToAdd = uint(4294967295.0 * particleAlpha);
+    atomicAdd(cell[coord2id(ij, level)], colorToAdd);
+}
+
+void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p)
+{
+    const int MAX_STACK = 1024;
+    const int MAX_ITERS = 2048;
+
+    ivec2 stackIJ[MAX_STACK];
+    int   stackLv[MAX_STACK];
+    int sp = 0;
+
+    stackIJ[sp] = rootIJ;
+    stackLv[sp] = maxLevel;
+    sp++;
+
+    int iters = 0;
+    while (sp > 0 && iters < MAX_ITERS)
+    {
+        iters++;
+
+        sp--;
+        ivec2 ij = stackIJ[sp];
+        int level = stackLv[sp];
+
+        // bounds: fondamentale per evitare OOB e per gestire l'ultima colonna/riga parziale
+        if (!inBounds(ij, level))
+            continue;
+
+        // pruning
+        if (cellFullyOutsideCircle_r2_level(ij, level, p))
+            continue;
+
+        if (cellFullyInsideCircle_r2_level(ij, level, p))
+        {
+            emitCell(ij, level, 0.25);
+            continue;
+        }
+
+        // intersezione parziale
+        if (level == 0)
+        {
+            // Se vuoi SOLO celle completamente dentro, qui non emetti.
+            // Se vuoi trattare il boundary, qui puoi decidere di emettere comunque.
+            continue;
+        }
+
+        int childLevel = level - 1;
+        ivec2 base = ij * 2;
+
+        if (sp + 4 <= MAX_STACK)
+        {
+            stackIJ[sp] = base + ivec2(0,0); stackLv[sp] = childLevel; sp++;
+            stackIJ[sp] = base + ivec2(1,0); stackLv[sp] = childLevel; sp++;
+            stackIJ[sp] = base + ivec2(0,1); stackLv[sp] = childLevel; sp++;
+            stackIJ[sp] = base + ivec2(1,1); stackLv[sp] = childLevel; sp++;
+        }
+        else
+        {
+            return;
+        }
+    }
+}
+
+void main()
+{
+    ivec2 size = IMG;
+    vec2 fsize = vec2(size);
+
+    // costruzione piramide (ceil division per livello)
+    if(gl_LocalInvocationIndex == 0u)
+    {
+        int runningOffset = 0;
+        for(int i = 0; i < 11; i++)
+        {
+            int l = 1 << i;
+
+            // ceil(size / l) in interi
+            ivec2 gs = (size + ivec2(l - 1)) / ivec2(l);
+
+            levelWidth[i]  = gs.x;
+            levelHeight[i] = gs.y;
+
+            offset[i] = runningOffset;
+            runningOffset += gs.x * gs.y;
+        }
+    }
+
+    barrier();
+
+    particle p;
+    p.ce = particlePos;
+    p.r  = particleRad;
+    p.r2 = p.r * p.r;
+    p.d  = p.r * 2.0;
+
+    // culling
+    if( p.ce.x + p.r < 0.0 || p.ce.x - p.r >= fsize.x ||
+        p.ce.y + p.r < 0.0 || p.ce.y - p.r >= fsize.y){
+        return;
+    }
+
+    // livello scelto in base a diametro (clamp per evitare level <0 o >10)
+    float dSafe = max(p.d, 1.0);
+    int level = int(floor(log2(dSafe)));
+    level = clamp(level, 0, 10);
+
+    float cellSizePixels = cellSize(level);
+    float invCellSize  = 1.0 / cellSizePixels;
+
+    float minXf = (p.ce.x - p.r) * invCellSize;
+    float maxXf = (p.ce.x + p.r) * invCellSize;
+    float minYf = (p.ce.y - p.r) * invCellSize;
+    float maxYf = (p.ce.y + p.r) * invCellSize;
+
+    // numero celle a questo livello (da shared)
+    ivec2 upper = gridSizeAtLevel(level);
+
+    // clamp indici: max inclusivo deve essere <= upper-1
+    int ixMin = max(0, int(floor(minXf)));
+    int ixMax = min(upper.x - 1, int(floor(maxXf)));
+    int iyMin = max(0, int(floor(minYf)));
+    int iyMax = min(upper.y - 1, int(floor(maxYf)));
+
+    for(int i = ixMin; i <= ixMax; i++)
+    {
+        for(int j = iyMin; j <= iyMax; j++)
+        {
+            coverCircleFromRoot(ivec2(i,j), level, p);
+        }
+    }
+}

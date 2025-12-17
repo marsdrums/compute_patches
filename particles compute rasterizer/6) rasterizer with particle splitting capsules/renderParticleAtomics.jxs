@@ -1,0 +1,371 @@
+#version 460
+
+// FAST capsule rasterizer into a multires "grid" SSBO.
+// posImg: current frame world-space xyz
+// prevPosImg: previous frame already in pixel space (xy in pixels), updated each frame here.
+
+layout(local_size_x = 32, local_size_y = 32) in;
+
+layout(std430, set = 0, binding = 0) buffer grid { uint cell[]; };
+
+layout(binding = 1, rgba32f) uniform image2D posImg;      // current position (world xyz)
+layout(binding = 3, rgba32f) uniform image2D prevPosImg;  // previous position (pixel xy stored in .xy), also written here
+
+layout(binding = 2) uniform Config {
+    vec4 v0; vec4 v1; vec4 v2; vec4 v3;
+    vec4 p0; vec4 p1; vec4 p2; vec4 p3;
+    vec2 viewPort;   // window size in pixels
+};
+
+#define MAX_LEVELS 11
+
+shared int   levelWidth[MAX_LEVELS];
+shared int   levelHeight[MAX_LEVELS];
+shared int   offset[MAX_LEVELS];
+shared ivec2 gImgSize;
+shared ivec2 gImgSizeMinus1;
+
+const float radiusViewSpace = 0.001;
+
+shared mat4 V;
+shared mat4 P;
+shared vec4 radiusOffsetProj; // P * vec4(radiusViewSpace,0,0,0)
+
+// Precompute segment direction and 1/|ab|^2 for fast point->segment distance
+struct capsule2D
+{
+    vec2  a;        // pixel
+    vec2  b;        // pixel
+    vec2  ab;       // b-a
+    float invLen2;  // 1/dot(ab,ab) (0 if degenerate)
+    float r;        // pixels
+    float r2;
+    float rPlusHD2; // (r + halfDiag)^2 for level-0 test
+};
+
+uint coord2id(ivec2 coord, int level)
+{
+    return uint(coord.x + coord.y * levelWidth[level] + offset[level]);
+}
+
+ivec2 gridSizeAtLevel(int level)
+{
+    return ivec2(levelWidth[level], levelHeight[level]);
+}
+
+bool inBounds(ivec2 ij, int level)
+{
+    ivec2 gs = gridSizeAtLevel(level);
+    return all(greaterThanEqual(ij, ivec2(0))) && all(lessThan(ij, gs));
+}
+
+void cellBoundsClippedInt(ivec2 ij, int level, out ivec2 mnI, out ivec2 mxI)
+{
+    int s = 1 << level;
+    mnI = ij << level;
+    mxI = min(mnI + ivec2(s), gImgSize);
+}
+
+void emitCell(ivec2 ij, int level, float alpha)
+{
+    uint addv = uint(4294967295.0 * alpha);
+    atomicAdd(cell[coord2id(ij, level)], addv);
+}
+
+// ------------------------------------------------------------
+// Geometry helpers
+// ------------------------------------------------------------
+
+// 2D segment vs AABB intersection (slab test)
+bool segmentIntersectsAABB(vec2 p0, vec2 p1, vec2 mn, vec2 mx)
+{
+    vec2 d = p1 - p0;
+    float t0 = 0.0, t1 = 1.0;
+
+    // X slab
+    if (abs(d.x) < 1e-20) {
+        if (p0.x < mn.x || p0.x > mx.x) return false;
+    } else {
+        float inv = 1.0 / d.x;
+        float tN = (mn.x - p0.x) * inv;
+        float tF = (mx.x - p0.x) * inv;
+        if (tN > tF) { float tmp=tN; tN=tF; tF=tmp; }
+        t0 = max(t0, tN);
+        t1 = min(t1, tF);
+        if (t0 > t1) return false;
+    }
+
+    // Y slab
+    if (abs(d.y) < 1e-20) {
+        if (p0.y < mn.y || p0.y > mx.y) return false;
+    } else {
+        float inv = 1.0 / d.y;
+        float tN = (mn.y - p0.y) * inv;
+        float tF = (mx.y - p0.y) * inv;
+        if (tN > tF) { float tmp=tN; tN=tF; tF=tmp; }
+        t0 = max(t0, tN);
+        t1 = min(t1, tF);
+        if (t0 > t1) return false;
+    }
+
+    return true;
+}
+
+// Fast point-to-segment distance^2 using precomputed ab/invLen2
+float pointSegmentDistanceSqFast(vec2 p, in capsule2D cap)
+{
+    if (cap.invLen2 <= 0.0)
+    {
+        vec2 d = p - cap.a;
+        return dot(d, d);
+    }
+
+    float t = dot(p - cap.a, cap.ab) * cap.invLen2;
+    t = clamp(t, 0.0, 1.0);
+
+    vec2 c = cap.a + t * cap.ab;
+    vec2 d = p - c;
+    return dot(d, d);
+}
+
+// ------------------------------------------------------------
+// Capsule vs cell predicates (FAST)
+// ------------------------------------------------------------
+
+// Fully inside: capsule is convex => rectangle is inside iff all corners are inside
+bool cellFullyInsideCapsule_r2_level(ivec2 ij, int level, in capsule2D cap)
+{
+    ivec2 mnI, mxI;
+    cellBoundsClippedInt(ij, level, mnI, mxI);
+    vec2 mn = vec2(mnI), mx = vec2(mxI);
+
+    vec2 c0 = vec2(mn.x, mn.y);
+    vec2 c1 = vec2(mx.x, mn.y);
+    vec2 c2 = vec2(mn.x, mx.y);
+    vec2 c3 = vec2(mx.x, mx.y);
+
+    float d0 = pointSegmentDistanceSqFast(c0, cap);
+    float d1 = pointSegmentDistanceSqFast(c1, cap);
+    float d2 = pointSegmentDistanceSqFast(c2, cap);
+    float d3 = pointSegmentDistanceSqFast(c3, cap);
+
+    return max(max(d0, d1), max(d2, d3)) <= cap.r2 + 1e-6;
+}
+
+// Fully outside (fast conservative):
+// If segment doesn't intersect the cell AABB expanded by r, capsule cannot reach the cell.
+bool cellFullyOutsideCapsule_fast_level(ivec2 ij, int level, in capsule2D cap)
+{
+    ivec2 mnI, mxI;
+    cellBoundsClippedInt(ij, level, mnI, mxI);
+
+    vec2 mn = vec2(mnI);
+    vec2 mx = vec2(mxI);
+
+    vec2 mnExp = mn - vec2(cap.r);
+    vec2 mxExp = mx + vec2(cap.r);
+
+    return !segmentIntersectsAABB(cap.a, cap.b, mnExp, mxExp);
+}
+
+// ------------------------------------------------------------
+// Root range from capsule AABB (fast shift version)
+// ------------------------------------------------------------
+
+void rootsFromCapsuleAABB_fast(int maxLevel, in capsule2D cap, out ivec2 minIJ, out ivec2 maxIJ)
+{
+    vec2 segMin = min(cap.a, cap.b) - vec2(cap.r);
+    vec2 segMax = max(cap.a, cap.b) + vec2(cap.r);
+
+    int minX = clamp(int(floor(segMin.x)), 0, gImgSizeMinus1.x);
+    int minY = clamp(int(floor(segMin.y)), 0, gImgSizeMinus1.y);
+    int maxX = clamp(int(floor(segMax.x - 1e-6)), 0, gImgSizeMinus1.x);
+    int maxY = clamp(int(floor(segMax.y - 1e-6)), 0, gImgSizeMinus1.y);
+
+    if (maxX < minX || maxY < minY) { minIJ = ivec2(1); maxIJ = ivec2(0); return; }
+
+    minIJ = ivec2(minX >> maxLevel, minY >> maxLevel);
+    maxIJ = ivec2(maxX >> maxLevel, maxY >> maxLevel);
+
+    ivec2 gs   = gridSizeAtLevel(maxLevel);
+    ivec2 last = gs - ivec2(1);
+    minIJ = clamp(minIJ, ivec2(0), last);
+    maxIJ = clamp(maxIJ, ivec2(0), last);
+}
+
+// ------------------------------------------------------------
+// Stack-based quadtree traversal (DFS)
+// ------------------------------------------------------------
+
+void coverCapsuleFromRoot(ivec2 rootIJ, int maxLevel, in capsule2D cap, float colorScale)
+{
+    const int MAX_STACK = 128;
+    const int MAX_ITERS = 1024;
+
+    ivec2 stackIJ[MAX_STACK];
+    int   stackLv[MAX_STACK];
+    int sp = 0;
+
+    stackIJ[sp] = rootIJ;
+    stackLv[sp] = maxLevel;
+    sp++;
+
+    float alpha = 0.003 / max(colorScale, 1e-6);
+
+    int iters = 0;
+    while (sp > 0 && iters < MAX_ITERS)
+    {
+        iters++;
+
+        sp--;
+        ivec2 ij = stackIJ[sp];
+        int level = stackLv[sp];
+
+        if (!inBounds(ij, level)) continue;
+
+        if (cellFullyOutsideCapsule_fast_level(ij, level, cap))
+            continue;
+
+        if (cellFullyInsideCapsule_r2_level(ij, level, cap))
+        {
+            emitCell(ij, level, alpha);
+            continue;
+        }
+
+        if (level == 0)
+        {
+            // Cheap rounded pixel test:
+            // distance from capsule segment to pixel center <= (r + halfDiagonal)
+            ivec2 mnI, mxI;
+            cellBoundsClippedInt(ij, level, mnI, mxI);
+            vec2 center = (vec2(mnI) + vec2(mxI)) * 0.5;
+
+            float d2 = pointSegmentDistanceSqFast(center, cap);
+            if (d2 <= cap.rPlusHD2 + 1e-6)
+                emitCell(ij, level, alpha);
+
+            continue;
+        }
+
+        int childLevel = level - 1;
+        ivec2 base = ij * 2;
+
+        if (sp + 4 <= MAX_STACK)
+        {
+            stackIJ[sp] = base + ivec2(0,0); stackLv[sp] = childLevel; sp++;
+            stackIJ[sp] = base + ivec2(1,0); stackLv[sp] = childLevel; sp++;
+            stackIJ[sp] = base + ivec2(0,1); stackLv[sp] = childLevel; sp++;
+            stackIJ[sp] = base + ivec2(1,1); stackLv[sp] = childLevel; sp++;
+        }
+        else return;
+    }
+}
+
+void main()
+{
+    ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = ivec2(viewPort);
+
+    if (gid.x >= size.x || gid.y >= size.y) return;
+
+    // ---- Shared init ----
+    if (gl_LocalInvocationIndex == 0u)
+    {
+        V = mat4(v0, v1, v2, v3);
+        P = mat4(-p0, p1, -p2, p3);
+
+        radiusOffsetProj = P * vec4(radiusViewSpace, 0.0, 0.0, 0.0);
+
+        gImgSize       = size;
+        gImgSizeMinus1 = size - ivec2(1);
+
+        int runningOffset = 0;
+        for (int L = 0; L < MAX_LEVELS; ++L)
+        {
+            int s = 1 << L;
+            int w = (size.x + (s - 1)) >> L; // ceil(size / 2^L)
+            int h = (size.y + (s - 1)) >> L;
+
+            levelWidth[L]  = w;
+            levelHeight[L] = h;
+
+            offset[L] = runningOffset;
+            runningOffset += w * h;
+        }
+    }
+
+    barrier();
+
+    // ---- Endpoint A: world -> pixel ----
+    vec3 posA = imageLoad(posImg, gid).xyz;
+
+    vec4 vA = V * vec4(posA, 1.0);
+    if (vA.z >= -0.01) return;
+
+    vec4 clipA = P * vA;
+    float wA = clipA.w;
+    if (wA == 0.0) return;
+
+    float invWA = 1.0 / wA;
+    vec2 pixA = ((clipA.xy * invWA) * 0.5 + 0.5) * viewPort;
+
+    // ---- Endpoint B: previous frame already in pixel space ----
+    vec2 pixB = imageLoad(prevPosImg, gid).xy;
+
+    // ---- Store current pixel position for next frame ----
+    imageStore(prevPosImg, gid, vec4(pixA, 0.0, 0.0));
+
+    // ---- Screen-space radius from endpoint A depth ----
+    vec2 rPxA_xy = abs(radiusOffsetProj.xy * invWA) * (0.5 * viewPort);
+    float radiusOnScreen = max(rPxA_xy.x, rPxA_xy.y);
+
+    // Your scale choice
+    float scale = 1.0;
+    radiusOnScreen *= scale;
+
+    capsule2D cap;
+    cap.a = pixA;
+    cap.b = pixB;
+    cap.ab = cap.b - cap.a;
+
+    float len2 = dot(cap.ab, cap.ab);
+    cap.invLen2 = (len2 > 1e-20) ? (1.0 / len2) : 0.0;
+
+    cap.r  = radiusOnScreen;
+    cap.r2 = cap.r * cap.r;
+
+    // Half diagonal of a 1x1 pixel square
+    const float halfDiag = 0.70710678; // sqrt(2)/2
+    float rp = cap.r + halfDiag;
+    cap.rPlusHD2 = rp * rp;
+
+    // ---- Pixel-space capsule AABB culling ----
+    vec2 segMin = min(cap.a, cap.b) - vec2(cap.r);
+    vec2 segMax = max(cap.a, cap.b) + vec2(cap.r);
+
+    if (segMax.x < 0.0 || segMax.y < 0.0 || segMin.x >= float(size.x) || segMin.y >= float(size.y))
+        return;
+
+    // ---- Choose starting level based on capsule "diameter" ----
+    float segLen = sqrt(max(len2, 0.0));
+    float dSafe  = max(segLen + 2.0 * cap.r, 1.0);
+    int level = clamp(int(floor(log2(dSafe))), 0, MAX_LEVELS - 1);
+
+    // ---- Root range + traversal ----
+    ivec2 rootMin, rootMax;
+    rootsFromCapsuleAABB_fast(level, cap, rootMin, rootMax);
+
+    for (int i = rootMin.x; i <= rootMax.x; ++i)
+    for (int j = rootMin.y; j <= rootMax.y; ++j)
+    {
+        ivec2 root = ivec2(i, j);
+
+        // Root-level cheap prune
+        if (!cellFullyOutsideCapsule_fast_level(root, level, cap))
+        {
+            // Keep your original choice of "colorScale" if you want:
+            // coverCapsuleFromRoot(root, level, cap, scale);
+            coverCapsuleFromRoot(root, level, cap, segLen + 1.0);
+        }
+    }
+}

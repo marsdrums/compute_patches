@@ -13,68 +13,6 @@
         "boxes": [
             {
                 "box": {
-                    "id": "obj-80",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "" ],
-                    "patching_rect": [ 1721.0, 37.0, 47.0, 22.0 ],
-                    "text": "jit.bang"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-82",
-                    "maxclass": "message",
-                    "numinlets": 2,
-                    "numoutlets": 1,
-                    "outlettype": [ "" ],
-                    "patching_rect": [ 162.0, 61.0, 120.0, 22.0 ],
-                    "text": "displaylink 1, fps 300"
-                }
-            },
-            {
-                "box": {
-                    "filename": "clearCanvas.jxs",
-                    "id": "obj-77",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "" ],
-                    "patching_rect": [ 91.0, 792.0, 909.0, 22.0 ],
-                    "text": "jit.gpu.compute @name clearCanvas @file clearCanvas.jxs @threads 120 68 1 @automatic 0 @smallParticlesCanvas smallParticlesCanvas @depends_on clearCounter",
-                    "textfile": {
-                        "filename": "clearCanvas.jxs",
-                        "flags": 0,
-                        "embed": 0,
-                        "autowatch": 1
-                    }
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-78",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 635.0, 435.0, 149.0, 22.0 ],
-                    "text": "jit.matrix 1 long 1920 1080"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-14",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "" ],
-                    "patching_rect": [ 635.0, 453.0, 445.0, 22.0 ],
-                    "text": "jit.gpu.image @dim 1920 1080 @format R32_UINT @name smallParticlesCanvas"
-                }
-            },
-            {
-                "box": {
                     "id": "obj-79",
                     "maxclass": "newobj",
                     "numinlets": 1,
@@ -375,6 +313,17 @@
             },
             {
                 "box": {
+                    "id": "obj-92",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "bang" ],
+                    "patching_rect": [ 1759.0, 67.0, 58.0, 22.0 ],
+                    "text": "loadbang"
+                }
+            },
+            {
+                "box": {
                     "attr": "basis",
                     "id": "obj-93",
                     "maxclass": "attrui",
@@ -599,7 +548,7 @@
                             }
                         ]
                     },
-                    "patching_rect": [ 273.0, 1107.0, 72.0, 22.0 ],
+                    "patching_rect": [ 283.0, 1144.0, 72.0, 22.0 ],
                     "text": "p fps_meter"
                 }
             },
@@ -612,7 +561,7 @@
                     "numoutlets": 2,
                     "outlettype": [ "", "bang" ],
                     "parameter_enable": 0,
-                    "patching_rect": [ 273.0, 1141.0, 195.0, 22.0 ]
+                    "patching_rect": [ 283.0, 1178.0, 195.0, 22.0 ]
                 }
             },
             {
@@ -622,7 +571,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "float" ],
-                    "patching_rect": [ 371.5, -31.0, 29.5, 22.0 ],
+                    "patching_rect": [ 1055.0, 155.0, 29.5, 22.0 ],
                     "text": "* 2."
                 }
             },
@@ -633,7 +582,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "float" ],
-                    "patching_rect": [ 330.5, -31.0, 29.5, 22.0 ],
+                    "patching_rect": [ 998.0, 155.0, 29.5, 22.0 ],
                     "text": "* 3."
                 }
             },
@@ -645,7 +594,7 @@
                     "numoutlets": 1,
                     "outlettype": [ "int" ],
                     "parameter_enable": 0,
-                    "patching_rect": [ 329.5, -131.0, 24.0, 24.0 ]
+                    "patching_rect": [ 1033.0, 24.0, 24.0, 24.0 ]
                 }
             },
             {
@@ -655,7 +604,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 329.5, 25.0, 97.0, 22.0 ],
+                    "patching_rect": [ 997.0, 211.0, 97.0, 22.0 ],
                     "text": "prepend position"
                 }
             },
@@ -666,7 +615,7 @@
                     "numinlets": 3,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 329.5, 1.0, 61.0, 22.0 ],
+                    "patching_rect": [ 997.0, 187.0, 61.0, 22.0 ],
                     "text": "pack f 1. f"
                 }
             },
@@ -677,7 +626,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "float" ],
-                    "patching_rect": [ 371.5, -65.0, 24.0, 22.0 ],
+                    "patching_rect": [ 1062.0, 121.0, 24.0, 22.0 ],
                     "text": "sin"
                 }
             },
@@ -688,7 +637,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "float" ],
-                    "patching_rect": [ 329.5, -65.0, 27.0, 22.0 ],
+                    "patching_rect": [ 997.0, 121.0, 27.0, 22.0 ],
                     "text": "cos"
                 }
             },
@@ -699,7 +648,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 329.5, -100.0, 173.0, 22.0 ],
+                    "patching_rect": [ 1033.0, 86.0, 173.0, 22.0 ],
                     "text": "jit.time @enable 0 @speed 0.5"
                 }
             },
@@ -722,7 +671,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_gl_texture", "" ],
-                    "patching_rect": [ 56.0, 1105.0, 75.0, 22.0 ],
+                    "patching_rect": [ 55.0, 1171.0, 75.0, 22.0 ],
                     "text": "jit.fx.lin2srgb",
                     "textfile": {
                         "filename": "jit.fx.lin2srgb.jxs",
@@ -750,8 +699,8 @@
                     "maxclass": "comment",
                     "numinlets": 1,
                     "numoutlets": 0,
-                    "patching_rect": [ 597.0, 487.0, 194.0, 33.0 ],
-                    "text": "to do:\n- precompute the offsets in a buffer"
+                    "patching_rect": [ 597.0, 487.0, 513.0, 33.0 ],
+                    "text": "to do:\n- precompute in a buffer the offsets"
                 }
             },
             {
@@ -762,8 +711,8 @@
                     "numinlets": 2,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 87.0, 845.0, 1013.0, 22.0 ],
-                    "text": "jit.gpu.compute @name copyOriginalPosition @file copyOriginalPosition.jxs @threads 63 63 1 @automatic 0 @posImg posImg @originalPosImg originalPosImg @depends_on clearCanvas",
+                    "patching_rect": [ 87.0, 845.0, 1015.0, 22.0 ],
+                    "text": "jit.gpu.compute @name copyOriginalPosition @file copyOriginalPosition.jxs @threads 63 63 1 @automatic 0 @posImg posImg @originalPosImg originalPosImg @depends_on clearCounter",
                     "textfile": {
                         "filename": "copyOriginalPosition.jxs",
                         "flags": 0,
@@ -835,7 +784,7 @@
                     "numoutlets": 1,
                     "outlettype": [ "bang" ],
                     "parameter_enable": 0,
-                    "patching_rect": [ 132.0, 60.0, 24.0, 24.0 ]
+                    "patching_rect": [ 267.0, 54.0, 24.0, 24.0 ]
                 }
             },
             {
@@ -989,11 +938,11 @@
                     "filename": "renderParticles.jxs",
                     "id": "obj-40",
                     "maxclass": "newobj",
-                    "numinlets": 6,
-                    "numoutlets": 6,
-                    "outlettype": [ "", "", "", "", "", "" ],
-                    "patching_rect": [ 56.0, 956.0, 1373.0, 22.0 ],
-                    "text": "jit.gpu.compute @name renderParticles @file renderParticles.jxs @automatic 0 @threads 120 68 1 @countBuff countBuff @posImg posImg @canvasImg canvasImg @grid grid @smallParticlesCanvas smallParticlesCanvas @depends_on transformPosition",
+                    "numinlets": 5,
+                    "numoutlets": 5,
+                    "outlettype": [ "", "", "", "", "" ],
+                    "patching_rect": [ 56.0, 956.0, 1125.0, 22.0 ],
+                    "text": "jit.gpu.compute @name renderParticles @file renderParticles.jxs @automatic 0 @threads 120 68 1 @countBuff countBuff @posImg posImg @canvasImg canvasImg @grid grid @depends_on transformPosition",
                     "textfile": {
                         "filename": "renderParticles.jxs",
                         "flags": 0,
@@ -1060,7 +1009,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 699.0, 154.0, 97.0, 22.0 ],
+                    "patching_rect": [ 699.0, 134.0, 97.0, 22.0 ],
                     "text": "jit.geom.tomatrix"
                 }
             },
@@ -1071,7 +1020,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_geometry", "" ],
-                    "patching_rect": [ 699.0, 125.0, 197.0, 22.0 ],
+                    "patching_rect": [ 699.0, 105.0, 197.0, 22.0 ],
                     "text": "jit.geom.distribute @count 4000000"
                 }
             },
@@ -1082,7 +1031,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_geometry", "" ],
-                    "patching_rect": [ 699.0, 99.0, 94.0, 22.0 ],
+                    "patching_rect": [ 699.0, 79.0, 94.0, 22.0 ],
                     "text": "jit.geom.togeom"
                 }
             },
@@ -1093,7 +1042,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 699.0, 182.0, 181.0, 22.0 ],
+                    "patching_rect": [ 699.0, 162.0, 181.0, 22.0 ],
                     "text": "jit.scanwrap 3 float32 2000 2000"
                 }
             },
@@ -1104,7 +1053,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "bang" ],
-                    "patching_rect": [ 699.0, 45.0, 58.0, 22.0 ],
+                    "patching_rect": [ 699.0, 25.0, 58.0, 22.0 ],
                     "text": "loadbang"
                 }
             },
@@ -1115,7 +1064,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 699.0, 72.0, 318.0, 22.0 ],
+                    "patching_rect": [ 699.0, 52.0, 318.0, 22.0 ],
                     "text": "jit.gl.model @file duck.dae @matrixoutput 1 @automatic 0"
                 }
             },
@@ -1126,7 +1075,7 @@
                     "numinlets": 2,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 216.0, 152.0, 84.0, 22.0 ],
+                    "patching_rect": [ 352.0, 152.0, 84.0, 22.0 ],
                     "text": "routepass dim"
                 }
             },
@@ -1148,7 +1097,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 57.0, 1141.0, 201.0, 22.0 ],
+                    "patching_rect": [ 56.0, 1207.0, 201.0, 22.0 ],
                     "text": "jit.gl.videoplane @transform_reset 2"
                 }
             },
@@ -1159,7 +1108,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 56.0, 1059.0, 369.0, 22.0 ],
+                    "patching_rect": [ 56.0, 1083.0, 369.0, 22.0 ],
                     "text": "jit.gpu.totexture @source canvasImg @depends_on renderParticles"
                 }
             },
@@ -1179,11 +1128,11 @@
                     "filename": "transformPosition.jxs",
                     "id": "obj-32",
                     "maxclass": "newobj",
-                    "numinlets": 6,
-                    "numoutlets": 6,
-                    "outlettype": [ "", "", "", "", "", "" ],
-                    "patching_rect": [ 56.0, 906.0, 1273.0, 22.0 ],
-                    "text": "jit.gpu.compute @name transformPosition @file transformPosition.jxs @automatic 0 @threads 63 63 1 @countBuff countBuff @posImg posImg @grid grid @smallParticlesCanvas smallParticlesCanvas @depends_on copyOriginalPosition",
+                    "numinlets": 5,
+                    "numoutlets": 5,
+                    "outlettype": [ "", "", "", "", "" ],
+                    "patching_rect": [ 56.0, 906.0, 1025.0, 22.0 ],
+                    "text": "jit.gpu.compute @name transformPosition @file transformPosition.jxs @automatic 0 @threads 63 63 1 @countBuff countBuff @posImg posImg @grid grid @depends_on copyOriginalPosition",
                     "textfile": {
                         "filename": "transformPosition.jxs",
                         "flags": 0,
@@ -1274,7 +1223,7 @@
                     "maxclass": "newobj",
                     "numinlets": 1,
                     "numoutlets": 0,
-                    "patching_rect": [ 216.0, 187.0, 52.0, 22.0 ],
+                    "patching_rect": [ 352.0, 187.0, 52.0, 22.0 ],
                     "text": "s param"
                 }
             },
@@ -1514,14 +1463,6 @@
             {
                 "patchline": {
                     "destination": [ "obj-26", 0 ],
-                    "order": 0,
-                    "source": [ "obj-27", 0 ]
-                }
-            },
-            {
-                "patchline": {
-                    "destination": [ "obj-78", 0 ],
-                    "order": 1,
                     "source": [ "obj-27", 0 ]
                 }
             },
@@ -1856,12 +1797,6 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-14", 0 ],
-                    "source": [ "obj-78", 0 ]
-                }
-            },
-            {
-                "patchline": {
                     "destination": [ "obj-114", 0 ],
                     "order": 0,
                     "source": [ "obj-79", 0 ]
@@ -1888,14 +1823,14 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-1", 0 ],
-                    "source": [ "obj-82", 0 ]
+                    "destination": [ "obj-2", 0 ],
+                    "source": [ "obj-9", 0 ]
                 }
             },
             {
                 "patchline": {
-                    "destination": [ "obj-2", 0 ],
-                    "source": [ "obj-9", 0 ]
+                    "destination": [ "obj-79", 0 ],
+                    "source": [ "obj-92", 0 ]
                 }
             },
             {

@@ -1,0 +1,20 @@
+//Reset the canvas
+#version 460
+
+layout(local_size_x = 1024) in;
+layout(std430, set = 0, binding = 0) buffer grid {
+    uint cell[]; 
+};
+
+layout(binding = 1) uniform Config {
+    uint bufferSize;
+};
+
+void main() {
+
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gid >= bufferSize) return;
+
+    cell[gid] = 0u;
+}

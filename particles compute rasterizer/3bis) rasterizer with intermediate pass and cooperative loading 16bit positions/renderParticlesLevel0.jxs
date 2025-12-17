@@ -1,0 +1,84 @@
+#version 460
+
+layout(local_size_x = 32, local_size_y = 32) in;
+
+layout(binding = 0, rgba32f) readonly uniform image2D posImg;
+
+layout(std430, binding = 1) buffer countBuff {
+    uint count;      
+    uint counter[];
+};
+
+layout(binding = 2, rgba32f) writeonly uniform image2D canvasImg;
+
+layout(std430, set = 0, binding = 3) buffer grid {
+    uint cell[];
+};
+
+layout(binding = 4) uniform Config {
+    uint numLevels;
+};
+
+const uint MAX_COUNT = 1024u;
+
+ivec2 wrapID(uint id, ivec2 posImgSize) {
+    int w = posImgSize.x;
+    int x = int(id % uint(w));
+    int y = int(id / uint(w));
+    return ivec2(x, y);
+}
+
+void main() {
+
+    ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(canvasImg);
+    if (gid.x >= size.x || gid.y >= size.y) return;
+
+    uint threadCount = gl_WorkGroupSize.x * gl_WorkGroupSize.y;
+
+    vec3 res   = vec3(0.0);
+    vec2 fgid  = vec2(gid);
+    vec2 fsize = vec2(size);
+
+    ivec2 posImgSize = imageSize(posImg);
+
+    //reset the canvas
+    imageStore(canvasImg, gid, vec4(0.0));
+
+    float invCellSize = 1.0;  // cellSize = div
+    uint  baseOffset = 0u;   // base offset for the current level
+
+    vec2 pixelCenter = vec2(gid) + vec2(0.5);
+
+
+    uint levelWidth  = uint(ceil(fsize.x * invCellSize));
+    uint levelHeight = uint(ceil(fsize.y * invCellSize));
+
+    // Cell's coordinates at his level
+    uint lx = min(uint(fgid.x * invCellSize), levelWidth  - 1u);
+    uint ly = min(uint(fgid.y * invCellSize), levelHeight - 1u);
+
+    uint coord = baseOffset + lx + ly * levelWidth;
+
+    // Read the number of particles in this cell, clamped to MAX_COUNT
+    uint particleCount = min(counter[coord], MAX_COUNT);
+
+    uint first = coord * MAX_COUNT;
+
+    for (uint k = 0u; k < particleCount; ++k) {
+
+        uint id = cell[first + k];
+
+        ivec2 particleTexel = wrapID(id, posImgSize);
+        vec3 center = imageLoad(posImg, particleTexel).xyz;// center.xy = pos in pixel, center.z = radius in pixel
+
+        vec2 diff = center.xy - pixelCenter;
+        float dist2 = dot(diff, diff);
+
+        if (dist2 <= center.z) {
+            // Simple accumulation
+            res += vec3(0.001, 0.0, 0.0);
+        }
+    }
+    imageStore(canvasImg, gid, vec4(res, 1.0));
+}

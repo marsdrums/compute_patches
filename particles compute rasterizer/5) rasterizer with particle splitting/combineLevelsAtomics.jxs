@@ -1,0 +1,77 @@
+#version 460
+
+layout(local_size_x = 32, local_size_y = 32) in;
+
+layout(std430, set = 0, binding = 0) buffer grid {
+    uint cell[];
+};
+
+layout(binding = 1, rgba32f) writeonly uniform image2D renderImg;
+
+layout(binding = 2) uniform Config {
+    uint bufferSize; // not needed anymore for clamping, but kept for compatibility
+};
+
+#define MAX_LEVELS 11
+
+shared int levelWidth[MAX_LEVELS];
+shared int levelHeight[MAX_LEVELS];
+shared int offset[MAX_LEVELS];
+
+uint coord2id(ivec2 coord, int level)
+{
+    return uint(coord.x + coord.y * levelWidth[level] + offset[level]);
+}
+
+void main()
+{
+    ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(renderImg);
+
+    if (gid.x >= size.x || gid.y >= size.y)
+        return;
+
+    // Init pyramid dims/offsets once per workgroup (integer ceil-div; no floats)
+    if (gl_LocalInvocationIndex == 0u)
+    {
+        int runningOffset = 0;
+
+        for (int L = 0; L < MAX_LEVELS; ++L)
+        {
+            int s = 1 << L; // 2^L
+
+            // ceil(size / s) using integers
+            int w = (size.x + (s - 1)) >> L;
+            int h = (size.y + (s - 1)) >> L;
+
+            levelWidth[L]  = w;
+            levelHeight[L] = h;
+
+            offset[L] = runningOffset;
+            runningOffset += w * h;
+        }
+    }
+
+    barrier();
+
+    const float invMax = 1.0 / 4294967295.0;
+
+    float res = 0.0;
+
+    // Fixed small loop: good candidate for unrolling
+    #pragma unroll
+    for (int L = 0; L < MAX_LEVELS; ++L)
+    {
+        // coord at level L is gid / 2^L => gid >> L
+        ivec2 coord = gid >> L;
+
+        // Clamp to valid cell coordinates for this level (handles partial last row/col)
+        ivec2 maxCoord = ivec2(levelWidth[L] - 1, levelHeight[L] - 1);
+        coord = clamp(coord, ivec2(0), maxCoord);
+
+        uint id = coord2id(coord, L);
+        res = fma(float(cell[id]), invMax, res); // res += float(cell[id]) * invMax
+    }
+
+    imageStore(renderImg, gid, vec4(vec3(res), 1.0));
+}
