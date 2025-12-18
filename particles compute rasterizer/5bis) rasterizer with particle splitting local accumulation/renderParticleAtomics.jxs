@@ -1,0 +1,392 @@
+#version 460
+
+layout(local_size_x = 32, local_size_y = 32) in;
+
+layout(std430, set = 0, binding = 0) buffer grid {
+    uint cell[];
+};
+
+layout(binding = 1, rgba32f) uniform image2D posImg; // current world-space position
+
+layout(binding = 2) uniform Config {
+    vec4 v0; vec4 v1; vec4 v2; vec4 v3;
+    vec4 p0; vec4 p1; vec4 p2; vec4 p3;
+    vec2 viewPort;   // window size in pixels
+};
+
+#define MAX_LEVELS 11
+
+shared int   levelWidth[MAX_LEVELS];
+shared int   levelHeight[MAX_LEVELS];
+shared int   offset[MAX_LEVELS];
+shared ivec2 gImgSize;
+shared ivec2 gImgSizeMinus1;
+
+const float radiusViewSpace = 0.001; // world/view radius
+
+shared mat4 V;
+shared mat4 P;
+shared vec4 radiusOffsetProj; // P * vec4(radiusViewSpace, 0,0,0)
+
+// ------------------------------------------------------------
+// Workgroup shared accumulator (hash table)
+// ------------------------------------------------------------
+
+// Tune these:
+const uint WG_HASH_SIZE   = 512u;   // power of two (256/512)
+const int  AGG_MIN_LEVEL  = 1;      // only aggregate for coarse levels (>=3) to avoid overhead
+
+const uint EMPTY_KEY = 0xFFFFFFFFu;
+
+shared uint sKey[WG_HASH_SIZE];
+shared uint sVal[WG_HASH_SIZE];
+
+uint hashKey(uint x)
+{
+    // decent 32-bit mix
+    x ^= x >> 16;
+    x *= 0x7feb352du;
+    x ^= x >> 15;
+    x *= 0x846ca68bu;
+    x ^= x >> 16;
+    return x;
+}
+
+// ------------------------------------------------------------
+
+struct particle {
+    vec2  ce;  // center in pixel space
+    float r;   // radius in pixels
+    float r2;  // radius^2
+    float d;   // diameter in pixels
+};
+
+uint coord2id(ivec2 coord, int level)
+{
+    return uint(coord.x + coord.y * levelWidth[level] + offset[level]);
+}
+
+ivec2 gridSizeAtLevel(int level)
+{
+    return ivec2(levelWidth[level], levelHeight[level]);
+}
+
+bool inBounds(ivec2 ij, int level)
+{
+    ivec2 gs = gridSizeAtLevel(level);
+    return all(greaterThanEqual(ij, ivec2(0))) && all(lessThan(ij, gs));
+}
+
+void cellBoundsClippedInt(ivec2 ij, int level, out ivec2 mnI, out ivec2 mxI)
+{
+    int s = 1 << level;        // cell size in pixels
+    mnI = ij << level;         // ij * s
+    mxI = mnI + ivec2(s);
+    mxI = min(mxI, gImgSize);  // clip at right/bottom
+}
+
+bool cellFullyInsideCircle_r2_level(ivec2 ij, int level, in particle p)
+{
+    ivec2 mnI, mxI;
+    cellBoundsClippedInt(ij, level, mnI, mxI);
+
+    vec2 mn = vec2(mnI);
+    vec2 mx = vec2(mxI);
+
+    float dx = max(abs(p.ce.x - mn.x), abs(p.ce.x - mx.x));
+    float dy = max(abs(p.ce.y - mn.y), abs(p.ce.y - mx.y));
+    float d2 = dx*dx + dy*dy;
+
+    return d2 <= p.r2 + 1e-6;
+}
+
+bool cellFullyOutsideCircle_r2_level(ivec2 ij, int level, in particle p)
+{
+    ivec2 mnI, mxI;
+    cellBoundsClippedInt(ij, level, mnI, mxI);
+
+    vec2 mn = vec2(mnI);
+    vec2 mx = vec2(mxI);
+
+    vec2 closest = clamp(p.ce, mn, mx);
+    vec2 diff = p.ce - closest;
+
+    return dot(diff, diff) > p.r2 + 1e-6;
+}
+
+// ------------------------------------------------------------
+// Shared-aggregation emit
+// ------------------------------------------------------------
+
+void emitCell(ivec2 ij, int level, float particleAlpha)
+{
+    uint addv = uint(4294967295.0 * particleAlpha);
+    uint id   = coord2id(ij, level);
+
+    // Only aggregate on coarse levels (where collisions are likely)
+    if (level < AGG_MIN_LEVEL)
+    {
+        atomicAdd(cell[id], addv);
+        return;
+    }
+
+    uint h = hashKey(id) & (WG_HASH_SIZE - 1u);
+
+    // linear probe
+    for (uint step = 0u; step < WG_HASH_SIZE; ++step)
+    {
+        uint slot = (h + step) & (WG_HASH_SIZE - 1u);
+
+        uint prev = atomicCompSwap(sKey[slot], EMPTY_KEY, id);
+        if (prev == EMPTY_KEY || prev == id)
+        {
+            atomicAdd(sVal[slot], addv);
+            return;
+        }
+    }
+
+    // table saturated -> fallback to global atomic
+    atomicAdd(cell[id], addv);
+}
+
+// ------------------------------------------------------------
+// Root AABB (circle) -> cell range at level (fast shift)
+// ------------------------------------------------------------
+
+void rootsFromCircleAABB_fast(int level, vec2 ce, float r, out ivec2 minIJ, out ivec2 maxIJ)
+{
+    // Inclusive pixel range
+    int minX = int(floor(ce.x - r));
+    int minY = int(floor(ce.y - r));
+    int maxX = int(floor(ce.x + r - 1e-6));
+    int maxY = int(floor(ce.y + r - 1e-6));
+
+    // Clamp to [0..size-1]
+    minX = clamp(minX, 0, gImgSizeMinus1.x);
+    minY = clamp(minY, 0, gImgSizeMinus1.y);
+    maxX = clamp(maxX, 0, gImgSizeMinus1.x);
+    maxY = clamp(maxY, 0, gImgSizeMinus1.y);
+
+    if (maxX < minX || maxY < minY)
+    {
+        minIJ = ivec2(1);
+        maxIJ = ivec2(0); // empty
+        return;
+    }
+
+    // Pixel -> cell index by dividing by 2^level
+    minIJ = ivec2(minX >> level, minY >> level);
+    maxIJ = ivec2(maxX >> level, maxY >> level);
+
+    // Clamp to valid cell indices
+    ivec2 gs   = gridSizeAtLevel(level);
+    ivec2 last = gs - ivec2(1);
+    minIJ = clamp(minIJ, ivec2(0), last);
+    maxIJ = clamp(maxIJ, ivec2(0), last);
+}
+
+// ------------------------------------------------------------
+// Stack-based traversal (DFS) for circle
+// ------------------------------------------------------------
+
+void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p, float colorScale)
+{
+    const int MAX_STACK = 128;
+    const int MAX_ITERS = 1024;
+
+    ivec2 stackIJ[MAX_STACK];
+    int   stackLv[MAX_STACK];
+    int sp = 0;
+
+    stackIJ[sp] = rootIJ;
+    stackLv[sp] = maxLevel;
+    sp++;
+
+    float colorDimmer = 1.0 / colorScale;
+
+    int iters = 0;
+    while (sp > 0 && iters < MAX_ITERS)
+    {
+        iters++;
+
+        sp--;
+        ivec2 ij  = stackIJ[sp];
+        int level = stackLv[sp];
+
+        if (!inBounds(ij, level))
+            continue;
+
+        if (cellFullyOutsideCircle_r2_level(ij, level, p))
+            continue;
+
+        if (cellFullyInsideCircle_r2_level(ij, level, p))
+        {
+            emitCell(ij, level, 0.003 * colorDimmer);
+            continue;
+        }
+
+        if (level == 0)
+        {
+            // boundary policy: emit also at level 0 if intersecting
+            emitCell(ij, level, 0.003 * colorDimmer);
+            continue;
+        }
+
+        int childLevel = level - 1;
+        ivec2 base = ij * 2;
+
+        if (sp + 4 <= MAX_STACK)
+        {
+            stackIJ[sp] = base + ivec2(0,0); stackLv[sp] = childLevel; sp++;
+            stackIJ[sp] = base + ivec2(1,0); stackLv[sp] = childLevel; sp++;
+            stackIJ[sp] = base + ivec2(0,1); stackLv[sp] = childLevel; sp++;
+            stackIJ[sp] = base + ivec2(1,1); stackLv[sp] = childLevel; sp++;
+        }
+        else
+        {
+            // overflow: stop descending
+            return;
+        }
+    }
+}
+
+void main()
+{
+    ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = ivec2(viewPort);
+
+    // IMPORTANT: no early return before flush barriers (because of shared aggregation)
+    bool isActive = (gid.x >= 0 && gid.y >= 0 && gid.x < size.x && gid.y < size.y);
+
+    // ---- Shared init (once per workgroup) ----
+    if (gl_LocalInvocationIndex == 0u)
+    {
+        V = mat4(v0, v1, v2, v3);
+        P = mat4(-p0, p1, -p2, p3);
+
+        radiusOffsetProj = P * vec4(radiusViewSpace, 0.0, 0.0, 0.0);
+
+        gImgSize       = size;
+        gImgSizeMinus1 = size - ivec2(1);
+
+        int runningOffset = 0;
+        for (int L = 0; L < MAX_LEVELS; ++L)
+        {
+            int s = 1 << L;
+            int w = (size.x + (s - 1)) >> L; // ceil(size/2^L)
+            int h = (size.y + (s - 1)) >> L;
+
+            levelWidth[L]  = w;
+            levelHeight[L] = h;
+
+            offset[L] = runningOffset;
+            runningOffset += w * h;
+        }
+    }
+
+    barrier();
+
+    // ---- Clear shared hash table (parallel clear) ----
+    for (uint k = gl_LocalInvocationIndex; k < WG_HASH_SIZE; k += gl_WorkGroupSize.x * gl_WorkGroupSize.y)
+    {
+        sKey[k] = EMPTY_KEY;
+        sVal[k] = 0u;
+    }
+
+    barrier();
+
+    // ---- Particle work ----
+    if (isActive)
+    {
+        vec3 pos     = imageLoad(posImg, gid).xyz;
+
+        vec4 vPos    = V * vec4(pos, 1.0);
+        vec4 projPos = P * vPos;
+
+        // guard against w=0
+        if (projPos.w == 0.0)
+            isActive = false;
+
+        if (isActive)
+        {
+            float invW = 1.0 / projPos.w;
+            vec2 ndcPos = projPos.xy * invW;
+
+            // clip + near plane check
+            if (ndcPos.x < -1.0 || ndcPos.x > 1.0 ||
+                ndcPos.y < -1.0 || ndcPos.y > 1.0 ||
+                vPos.z >= -0.01)
+            {
+                isActive = false;
+            }
+
+            if (isActive)
+            {
+                // NDC -> pixels
+                vec2 screenPos = (ndcPos * 0.5 + 0.5) * viewPort;
+
+                // Screen radius estimate
+                vec2 offsetNDC   = vec2(projPos.x + radiusOffsetProj.x, projPos.y) * invW;
+                vec2 offsetPixel = (offsetNDC * 0.5 + 0.5) * viewPort;
+                float radiusOnScreen = offsetPixel.x - screenPos.x;
+
+                float scale = 1.0; // DOF scaling can be applied here
+                radiusOnScreen *= scale;
+
+                // small radius => direct level-0 write
+                if (radiusOnScreen <= 0.5)
+                {
+                    ivec2 pix = ivec2(floor(screenPos));
+                    if (all(greaterThanEqual(pix, ivec2(0))) && all(lessThan(pix, size)))
+                    {
+                        float d = radiusOnScreen * 2.0;
+                        float alpha = 0.003 * d * 4.0;
+                        emitCell(pix, 0, alpha);
+                    }
+                }
+                else
+                {
+                    particle p;
+                    p.ce = screenPos;
+                    p.r  = radiusOnScreen;
+                    p.r2 = p.r * p.r;
+                    p.d  = p.r * 2.0;
+
+                    // circle vs viewport cull
+                    vec2 fsize = vec2(size);
+                    if (!(p.ce.x + p.r < 0.0 || p.ce.x - p.r >= fsize.x ||
+                          p.ce.y + p.r < 0.0 || p.ce.y - p.r >= fsize.y))
+                    {
+                        // choose level based on diameter
+                        float dSafe = max(p.d, 1.0);
+                        int level = int(floor(log2(dSafe)));
+                        level = clamp(level, 0, MAX_LEVELS - 1);
+
+                        ivec2 rootMin, rootMax;
+                        rootsFromCircleAABB_fast(level, p.ce, p.r, rootMin, rootMax);
+
+                        // prune roots + traverse
+                        for (int i = rootMin.x; i <= rootMax.x; ++i)
+                        for (int j = rootMin.y; j <= rootMax.y; ++j)
+                        {
+                            ivec2 root = ivec2(i, j);
+                            if (!cellFullyOutsideCircle_r2_level(root, level, p))
+                                coverCircleFromRoot(root, level, p, scale);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ---- Flush shared hash table to global buffer ----
+    barrier();
+
+    for (uint k = gl_LocalInvocationIndex; k < WG_HASH_SIZE; k += gl_WorkGroupSize.x * gl_WorkGroupSize.y)
+    {
+        uint key = sKey[k];
+        uint val = sVal[k];
+        if (key != EMPTY_KEY && val != 0u)
+            atomicAdd(cell[key], val);
+    }
+}

@@ -1,0 +1,212 @@
+#version 460
+
+layout(local_size_x = 32, local_size_y = 32) in;
+
+layout(std430, set = 0, binding = 0) buffer grid {
+    uint cell[];
+};
+
+layout(binding = 1, rgba32f) writeonly uniform image2D renderImg;
+
+layout(binding = 2) uniform Config {
+    uint bufferSize; // kept for compatibility; not used
+};
+
+#define MAX_LEVELS 11
+
+shared int levelWidth[MAX_LEVELS];
+shared int levelHeight[MAX_LEVELS];
+shared int offset[MAX_LEVELS];
+
+// Per-level workgroup coverage in that level's grid
+shared ivec2 wgMinCoord[MAX_LEVELS];
+shared int   wgSpanX[MAX_LEVELS];
+shared int   wgSpanY[MAX_LEVELS];
+shared int   cacheBase[MAX_LEVELS];
+shared int   totalCacheEntries;
+
+// Shared cache for levels >= 1.
+// Worst-case for a 32x32 workgroup:
+// L=1: span<=17 => 289
+// L=2: span<=9  => 81
+// L=3: span<=5  => 25
+// L=4: span<=3  => 9
+// L=5+: span<=2 => <=4 each
+// Total <= ~420, so 512 is safe.
+const int MAX_CACHE = 512;
+shared uint sCache[MAX_CACHE];
+
+uint coord2id(ivec2 coord, int level)
+{
+    return uint(coord.x + coord.y * levelWidth[level] + offset[level]);
+}
+
+void decodeCacheIndex(int k, out int L, out int localIdx)
+{
+    // Find which level slice contains k (levels 1..10 only)
+    // cacheBase[L] holds the starting index in sCache for that level.
+    // size of slice is wgSpanX[L] * wgSpanY[L].
+    for (int lev = 1; lev < MAX_LEVELS; ++lev)
+    {
+        int base = cacheBase[lev];
+        int size = wgSpanX[lev] * wgSpanY[lev];
+        if (k >= base && k < base + size)
+        {
+            L = lev;
+            localIdx = k - base;
+            return;
+        }
+    }
+    L = -1;
+    localIdx = 0;
+}
+
+void main()
+{
+    ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(renderImg);
+
+    // IMPORTANT: do not early-return before barriers
+    bool isActive = (gid.x >= 0 && gid.y >= 0 && gid.x < size.x && gid.y < size.y);
+
+    ivec2 wgOrigin = ivec2(gl_WorkGroupID.xy) * ivec2(gl_WorkGroupSize.xy); // 32x32 tiles
+    ivec2 wgEnd    = wgOrigin + ivec2(int(gl_WorkGroupSize.x) - 1, int(gl_WorkGroupSize.y) - 1); // +31
+
+    // Init pyramid dims/offsets + cache layout once per workgroup
+    if (gl_LocalInvocationIndex == 0u)
+    {
+        int runningOffset = 0;
+
+        // Pyramid layout in SSBO
+        for (int L = 0; L < MAX_LEVELS; ++L)
+        {
+            int s = 1 << L; // 2^L
+            int w = (size.x + (s - 1)) >> L; // ceil(size / 2^L)
+            int h = (size.y + (s - 1)) >> L;
+
+            levelWidth[L]  = w;
+            levelHeight[L] = h;
+
+            offset[L] = runningOffset;
+            runningOffset += w * h;
+        }
+
+        // Build per-level cache slices for levels >= 1
+        int runningCache = 0;
+        cacheBase[0] = 0;
+        wgMinCoord[0] = ivec2(0);
+        wgSpanX[0] = 0;
+        wgSpanY[0] = 0;
+
+        for (int L = 1; L < MAX_LEVELS; ++L)
+        {
+            ivec2 mn = wgOrigin >> L;
+            ivec2 mx = wgEnd    >> L;
+
+            // Clamp to valid cell coords for this level
+            ivec2 last = ivec2(levelWidth[L] - 1, levelHeight[L] - 1);
+            mn = clamp(mn, ivec2(0), last);
+            mx = clamp(mx, ivec2(0), last);
+
+            ivec2 span = mx - mn + ivec2(1);
+
+            wgMinCoord[L] = mn;
+            wgSpanX[L]    = span.x;
+            wgSpanY[L]    = span.y;
+
+            cacheBase[L]  = runningCache;
+            runningCache += span.x * span.y;
+        }
+
+        // Safety clamp: if you ever increase workgroup size or MAX_LEVELS,
+        // make sure MAX_CACHE stays >= runningCache.
+        totalCacheEntries = min(runningCache, MAX_CACHE);
+    }
+
+    barrier();
+
+    // Cooperative cache load (levels >= 1)
+    // Threads load sCache[0 .. totalCacheEntries-1]
+    uint tid = gl_LocalInvocationIndex;
+    uint wgThreads = gl_WorkGroupSize.x * gl_WorkGroupSize.y;
+
+    for (uint k = tid; int(k) < totalCacheEntries; k += wgThreads)
+    {
+        int L, localIdx;
+        decodeCacheIndex(int(k), L, localIdx);
+
+        if (L > 0)
+        {
+            int sx = wgSpanX[L];
+            // localIdx -> (dx,dy)
+            int dx = localIdx % sx;
+            int dy = localIdx / sx;
+
+            ivec2 coord = wgMinCoord[L] + ivec2(dx, dy);
+
+            // coord already clamped in thread0, but keep it robust:
+            ivec2 last = ivec2(levelWidth[L] - 1, levelHeight[L] - 1);
+            coord = clamp(coord, ivec2(0), last);
+
+            uint id = coord2id(coord, L);
+            sCache[int(k)] = cell[id];
+        }
+        else
+        {
+            sCache[int(k)] = 0u;
+        }
+    }
+
+    barrier();
+
+    if (!isActive)
+        return;
+
+    const float invMax = 1.0 / 4294967295.0;
+
+    float res = 0.0;
+
+    // Level 0: unique per pixel (no point caching in most cases)
+    {
+        ivec2 coord0 = gid;
+        uint id0 = coord2id(coord0, 0);
+        res = fma(float(cell[id0]), invMax, res);
+    }
+
+    // Levels 1..10: read from shared cache
+    #pragma unroll
+    for (int L = 1; L < MAX_LEVELS; ++L)
+    {
+        ivec2 coord = gid >> L;
+
+        ivec2 last = ivec2(levelWidth[L] - 1, levelHeight[L] - 1);
+        coord = clamp(coord, ivec2(0), last);
+
+        // Map coord into this level's cached tile
+        ivec2 mn = wgMinCoord[L];
+        int dx = coord.x - mn.x;
+        int dy = coord.y - mn.y;
+
+        // If a coord falls outside the cached tile (rare, but possible near borders),
+        // fall back to direct global read.
+        uint v;
+        if (dx >= 0 && dy >= 0 && dx < wgSpanX[L] && dy < wgSpanY[L])
+        {
+            int idx = cacheBase[L] + dx + dy * wgSpanX[L];
+            if (idx >= 0 && idx < totalCacheEntries) v = sCache[idx];
+            else v = cell[coord2id(coord, L)];
+        }
+        else
+        {
+            v = cell[coord2id(coord, L)];
+        }
+
+        res = fma(float(v), invMax, res);
+
+        // OPTIONAL (recommended if coarse levels create visible blocks):
+        // normalize by cell area so coarse levels contribute less per pixel.
+        // res += float(v) * invMax * exp2(float(-2 * L));
+    }
+
+    imageStore(renderImg, gid, vec4(vec3(res), 1.0));
+}
