@@ -28,6 +28,7 @@ layout(binding = 2) uniform Config {
     vec4 p2;
     vec4 p3;
     vec2 viewPort;   // window size in pixels
+    float alpha;
 };
 
 #define MAX_LEVELS 11
@@ -43,6 +44,7 @@ const float radiusViewSpace = 0.001; // radius in world space
 shared mat4 V;
 shared mat4 P;
 shared vec4 radiusOffsetProj;
+shared float particleAlpha;
 
 struct particle {
     vec2  ce;  // center in pixel space
@@ -108,10 +110,11 @@ bool cellFullyOutsideCircle_r2_level(ivec2 ij, int level, in particle p)
     return dot(diff, diff) > p.r2 + 1e-6;
 }
 
-void emitCell(ivec2 ij, int level, float particleAlpha)
+void emitCell(ivec2 ij, int level, float thisAlpha)
 {
-    uint colorToAdd = uint(4294967295.0 * particleAlpha);
-    atomicAdd(cell[coord2id(ij, level)], colorToAdd);
+    uint colorToAdd = uint(4294967295.0 * thisAlpha);
+    uint coord = coord2id(ij, level);
+    atomicAdd(cell[coord], colorToAdd);
 }
 
 // Fast root range computation using integer math + bit shifts.
@@ -156,7 +159,7 @@ void rootsFromCircleAABB_fast(int maxLevel, vec2 centerPx, float radiusPx,
 void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p, float colorScale)
 {
     const int MAX_STACK = 128;
-    const int MAX_ITERS = 1024;
+    const int MAX_ITERS = 512;
 
     ivec2 stackIJ[MAX_STACK];
     int   stackLv[MAX_STACK];
@@ -166,7 +169,7 @@ void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p, float colorS
     stackLv[sp] = maxLevel;
     sp++;
 
-    float colorDimmer = 1.0 / colorScale;
+    float finalColor = particleAlpha / colorScale;
 
     int iters = 0;
     while (sp > 0 && iters < MAX_ITERS)
@@ -185,14 +188,14 @@ void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p, float colorS
 
         if (cellFullyInsideCircle_r2_level(ij, level, p))
         {
-            emitCell(ij, level, 0.003 * colorDimmer);
+            emitCell(ij, level, finalColor);
             continue;
         }
 
         if (level == 0)
         {
             // Same behavior as your previous shader: also emit on boundary at level 0.
-            emitCell(ij, level, 0.003 * colorDimmer);
+            emitCell(ij, 0, finalColor);
             continue;
         }
 
@@ -223,9 +226,10 @@ void main()
 
     // Use viewPort as the "truth" for pixel size
     ivec2 size  = ivec2(viewPort);
+    ivec2 particleImgSize = imageSize(posImg);
 
     // Prevent out-of-bounds imageLoad early
-    if (gid.x < 0 || gid.y < 0 || gid.x >= size.x || gid.y >= size.y)
+    if (gid.x >= particleImgSize.x || gid.y >= particleImgSize.y)
         return;
 
     // ---- Shared init (one barrier total) ----
@@ -241,6 +245,8 @@ void main()
         // Image size
         gImgSize       = size;
         gImgSizeMinus1 = size - ivec2(1);
+
+        particleAlpha = alpha;
 
         // Pyramid sizes and offsets:
         // levelWidth[L]  = ceil(size.x / 2^L)
@@ -291,6 +297,10 @@ void main()
     float scale = 1.0;
     radiusOnScreen *= scale;
 
+    //*** TO REMOVE!!!! *****
+    //radiusOnScreen = 0.5;
+    //________________________///
+
     // ---- Circle setup ----
     particle p;
     p.ce = screenPos;
@@ -304,8 +314,9 @@ void main()
         ivec2 pix = ivec2(floor(screenPos));
         if (all(greaterThanEqual(pix, ivec2(0))) && all(lessThan(pix, size)))
         {
-            uint colorToAdd = uint(4294967295.0 * 0.003 * p.d * 4.0);
-            atomicAdd(cell[coord2id(pix, 0)], colorToAdd);
+            uint colorToAdd = uint(4294967295.0 * particleAlpha * p.d * 4.0);
+            uint coord = coord2id(pix, 0);
+            atomicAdd(cell[coord], colorToAdd);
         }
         return;
     }

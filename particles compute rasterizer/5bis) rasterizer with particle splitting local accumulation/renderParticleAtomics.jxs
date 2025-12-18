@@ -12,6 +12,7 @@ layout(binding = 2) uniform Config {
     vec4 v0; vec4 v1; vec4 v2; vec4 v3;
     vec4 p0; vec4 p1; vec4 p2; vec4 p3;
     vec2 viewPort;   // window size in pixels
+    float alpha;
 };
 
 #define MAX_LEVELS 11
@@ -34,12 +35,13 @@ shared vec4 radiusOffsetProj; // P * vec4(radiusViewSpace, 0,0,0)
 
 // Tune these:
 const uint WG_HASH_SIZE   = 512u;   // power of two (256/512)
-const int  AGG_MIN_LEVEL  = 1;      // only aggregate for coarse levels (>=3) to avoid overhead
+const int  AGG_MIN_LEVEL  = 2;      // only aggregate for coarse levels (>=3) to avoid overhead
 
 const uint EMPTY_KEY = 0xFFFFFFFFu;
 
 shared uint sKey[WG_HASH_SIZE];
 shared uint sVal[WG_HASH_SIZE];
+shared float particleAlpha;
 
 uint hashKey(uint x)
 {
@@ -118,9 +120,9 @@ bool cellFullyOutsideCircle_r2_level(ivec2 ij, int level, in particle p)
 // Shared-aggregation emit
 // ------------------------------------------------------------
 
-void emitCell(ivec2 ij, int level, float particleAlpha)
+void emitCell(ivec2 ij, int level, float thisAlpha)
 {
-    uint addv = uint(4294967295.0 * particleAlpha);
+    uint addv = uint(4294967295.0 * thisAlpha);
     uint id   = coord2id(ij, level);
 
     // Only aggregate on coarse levels (where collisions are likely)
@@ -221,14 +223,14 @@ void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p, float colorS
 
         if (cellFullyInsideCircle_r2_level(ij, level, p))
         {
-            emitCell(ij, level, 0.003 * colorDimmer);
+            emitCell(ij, level, particleAlpha * colorDimmer);
             continue;
         }
 
         if (level == 0)
         {
             // boundary policy: emit also at level 0 if intersecting
-            emitCell(ij, level, 0.003 * colorDimmer);
+            emitCell(ij, level, particleAlpha * colorDimmer);
             continue;
         }
 
@@ -254,9 +256,10 @@ void main()
 {
     ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
     ivec2 size = ivec2(viewPort);
+    ivec2 posImgSize = imageSize(posImg);
 
     // IMPORTANT: no early return before flush barriers (because of shared aggregation)
-    bool isActive = (gid.x >= 0 && gid.y >= 0 && gid.x < size.x && gid.y < size.y);
+    bool isActive = (gid.x < posImgSize.x && gid.y < posImgSize.y);
 
     // ---- Shared init (once per workgroup) ----
     if (gl_LocalInvocationIndex == 0u)
@@ -268,6 +271,8 @@ void main()
 
         gImgSize       = size;
         gImgSizeMinus1 = size - ivec2(1);
+
+        particleAlpha = alpha;
 
         int runningOffset = 0;
         for (int L = 0; L < MAX_LEVELS; ++L)
@@ -340,8 +345,8 @@ void main()
                     if (all(greaterThanEqual(pix, ivec2(0))) && all(lessThan(pix, size)))
                     {
                         float d = radiusOnScreen * 2.0;
-                        float alpha = 0.003 * d * 4.0;
-                        emitCell(pix, 0, alpha);
+                        float thisAlpha = alpha * d * 4.0;
+                        emitCell(pix, 0, thisAlpha);
                     }
                 }
                 else

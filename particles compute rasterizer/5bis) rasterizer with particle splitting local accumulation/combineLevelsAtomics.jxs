@@ -166,7 +166,7 @@ void main()
 
     float res = 0.0;
 
-    // Level 0: unique per pixel (no point caching in most cases)
+    // Level 0: unique per pixel
     {
         ivec2 coord0 = gid;
         uint id0 = coord2id(coord0, 0);
@@ -202,10 +202,6 @@ void main()
         }
 
         res = fma(float(v), invMax, res);
-
-        // OPTIONAL (recommended if coarse levels create visible blocks):
-        // normalize by cell area so coarse levels contribute less per pixel.
-        // res += float(v) * invMax * exp2(float(-2 * L));
     }
 
     imageStore(renderImg, gid, vec4(vec3(res), 1.0));

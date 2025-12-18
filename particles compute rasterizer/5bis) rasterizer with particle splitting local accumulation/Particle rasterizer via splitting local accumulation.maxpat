@@ -13,6 +13,160 @@
         "boxes": [
             {
                 "box": {
+                    "id": "obj-27",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "bang" ],
+                    "patching_rect": [ 412.0, 679.0, 58.0, 22.0 ],
+                    "text": "loadbang"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-28",
+                    "maxclass": "message",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 408.0, 713.0, 39.0, 22.0 ],
+                    "text": "0.001"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-23",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 464.0, 741.0, 123.0, 22.0 ],
+                    "text": "prepend param alpha"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-47",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "bang" ],
+                    "patching_rect": [ 451.0, 255.0, 58.0, 22.0 ],
+                    "text": "loadbang"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-43",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "jit_matrix", "" ],
+                    "patching_rect": [ 523.0, 297.0, 163.0, 22.0 ],
+                    "text": "jit.matrix 4 float32 5000 5000"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-2",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "", "" ],
+                    "patching_rect": [ 537.0, 255.0, 444.0, 22.0 ],
+                    "text": "jit.gpu.image @dim 5000 5000 @format RGBA32_FLOAT @name originalPosImg"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-7",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "jit_gl_texture", "" ],
+                    "patching_rect": [ 537.0, 220.0, 70.0, 22.0 ],
+                    "text": "jit.gl.texture"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-31",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "jit_matrix", "" ],
+                    "patching_rect": [ 535.0, 95.0, 97.0, 22.0 ],
+                    "text": "jit.geom.tomatrix"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-19",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "jit_geometry", "" ],
+                    "patching_rect": [ 535.0, 66.0, 204.0, 22.0 ],
+                    "text": "jit.geom.distribute @count 25000000"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-32",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "jit_geometry", "" ],
+                    "patching_rect": [ 535.0, 40.0, 94.0, 22.0 ],
+                    "text": "jit.geom.togeom"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-33",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "jit_matrix", "" ],
+                    "patching_rect": [ 535.0, 123.0, 181.0, 22.0 ],
+                    "text": "jit.scanwrap 3 float32 5000 5000"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-38",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "bang" ],
+                    "patching_rect": [ 535.0, -14.0, 58.0, 22.0 ],
+                    "text": "loadbang"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-39",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "jit_matrix", "" ],
+                    "patching_rect": [ 535.0, 13.0, 318.0, 22.0 ],
+                    "text": "jit.gl.model @file duck.dae @matrixoutput 1 @automatic 0"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-40",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "", "" ],
+                    "patching_rect": [ 523.0, 329.0, 404.0, 22.0 ],
+                    "text": "jit.gpu.image @dim 5000 5000 @format RGBA32_FLOAT @name posImg"
+                }
+            },
+            {
+                "box": {
                     "id": "obj-73",
                     "maxclass": "toggle",
                     "numinlets": 1,
@@ -380,133 +534,6 @@
                     "parameter_enable": 0,
                     "patching_rect": [ 1559.0, 302.0, 117.0, 22.0 ],
                     "text_width": 56.0
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-28",
-                    "maxclass": "newobj",
-                    "numinlets": 2,
-                    "numoutlets": 2,
-                    "outlettype": [ "jit_matrix", "" ],
-                    "patcher": {
-                        "fileversion": 1,
-                        "appversion": {
-                            "major": 9,
-                            "minor": 2,
-                            "revision": 0,
-                            "architecture": "x64",
-                            "modernui": 1
-                        },
-                        "classnamespace": "jit.gen",
-                        "rect": [ 59.0, 119.0, 600.0, 450.0 ],
-                        "boxes": [
-                            {
-                                "box": {
-                                    "id": "obj-5",
-                                    "maxclass": "newobj",
-                                    "numinlets": 1,
-                                    "numoutlets": 1,
-                                    "outlettype": [ "" ],
-                                    "patching_rect": [ 270.0, 79.0, 85.0, 22.0 ],
-                                    "text": "mix -0.01 0.01"
-                                }
-                            },
-                            {
-                                "box": {
-                                    "id": "obj-1",
-                                    "maxclass": "newobj",
-                                    "numinlets": 0,
-                                    "numoutlets": 1,
-                                    "outlettype": [ "" ],
-                                    "patching_rect": [ 50.0, 14.0, 28.0, 22.0 ],
-                                    "text": "in 1"
-                                }
-                            },
-                            {
-                                "box": {
-                                    "id": "obj-2",
-                                    "maxclass": "newobj",
-                                    "numinlets": 0,
-                                    "numoutlets": 1,
-                                    "outlettype": [ "" ],
-                                    "patching_rect": [ 305.0, 14.0, 28.0, 22.0 ],
-                                    "text": "in 2"
-                                }
-                            },
-                            {
-                                "box": {
-                                    "id": "obj-3",
-                                    "maxclass": "newobj",
-                                    "numinlets": 2,
-                                    "numoutlets": 1,
-                                    "outlettype": [ "" ],
-                                    "patching_rect": [ 176.0, 149.0, 29.5, 22.0 ],
-                                    "text": "+"
-                                }
-                            },
-                            {
-                                "box": {
-                                    "id": "obj-4",
-                                    "maxclass": "newobj",
-                                    "numinlets": 1,
-                                    "numoutlets": 0,
-                                    "patching_rect": [ 176.0, 418.0, 35.0, 22.0 ],
-                                    "text": "out 1"
-                                }
-                            }
-                        ],
-                        "lines": [
-                            {
-                                "patchline": {
-                                    "destination": [ "obj-3", 0 ],
-                                    "source": [ "obj-1", 0 ]
-                                }
-                            },
-                            {
-                                "patchline": {
-                                    "destination": [ "obj-5", 0 ],
-                                    "source": [ "obj-2", 0 ]
-                                }
-                            },
-                            {
-                                "patchline": {
-                                    "destination": [ "obj-4", 0 ],
-                                    "source": [ "obj-3", 0 ]
-                                }
-                            },
-                            {
-                                "patchline": {
-                                    "destination": [ "obj-3", 1 ],
-                                    "source": [ "obj-5", 0 ]
-                                }
-                            }
-                        ]
-                    },
-                    "patching_rect": [ 563.0, 168.0, 41.0, 22.0 ],
-                    "text": "jit.gen"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-27",
-                    "maxclass": "button",
-                    "numinlets": 1,
-                    "numoutlets": 1,
-                    "outlettype": [ "bang" ],
-                    "parameter_enable": 0,
-                    "patching_rect": [ 758.0, 111.0, 24.0, 24.0 ]
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-23",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 758.0, 141.0, 159.0, 22.0 ],
-                    "text": "jit.noise 3 float32 2000 2000"
                 }
             },
             {
@@ -989,135 +1016,14 @@
                     "numinlets": 2,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 75.0, 878.0, 995.0, 22.0 ],
-                    "text": "jit.gpu.compute @name copyOriginalPosition @file copyOriginalPosition.jxs @threads 63 63 1 @automatic 0 @posImg posImg @originalPosImg originalPosImg @depends_on clearGrid",
+                    "patching_rect": [ 75.0, 878.0, 1008.0, 22.0 ],
+                    "text": "jit.gpu.compute @name copyOriginalPosition @file copyOriginalPosition.jxs @threads 157 157 1 @automatic 0 @posImg posImg @originalPosImg originalPosImg @depends_on clearGrid",
                     "textfile": {
                         "filename": "copyOriginalPosition.jxs",
                         "flags": 0,
                         "embed": 0,
                         "autowatch": 1
                     }
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-47",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 1,
-                    "outlettype": [ "bang" ],
-                    "patching_rect": [ 451.0, 255.0, 58.0, 22.0 ],
-                    "text": "loadbang"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-43",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 523.0, 297.0, 163.0, 22.0 ],
-                    "text": "jit.matrix 4 float32 2000 2000"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-2",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "" ],
-                    "patching_rect": [ 537.0, 255.0, 444.0, 22.0 ],
-                    "text": "jit.gpu.image @dim 2000 2000 @format RGBA32_FLOAT @name originalPosImg"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-7",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "jit_gl_texture", "" ],
-                    "patching_rect": [ 537.0, 220.0, 70.0, 22.0 ],
-                    "text": "jit.gl.texture"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-31",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 535.0, 95.0, 97.0, 22.0 ],
-                    "text": "jit.geom.tomatrix"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-19",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "jit_geometry", "" ],
-                    "patching_rect": [ 535.0, 66.0, 197.0, 22.0 ],
-                    "text": "jit.geom.distribute @count 4000000"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-32",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "jit_geometry", "" ],
-                    "patching_rect": [ 535.0, 40.0, 94.0, 22.0 ],
-                    "text": "jit.geom.togeom"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-33",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 535.0, 123.0, 181.0, 22.0 ],
-                    "text": "jit.scanwrap 3 float32 2000 2000"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-38",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 1,
-                    "outlettype": [ "bang" ],
-                    "patching_rect": [ 535.0, -14.0, 58.0, 22.0 ],
-                    "text": "loadbang"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-39",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 535.0, 13.0, 318.0, 22.0 ],
-                    "text": "jit.gl.model @file duck.dae @matrixoutput 1 @automatic 0"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-40",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "" ],
-                    "patching_rect": [ 523.0, 329.0, 404.0, 22.0 ],
-                    "text": "jit.gpu.image @dim 2000 2000 @format RGBA32_FLOAT @name posImg"
                 }
             },
             {
@@ -1362,8 +1268,8 @@
                     "numinlets": 4,
                     "numoutlets": 4,
                     "outlettype": [ "", "", "", "" ],
-                    "patching_rect": [ 75.0, 962.0, 910.0, 22.0 ],
-                    "text": "jit.gpu.compute @file renderParticleAtomics.jxs @threads 63 63 1 @grid grid @posImg posImg @automatic 0 @depends_on copyOriginalPosition @name renderParticle",
+                    "patching_rect": [ 75.0, 962.0, 924.0, 22.0 ],
+                    "text": "jit.gpu.compute @file renderParticleAtomics.jxs @threads 157 157 1 @grid grid @posImg posImg @automatic 0 @depends_on copyOriginalPosition @name renderParticle",
                     "textfile": {
                         "filename": "renderParticleAtomics.jxs",
                         "flags": 0,
@@ -1524,7 +1430,7 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-28", 1 ],
+                    "destination": [ "obj-9", 0 ],
                     "source": [ "obj-23", 0 ]
                 }
             },
@@ -1548,8 +1454,14 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-23", 0 ],
+                    "destination": [ "obj-28", 0 ],
                     "source": [ "obj-27", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-23", 0 ],
+                    "source": [ "obj-28", 0 ]
                 }
             },
             {
@@ -1592,22 +1504,7 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-27", 0 ],
-                    "order": 0,
-                    "source": [ "obj-33", 0 ]
-                }
-            },
-            {
-                "patchline": {
-                    "destination": [ "obj-28", 0 ],
-                    "order": 1,
-                    "source": [ "obj-33", 0 ]
-                }
-            },
-            {
-                "patchline": {
                     "destination": [ "obj-7", 0 ],
-                    "order": 2,
                     "source": [ "obj-33", 0 ]
                 }
             },
