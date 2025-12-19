@@ -13,6 +13,30 @@
         "boxes": [
             {
                 "box": {
+                    "fontface": 0,
+                    "fontname": "Arial",
+                    "fontsize": 12.0,
+                    "id": "obj-24",
+                    "maxclass": "jit.fpsgui",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "", "" ],
+                    "patching_rect": [ 177.0, 292.0, 80.0, 35.0 ]
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-23",
+                    "maxclass": "message",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 114.0, 13.0, 161.0, 22.0 ],
+                    "text": "sync 0, displaylink 0, fps 300"
+                }
+            },
+            {
+                "box": {
                     "id": "obj-81",
                     "maxclass": "newobj",
                     "numinlets": 1,
@@ -662,6 +686,12 @@
         "lines": [
             {
                 "patchline": {
+                    "destination": [ "obj-24", 0 ],
+                    "source": [ "obj-1", 1 ]
+                }
+            },
+            {
+                "patchline": {
                     "destination": [ "obj-8", 0 ],
                     "source": [ "obj-1", 2 ]
                 }
@@ -732,6 +762,12 @@
                     "destination": [ "obj-59", 0 ],
                     "order": 1,
                     "source": [ "obj-22", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-1", 0 ],
+                    "source": [ "obj-23", 0 ]
                 }
             },
             {
