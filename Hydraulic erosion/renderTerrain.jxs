@@ -88,7 +88,7 @@ void main() {
 	randNor += texture(randTex, mod(jit_in.wPos.xz*512*30 + vec2(300), vec2(512))).gba - 0.5;
 
 	//rand *= float(rand > 0.7);
-	vec3 N = normalize(texture(norTex, (jit_in.wPos.xz*0.5 + 0.5) * 1024).xyz + 0.5*randNor);
+	vec3 N = normalize(texture(norTex, (jit_in.wPos.xz*0.5 + 0.5) * 1024).xyz + 0.3*randNor);
 	vec3 V = normalize(jit_in.V);
 	vec3 R = reflect(V, N);
 
@@ -102,8 +102,6 @@ void main() {
 	//float sedimentStipe = cos(floor(jit_in.wPos.y*40 + rand*4))*0.5 + 0.5;
 	//rock *= sedimentStipe;
 
-	
-
 	//mix between rock and grass depending on the mountain's slope
 	vec3 rockGrass = mix(rock, grass, smoothstep(0.5,0.56,N.y));
 
@@ -112,7 +110,7 @@ void main() {
 
 	vec3 alb = mix(	rockGrass, 
 					snow, 
-					smoothstep(0.3,0.4,2*N.y) * smoothstep(0.4, 0.5, jit_in.wPos.y)
+					clamp(smoothstep(0.3,0.4,0.8*N.y) * smoothstep(0.4, 0.5, jit_in.wPos.y) + smoothstep(0.8,0.9,1 -jit_in.canal), 0, 1)
 					);
 
 	//alb = mix(	alb, 

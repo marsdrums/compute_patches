@@ -63,18 +63,18 @@ vec3 calcIndirectLight(ivec2 gid, ivec2 size, vec3 ro, vec3 N, uint seed){
     int numSectors = 6;
     vec3 res = vec3(0.0);
     float occ = float(numSectors);
-    float count = 0.0;
+    float count = 1.0;
     for(int i = 0; i < numSectors; i++){
 
         float randAngle = RandomFloat01(seed)*3.1415*2;
         vec2 rd = vec2(cos(randAngle), sin(randAngle));
         float largestCosine = 0.0;
-        for(float d = mix(1.8, 3., RandomFloat01(seed)); d < 400; ){
+        for(float d = mix(1., 2., RandomFloat01(seed)); d < 400; ){
             vec2 sampleUV = clamp(ro.xy + rd*d, vec2(0.0), vec2(size-1));
             float sampledH = imageLoad(rendImg, ivec2(sampleUV)).r;
             vec3 p = vec3(sampleUV, sampledH);
             vec3 dir = normalize(p - ro);
-            float cosine = dot(dir, N);
+            float cosine = max(0.0, dot(dir, N));
             if(cosine > largestCosine){
                 largestCosine = cosine;
                 res += cosine * imageLoad(shadedImg, ivec2(sampleUV)).rgb;
@@ -101,7 +101,7 @@ void main(){
     float h = lookup.w;
 
     vec3 ro = vec3(gid.x, gid.y, h);
-    vec3 ind = calcIndirectLight(gid, ivec2(size), ro, N, seed);
+    vec3 ind = calcIndirectLight(gid, ivec2(size), ro, N, seed)*10;
     vec3 alb = vec3(0.8);//0.5 + 0.5*cos((1 - h/30)*vec3(1,2,3));
 
     ind *= alb;
