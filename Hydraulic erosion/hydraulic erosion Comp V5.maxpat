@@ -9,8 +9,63 @@
             "modernui": 1
         },
         "classnamespace": "box",
-        "rect": [ 354.0, 100.0, 1340.0, 893.0 ],
+        "rect": [ 34.0, 100.0, 1340.0, 893.0 ],
         "boxes": [
+            {
+                "box": {
+                    "id": "obj-34",
+                    "maxclass": "newobj",
+                    "numinlets": 0,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 458.0, 428.0, 43.0, 22.0 ],
+                    "text": "r reset"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-33",
+                    "maxclass": "newobj",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "int" ],
+                    "patching_rect": [ 541.0, 217.0, 43.0, 22.0 ],
+                    "text": "* 1024"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-28",
+                    "maxclass": "newobj",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "int" ],
+                    "patching_rect": [ 540.0, 187.0, 29.5, 22.0 ],
+                    "text": "+"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-26",
+                    "maxclass": "newobj",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "int" ],
+                    "patching_rect": [ 624.0, 155.0, 30.0, 22.0 ],
+                    "text": "* 20"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-25",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 540.0, 256.0, 82.0, 22.0 ],
+                    "text": "prepend seed"
+                }
+            },
             {
                 "box": {
                     "id": "obj-22",
@@ -29,7 +84,7 @@
                     "numinlets": 0,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 533.0, 117.0, 65.0, 22.0 ],
+                    "patching_rect": [ 492.0, 61.0, 65.0, 22.0 ],
                     "text": "r start/stop"
                 }
             },
@@ -942,17 +997,17 @@
                                             },
                                             {
                                                 "box": {
-                                                    "filename": "drawTrees.jxs",
+                                                    "filename": "none",
                                                     "id": "obj-127",
                                                     "maxclass": "newobj",
                                                     "numinlets": 1,
                                                     "numoutlets": 2,
                                                     "outlettype": [ "", "" ],
-                                                    "patching_rect": [ 617.0, 329.0, 241.0, 22.0 ],
-                                                    "text": "jit.gl.shader @file drawTrees.jxs @embed 1",
+                                                    "patching_rect": [ 617.0, 329.0, 237.0, 22.0 ],
+                                                    "text": "jit.gl.shader @name drawTrees @embed 1",
                                                     "textfile": {
                                                         "text": "<jittershader name=\"fill-flat-triangles\">\n\t<description>Default Shader </description>\n\t<param name=\"position\" type=\"vec3\" state=\"POSITION\" />\n\t<param name=\"instancePos\" type=\"vec3\" state=\"VERTEX_ATTR0\" />\n\t<param name=\"heightMap\" type=\"int\" default=\"0\" />\n\t<param name=\"norTex\" type=\"int\" default=\"1\" />\n\t<param name=\"voronoiTex\" type=\"int\" default=\"2\" />\n\t<param name=\"heightMapDim\" type=\"vec2\" state=\"TEXDIM1\" />\n\t<param name=\"modelViewProjectionMatrix\" type=\"mat4\" state=\"MODELVIEW_PROJECTION_MATRIX\" />\n\t<param name=\"tree_density\" type=\"float\" default=\"1.5\" />\n\t<param name=\"tree_height\" type=\"float\" default=\"0.02\" />\n\t<param name=\"tree_size\" type=\"float\" default=\"1.0\" />\n\t<language name=\"glsl\" version=\"1.5\">\n\t\t<bind param=\"position\" program=\"vp\" />\n\t\t<bind param=\"instancePos\" program=\"vp\" />\n\t\t<bind param=\"voronoiTex\" program=\"fp\" />\n\t\t<bind param=\"norTex\" program=\"fp\" />\n\t\t<bind param=\"heightMap\" program=\"vp\" />\n\t\t<bind param=\"heightMap\" program=\"fp\" />\n\t\t<bind param=\"heightMapDim\" program=\"vp\" />\n\t\t<bind param=\"modelViewProjectionMatrix\" program=\"vp\" />\n\t\t<bind param=\"tree_density\" program=\"fp\" />\n\t\t<bind param=\"tree_height\" program=\"vp\" />\n\t\t<bind param=\"tree_size\" program=\"fp\" />\n\t\t<program name=\"vp\" type=\"vertex\">\n<![CDATA[\n#version 330 core\nuniform mat4 modelViewProjectionMatrix;\nuniform sampler2DRect heightMap;\nuniform vec2 heightMapDim;\nin vec3 position, instancePos;\nuniform float tree_height;\n\nout jit_PerVertex {\n\tsmooth vec2 uv;\n\tflat float instance;\n} jit_out;\n\nvoid main() {\t\n\n\tfloat h = texture(heightMap, vec2(1-position.x, position.y)*(1024-1)).r;\n\th += 0.002;\n\tfloat shifter = max(0.0, instancePos.y*1.3 - 0.3);\n\tvec3 p = vec3((1-position.x)*2-1, h + shifter*tree_height, position.y*2-1);\n\tgl_Position = modelViewProjectionMatrix * vec4(p, 1.);\t\n\tjit_out.instance = instancePos.y*1.3 - 0.3;\n\tjit_out.uv = vec2(1-position.x, position.y);\n}\n]]>\n\t\t</program>\n\t\t<program name=\"fp\" type=\"fragment\">\n<![CDATA[\n#version 330 core\n\nuniform sampler2D voronoiTex;\nuniform sampler2DRect norTex, heightMap;\nuniform float tree_density, tree_size;\n\nin jit_PerVertex {\n\tsmooth vec2 uv;\n\tflat float instance;\n} jit_in;\n\nout vec4 color;\n\nconst vec3 ligDir = normalize(vec3(1,-0.4,0.4));\n\nvoid main() {\n\n\tfloat shifter = max(0.0, -jit_in.instance);\n\tvec4 vorNorRad = texture(voronoiTex, jit_in.uv*tree_density + shifter*ligDir.xz*0.06);\n\tvec4 Nsha = texture(norTex, jit_in.uv*1024);\n\tvec4 lookup = texture(heightMap, jit_in.uv*1024);\n\n\tfloat treeRadius = vorNorRad.w-abs(jit_in.instance*0.8);\n\tbool isFirst = jit_in.instance < 0.0 && Nsha.w == 1.0;\n\n\tfloat variance1 = sin(100*(lookup.w + lookup.r + lookup.g))*0.5 + 0.5;\n\tfloat variance2 = sin(150*(1 + lookup.w + lookup.r + 2*lookup.g + Nsha.x + Nsha.y + Nsha.z))*0.5 + 0.5;\n\n\tif(\ttreeRadius <= (0.1 + variance2*0.05)*3 || \n\t\tNsha.y < 0.5 || \n\t\tlookup.r > 0.7 || \n\t\tlookup.w < 0.2 ||\n\t\t(jit_in.instance < 0.0 && Nsha.w == 0.0)){\n\t\tdiscard;\n\t\treturn;\n\t}\n\n\tvec3 ligCol = vec3(3,2.5,2)*5;\n\tfloat diff = max(0.0, dot(ligDir, vorNorRad.xyz));\n\n\t//vec3 alb = mix(\tvec3(0.1, 0.3, 0.1)*0.3, \n\t//\t\t\t\tvec3(0.8), \n\t//\t\t\t\tsmoothstep(0.35,0.4,lookup.r)\n\t//\t\t\t\t);\n\n\tvec3 alb = mix(\tvec3(0.25, 0.3, 0.1)*0.3, \n\t\t\t\t\tvec3(0.35, 0.25, 0.1)*0.3, \n\t\t\t\t\tvariance1);\n\n\talb = mix(\talb, \n\t\t\t\tvec3(0.8),\n\t\t\t\tfloat((variance2-0.5)*0.1 + min(lookup.r,0.55) > 0.5)\n\t\t\t\t);\n\n\tfloat selfOcclusion = isFirst ? 1.0 : max(0.15, mix(1 - vorNorRad.w*1.4, 1.0, jit_in.instance));\n\tvec3 res = isFirst ? vec3(0.0) : alb*diff*ligCol*Nsha.w*selfOcclusion;\n\tres += vec3(0.5, 0.5, 1)*1.5*alb*selfOcclusion;\n\tres *= isFirst ? 0.1 : 1.0;\n \n\tcolor = vec4(res, isFirst ? 0.9 : 1.0);\n}\t\n]]>\n\t\t</program>\n\t</language>\n</jittershader>\n",
-                                                        "filename": "drawTrees.jxs",
+                                                        "filename": "none",
                                                         "flags": 1,
                                                         "embed": 1,
                                                         "autowatch": 1
@@ -1626,7 +1681,7 @@
                     "numinlets": 0,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 580.0, 274.0, 43.0, 22.0 ],
+                    "patching_rect": [ 633.0, 256.0, 43.0, 22.0 ],
                     "text": "r reset"
                 }
             },
@@ -1894,8 +1949,8 @@
                     "numinlets": 2,
                     "numoutlets": 3,
                     "outlettype": [ "bang", "bang", "int" ],
-                    "patching_rect": [ 492.0, 258.0, 41.0, 22.0 ],
-                    "text": "uzi 20"
+                    "patching_rect": [ 492.0, 146.0, 51.0, 22.0 ],
+                    "text": "uzi 20 0"
                 }
             },
             {
@@ -3227,13 +3282,13 @@
                     "filename": "none",
                     "id": "obj-66",
                     "maxclass": "newobj",
-                    "numinlets": 5,
+                    "numinlets": 4,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
                     "patching_rect": [ 503.0, 484.0, 491.0, 22.0 ],
                     "text": "jit.gpu.compute @workgroups 32 32 1",
                     "textfile": {
-                        "text": "#version 450\n\nlayout(std430, set = 0, binding = 0) buffer droplets {\n    uint count;\n    vec3 droplet[];\n};\n\nlayout(set = 0, rgba32f, binding = 1) uniform image2D terrainImg;\n\nlayout(binding = 2) uniform Config {\n    float frame;\n};\n\nlayout(set = 0, rgba32f, binding = 3) uniform image2D norImg;\n\nlayout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;\n\nconst vec3 ligDir = normalize(vec3(1,-0.4,0.4));\n\n//Random functions\nuint wang_hash(inout uint seed)\n{\n    seed = uint(seed ^ uint(61)) ^ uint(seed >> uint(16));\n    seed *= uint(9);\n    seed = seed ^ (seed >> 4);\n    seed *= uint(0x27d4eb2d);\n    seed = seed ^ (seed >> 15);\n    return seed;\n}\n \nfloat RandomFloat01(inout uint seed)\n{\n    return float(wang_hash(seed)) / 4294967296.0;\n}\n\nvec3 calcNormals(ivec2 gid, ivec2 size){\n\n    float rDiff =   imageLoad(terrainImg, clamp(gid + ivec2(1,0), ivec2(0), size-1)).r - \n                    imageLoad(terrainImg, clamp(gid - ivec2(1,0), ivec2(0), size-1)).r;\n                        \n    float uDiff =   imageLoad(terrainImg, clamp(gid - ivec2(0,1), ivec2(0), size-1)).r - \n                    imageLoad(terrainImg, clamp(gid + ivec2(0,1), ivec2(0), size-1)).r;\n\n    rDiff /= 2;\n    uDiff /= 2;\n\n    vec2 pixSize = vec2(1) / vec2(1024);\n    vec3 r = normalize(vec3(pixSize.x, rDiff, 0));\n    vec3 u = normalize(vec3(0, uDiff, pixSize.y));\n    return normalize(cross(-r,u));\n}\n\nfloat calcShadow(vec3 ro, vec3 ligDir, vec2 size){\n    float d = 0.01;\n    for(int i = 0; i < 50; i++){\n\n        vec3 p = ro + ligDir*d;\n        ivec2 iuv = ivec2((p.xy*0.5 + 0.5)*size);\n        if(iuv.x < 0 || iuv.y < 0 || iuv.x >= int(size.x) || iuv.y >= int(size.y)){\n            return 1.0;\n        }\n\n        float h = imageLoad(terrainImg, iuv).r;\n        if(h > p.z+0.01){\n            return 0.0;\n        }\n        d += 0.02;\n    }\n    return 1.0;\n}\n\nfloat calcAO(ivec2 gid, ivec2 size, vec3 ro, vec3 N){\n\n    uint seed = uint(gid.x) + uint(gid.y*size.x) + 999u;\n    int numSectors = 12;\n    float occ = float(numSectors);\n    for(int i = 0; i < numSectors; i++){\n\n        float randAngle = RandomFloat01(seed)*3.1415*2;\n        vec2 rd = vec2(cos(randAngle), sin(randAngle));\n        float highest = ro.z;\n        vec3 tallestPoint = ro;\n        for(float d = 0.01; d < 1.44; ){\n            vec2 sampleUV = clamp(((ro.xy + rd*d)*0.5 + 0.5)*vec2(size), vec2(0.0), vec2(size-1));\n            float sampledH = imageLoad(terrainImg, ivec2(sampleUV)).r;\n            if(sampledH > highest){\n                highest = sampledH;\n                tallestPoint = vec3(ro.xy + rd*d, highest);\n            }\n            d *= 1.2;\n        }\n        vec3 freeDir = normalize(tallestPoint - ro);\n        float cosine = max(0.0, dot(freeDir, N));\n        occ -= cosine;\n    }\n\n    return occ / float(numSectors);\n}\n\nvoid main(){\n\n    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);\n    vec2 size = vec2(imageSize(terrainImg));\n\n    if(gid.x >= int(size.x) || gid.y >= int(size.y)) return;\n\n    //if( (int(frame) % 60) != 0) return;\n\n    float h = imageLoad(terrainImg, gid).r;\n    vec3 ro;\n    ro.xy = vec2(gid)/(size-1);\n    ro.xy = ro.xy*2 - 1;\n    ro.z = h;\n\n    vec3 N = calcNormals(gid, ivec2(size));\n    float sha = calcShadow(ro, ligDir, size);\n    float ao = calcAO(gid, ivec2(size), ro, N);\n    imageStore(terrainImg, gid, vec4(h,sha,ao,1));\n    imageStore(norImg, gid, vec4(N, sha));\n\n}",
+                        "text": "#version 450\n\nlayout(std430, set = 0, binding = 0) buffer droplets {\n    uint count;\n    vec3 droplet[];\n};\n\nlayout(set = 0, rgba32f, binding = 1) uniform image2D terrainImg;\n\nlayout(set = 0, rgba32f, binding = 2) uniform image2D norImg;\n\nlayout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;\n\nconst vec3 ligDir = normalize(vec3(1,-0.4,0.4));\n\n//Random functions\nuint wang_hash(inout uint seed)\n{\n    seed = uint(seed ^ uint(61)) ^ uint(seed >> uint(16));\n    seed *= uint(9);\n    seed = seed ^ (seed >> 4);\n    seed *= uint(0x27d4eb2d);\n    seed = seed ^ (seed >> 15);\n    return seed;\n}\n \nfloat RandomFloat01(inout uint seed)\n{\n    return float(wang_hash(seed)) / 4294967296.0;\n}\n\nvec3 calcNormals(ivec2 gid, ivec2 size){\n\n    float rDiff =   imageLoad(terrainImg, clamp(gid + ivec2(1,0), ivec2(0), size-1)).r - \n                    imageLoad(terrainImg, clamp(gid - ivec2(1,0), ivec2(0), size-1)).r;\n                        \n    float uDiff =   imageLoad(terrainImg, clamp(gid - ivec2(0,1), ivec2(0), size-1)).r - \n                    imageLoad(terrainImg, clamp(gid + ivec2(0,1), ivec2(0), size-1)).r;\n\n    rDiff /= 2;\n    uDiff /= 2;\n\n    vec2 pixSize = vec2(1) / vec2(1024);\n    vec3 r = normalize(vec3(pixSize.x, rDiff, 0));\n    vec3 u = normalize(vec3(0, uDiff, pixSize.y));\n    return normalize(cross(-r,u));\n}\n\nfloat calcShadow(vec3 ro, vec3 ligDir, vec2 size){\n    float d = 0.01;\n    for(int i = 0; i < 50; i++){\n\n        vec3 p = ro + ligDir*d;\n        ivec2 iuv = ivec2((p.xy*0.5 + 0.5)*size);\n        if(iuv.x < 0 || iuv.y < 0 || iuv.x >= int(size.x) || iuv.y >= int(size.y)){\n            return 1.0;\n        }\n\n        float h = imageLoad(terrainImg, iuv).r;\n        if(h > p.z+0.01){\n            return 0.0;\n        }\n        d += 0.02;\n    }\n    return 1.0;\n}\n\nfloat calcAO(ivec2 gid, ivec2 size, vec3 ro, vec3 N){\n\n    uint seed = uint(gid.x) + uint(gid.y*size.x) + 999u;\n    int numSectors = 12;\n    float occ = float(numSectors);\n    for(int i = 0; i < numSectors; i++){\n\n        float randAngle = RandomFloat01(seed)*3.1415*2;\n        vec2 rd = vec2(cos(randAngle), sin(randAngle));\n        float highest = ro.z;\n        vec3 tallestPoint = ro;\n        for(float d = 0.01; d < 1.44; ){\n            vec2 sampleUV = clamp(((ro.xy + rd*d)*0.5 + 0.5)*vec2(size), vec2(0.0), vec2(size-1));\n            float sampledH = imageLoad(terrainImg, ivec2(sampleUV)).r;\n            if(sampledH > highest){\n                highest = sampledH;\n                tallestPoint = vec3(ro.xy + rd*d, highest);\n            }\n            d *= 1.2;\n        }\n        vec3 freeDir = normalize(tallestPoint - ro);\n        float cosine = max(0.0, dot(freeDir, N));\n        occ -= cosine;\n    }\n\n    return occ / float(numSectors);\n}\n\nvoid main(){\n\n    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);\n    vec2 size = vec2(imageSize(terrainImg));\n\n    if(gid.x >= int(size.x) || gid.y >= int(size.y)) return;\n\n    float h = imageLoad(terrainImg, gid).r;\n    vec3 ro;\n    ro.xy = vec2(gid)/(size-1);\n    ro.xy = ro.xy*2 - 1;\n    ro.z = h;\n\n    vec3 N = calcNormals(gid, ivec2(size));\n    float sha = calcShadow(ro, ligDir, size);\n    float ao = calcAO(gid, ivec2(size), ro, N);\n    imageStore(terrainImg, gid, vec4(h,sha,ao,1));\n    imageStore(norImg, gid, vec4(N, sha));\n\n}",
                         "filename": "none",
                         "flags": 0,
                         "embed": 1,
@@ -3287,7 +3342,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 533.0, 163.0, 109.0, 22.0 ],
+                    "patching_rect": [ 492.0, 115.0, 109.0, 22.0 ],
                     "text": "jit.bang @enable 0"
                 }
             },
@@ -3384,23 +3439,12 @@
             },
             {
                 "box": {
-                    "id": "obj-55",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 1,
-                    "outlettype": [ "" ],
-                    "patching_rect": [ 563.0, 235.0, 87.0, 22.0 ],
-                    "text": "prepend frame"
-                }
-            },
-            {
-                "box": {
                     "id": "obj-31",
                     "maxclass": "newobj",
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 563.0, 199.0, 142.0, 22.0 ],
+                    "patching_rect": [ 624.0, 115.0, 142.0, 22.0 ],
                     "text": "jit.framecount @enable 0"
                 }
             },
@@ -3412,10 +3456,10 @@
                     "numinlets": 4,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 534.0, 310.0, 590.0, 22.0 ],
+                    "patching_rect": [ 534.0, 310.0, 580.0, 22.0 ],
                     "text": "jit.gpu.compute @workgroups 1 1 1",
                     "textfile": {
-                        "text": "#version 450\n\nlayout(std430, set = 0, binding = 0) buffer droplets {\n    uint count;\n    vec3 droplet[];\n};\n\nlayout(set = 0, rgba32f, binding = 1) uniform image2D terrainImg;\n\nlayout(binding = 2) uniform Config {\n    float frame;\n};\n\nlayout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;\n\n//Random functions\nuint wang_hash(inout uint seed)\n{\n    seed = uint(seed ^ uint(61)) ^ uint(seed >> uint(16));\n    seed *= uint(9);\n    seed = seed ^ (seed >> 4);\n    seed *= uint(0x27d4eb2d);\n    seed = seed ^ (seed >> 15);\n    return seed;\n}\n \nfloat RandomFloat01(inout uint seed)\n{\n    return float(wang_hash(seed)) / 4294967296.0;\n}\n\nvoid main(){\n\n    uint gid = gl_GlobalInvocationID.x;\n    vec2 size = vec2(imageSize(terrainImg).xy);\n\n    if(gid >= 1024) return;\n    uint seed = gid + uint(frame*1024) + 9999u;\n\n    droplet[gid] = vec3(    RandomFloat01(seed)*size.x,\n                            RandomFloat01(seed)*size.y,\n                            0.0);\n}",
+                        "text": "#version 450\n\nlayout(std430, set = 0, binding = 0) buffer droplets {\n    uint count;\n    vec3 droplet[];\n};\n\nlayout(set = 0, rgba32f, binding = 1) uniform image2D terrainImg;\n\nlayout(binding = 2) uniform Config {\n    uint seed;\n};\n\nlayout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;\n\n//Random functions\nuint wang_hash(inout uint seed)\n{\n    seed = uint(seed ^ uint(61)) ^ uint(seed >> uint(16));\n    seed *= uint(9);\n    seed = seed ^ (seed >> 4);\n    seed *= uint(0x27d4eb2d);\n    seed = seed ^ (seed >> 15);\n    return seed;\n}\n \nfloat RandomFloat01(inout uint seed)\n{\n    return float(wang_hash(seed)) / 4294967296.0;\n}\n\nvoid main(){\n\n    uint gid = gl_GlobalInvocationID.x;\n    vec2 size = vec2(imageSize(terrainImg).xy);\n\n    if(gid >= 1024) return;\n    uint seed = gid + seed + 9999u;\n\n    droplet[gid] = vec3(    RandomFloat01(seed)*size.x,\n                            RandomFloat01(seed)*size.y,\n                            0.0);\n}",
                         "filename": "none",
                         "flags": 0,
                         "embed": 1,
@@ -3433,7 +3477,7 @@
                     "numoutlets": 1,
                     "outlettype": [ "" ],
                     "patching_rect": [ 534.0, 374.5, 429.0, 62.0 ],
-                    "text": "jit.gpu.compute @workgroups 1 1 1 @inertia 0.1 @maxLifetime 50 @borderSize 0. @sedimentCapacityFactor 4. @minSedimentCapacity 0.004 @depositSpeed 0.4 @erodeSpeed 0.005 @evaporateSpeed 0.01 @gravity 1. @startSpeed 1. @startWater 1 @terrainImg terrainImg @droplets droplets",
+                    "text": "jit.gpu.compute @workgroups 1 1 1 @inertia 0.1 @maxLifetime 50 @borderSize 3 @sedimentCapacityFactor 4. @minSedimentCapacity 0.004 @depositSpeed 0.4 @erodeSpeed 0.005 @evaporateSpeed 0.01 @gravity 1. @startSpeed 1. @startWater 1 @terrainImg terrainImg @droplets droplets",
                     "textfile": {
                         "text": "// Based on https://www.firespark.de/resources/downloads/implementation%20of%20a%20methode%20for%20hydraulic%20erosion.pdf\n\n#version 450\n\nlayout(std430, set = 0, binding = 0) buffer droplets {\n    uint count;\n    vec3 droplet[];\n};\n\nlayout(set = 0, rgba32f, binding = 1) uniform image2D terrainImg;\n\nlayout(binding = 2) uniform ErosionParams {\n\n    float borderSize;\n\n    int maxLifetime;\n    float inertia;\n    float sedimentCapacityFactor;\n    float minSedimentCapacity;\n    float depositSpeed;\n    float erodeSpeed;\n\n    float evaporateSpeed;\n    float gravity;\n    float startSpeed;\n    float startWater;\n};\n\nlayout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;\n\nconst float w[21] = float[](\n    0.03076, 0.03076,\n    0.04703, 0.04703,\n    0.03076, 0.03076,\n\n    0.06196, 0.08153, 0.06196,\n    0.08153, 0.10870, 0.08153,\n    0.06196, 0.08153, 0.06196,\n\n    0.03076, 0.03076,\n    0.04703, 0.04703,\n    0.03076, 0.03076\n);\n\nconst ivec2 off[21] = ivec2[](\n    ivec2(-2,-1), ivec2(-1,-2),\n    ivec2(-2, 0), ivec2( 0,-2),\n    ivec2(-2, 1), ivec2( 1,-2),\n\n    ivec2(-1,-1), ivec2(-1, 0), ivec2(-1, 1),\n    ivec2( 0,-1), ivec2( 0, 0), ivec2( 0, 1),\n    ivec2( 1,-1), ivec2( 1, 0), ivec2( 1, 1),\n\n    ivec2( 2,-1), ivec2( 1, 2),\n    ivec2( 2, 0), ivec2( 0, 2),\n    ivec2( 2, 1), ivec2(-1, 2)\n);\n\nvec3 CalculateHeightAndGradient (vec2 pos) {\n\n    vec2 coord = floor(pos);\n    float x = fract(pos.x); \n    float y = fract(pos.y); \n    float invX = 1 - x;\n    float invY = 1 - y;\n\n    vec2 limit = vec2(imageSize(terrainImg)) - 1;\n\n    ivec2 c  = ivec2(clamp(coord,                vec2(0.0), limit));\n    ivec2 cE = ivec2(clamp(coord + vec2(1,0),    vec2(0.0), limit));\n    ivec2 cS = ivec2(clamp(coord + vec2(0,1),    vec2(0.0), limit));\n    ivec2 cSE= ivec2(clamp(coord + vec2(1,1),    vec2(0.0), limit));\n\n    float hNW = imageLoad(terrainImg, c ).r;\n    float hNE = imageLoad(terrainImg, cE).r;\n    float hSW = imageLoad(terrainImg, cS).r;\n    float hSE = imageLoad(terrainImg, cSE).r;\n\n    vec2 gradient = vec2(   mix(hNE - hNW, hSE - hSW, y),\n                            mix(hSW - hNW, hSE - hNE, x)\n                        );\n\n    float height =  hNW * invX * invY + \n                    hNE * x * invY + \n                    hSW * invX * y + \n                    hSE * x * y;\n\n    return vec3(gradient,height);\n}\n\nvoid main(){\n\n    uint gid = gl_GlobalInvocationID.x;\n    vec2 mapSize = vec2(imageSize(terrainImg));\n\n    if (gid >= 1024) return;\n\n    vec2 pos = droplet[gid].xy;\n    vec2 dir = vec2(0.0);\n    float speed = startSpeed;\n    float water = startWater;\n    float sediment = 0;\n\n    for(int lifetime = maxLifetime; lifetime > 0; lifetime--) {\n\n        ivec2 cell = ivec2(floor(pos));\n        float x = fract(pos.x);\n        float y = fract(pos.y);\n        float invX = 1 - x;\n        float invY = 1 - y;\n\n        // Calculate droplet's height and direction of flow with bilinear interpolation of surrounding heights\n        vec3 heightAndGradient = CalculateHeightAndGradient(pos);\n\n        // Update the droplet's direction and position (move position 1 unit regardless of speed)\n        dir = mix(-heightAndGradient.xy, dir, inertia);\n\n        // Normalize direction\n        float len = max(0.01,length(dir));\n        dir /= len;\n        pos += dir;\n\n        // Stop simulating droplet if it's not moving or has flowed over edge of map\n        if ((dir.x == 0 && dir.y == 0) || \n            pos.x < borderSize || \n            pos.x >= (mapSize.x - borderSize) || \n            pos.y < borderSize || \n            pos.y >= (mapSize.y - borderSize)) {\n            break;\n        }\n\n        // Find the droplet's new height and calculate the deltaHeight\n        float newHeight = CalculateHeightAndGradient(pos).z;\n        float deltaHeight = newHeight - heightAndGradient.z; \n\n        // Calculate the droplet's sediment capacity (higher when moving fast down a slope and contains lots of water)\n        float sedimentCapacity = max(-deltaHeight * speed * water * sedimentCapacityFactor, minSedimentCapacity);\n\n        // If carrying more sediment than capacity, or if flowing uphill:\n        if (sediment > sedimentCapacity || deltaHeight > 0) {\n            // If moving uphill (deltaHeight > 0) try fill up to the current height, otherwise deposit a fraction of the excess sediment\n            float amountToDeposit = (deltaHeight > 0) ? min(deltaHeight, sediment) : (sediment - sedimentCapacity) * depositSpeed;\n            sediment -= amountToDeposit;\n\n            // Add the sediment to the four nodes of the current cell using bilinear interpolation\n            // Deposition is not distributed over a radius (like erosion) so that it can fill small pits\n            ivec2 iuv;\n            float val;\n\n            iuv = cell;\n            val = imageLoad(terrainImg, iuv).r;\n            val += amountToDeposit * invX * invY;\n            imageStore(terrainImg, iuv, vec4(val));\n\n            iuv = cell + ivec2(1,0);\n            val = imageLoad(terrainImg, iuv).r;\n            val += amountToDeposit * x * invY;\n            imageStore(terrainImg, iuv, vec4(val));\n\n            iuv = cell + ivec2(0,1);\n            val = imageLoad(terrainImg, iuv).r;\n            val +=  amountToDeposit * invX * y;\n            imageStore(terrainImg, iuv, vec4(val));\n\n            iuv = cell + ivec2(1,1);\n            val = imageLoad(terrainImg, iuv).r;\n            val += amountToDeposit * x * y;\n            imageStore(terrainImg, iuv, vec4(val));\n        }  \n        else {\n            // Erode a fraction of the droplet's current carry capacity.\n            // Clamp the erosion to the change in height so that it doesn't dig a hole in the terrain behind the droplet\n            float amountToErode = min ((sedimentCapacity - sediment) * erodeSpeed, -deltaHeight);\n\n            for(int k = 0; k < 21; k++){\n                ivec2 erodeUV = cell + off[k];\n                erodeUV = clamp(erodeUV, ivec2(0), ivec2(mapSize - 1));\n                float weightedErodeAmount = amountToErode * w[k];\n                float currH = imageLoad(terrainImg, erodeUV).r;\n                float deltaSediment = currH < weightedErodeAmount ? currH : weightedErodeAmount;\n                float newH = currH - deltaSediment;\n                imageStore(terrainImg, erodeUV, vec4(newH));\n                sediment += deltaSediment; \n            }\n        }\n        // Update droplet's speed and water content\n        speed = sqrt(max(0,speed * speed + deltaHeight * gravity));\n        water *= (1 - evaporateSpeed);\n    }\n}",
                         "filename": "none",
@@ -3681,14 +3725,14 @@
             {
                 "patchline": {
                     "destination": [ "obj-29", 2 ],
-                    "order": 1,
+                    "order": 2,
                     "source": [ "obj-10", 0 ]
                 }
             },
             {
                 "patchline": {
                     "destination": [ "obj-66", 2 ],
-                    "order": 2,
+                    "order": 1,
                     "source": [ "obj-10", 0 ]
                 }
             },
@@ -3853,8 +3897,26 @@
             },
             {
                 "patchline": {
+                    "destination": [ "obj-18", 0 ],
+                    "source": [ "obj-25", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-28", 1 ],
+                    "source": [ "obj-26", 0 ]
+                }
+            },
+            {
+                "patchline": {
                     "destination": [ "obj-23", 0 ],
                     "source": [ "obj-27", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-33", 0 ],
+                    "source": [ "obj-28", 0 ]
                 }
             },
             {
@@ -3871,7 +3933,7 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-55", 0 ],
+                    "destination": [ "obj-26", 0 ],
                     "source": [ "obj-31", 0 ]
                 }
             },
@@ -3884,6 +3946,18 @@
             },
             {
                 "patchline": {
+                    "destination": [ "obj-25", 0 ],
+                    "source": [ "obj-33", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-66", 0 ],
+                    "source": [ "obj-34", 0 ]
+                }
+            },
+            {
+                "patchline": {
                     "destination": [ "obj-1", 0 ],
                     "source": [ "obj-4", 0 ]
                 }
@@ -3892,6 +3966,12 @@
                 "patchline": {
                     "destination": [ "obj-18", 0 ],
                     "source": [ "obj-41", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-28", 0 ],
+                    "source": [ "obj-41", 2 ]
                 }
             },
             {
@@ -3920,7 +4000,7 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-66", 4 ],
+                    "destination": [ "obj-66", 3 ],
                     "source": [ "obj-49", 0 ]
                 }
             },
@@ -3946,20 +4026,6 @@
                 "patchline": {
                     "destination": [ "obj-11", 0 ],
                     "source": [ "obj-53", 0 ]
-                }
-            },
-            {
-                "patchline": {
-                    "destination": [ "obj-18", 0 ],
-                    "order": 0,
-                    "source": [ "obj-55", 0 ]
-                }
-            },
-            {
-                "patchline": {
-                    "destination": [ "obj-66", 0 ],
-                    "order": 1,
-                    "source": [ "obj-55", 0 ]
                 }
             },
             {

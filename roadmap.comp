@@ -1,0 +1,91 @@
+#version 460
+
+struct agent{
+    vec2 currPos;
+    vec2 startPos;
+    vec2 dir;
+    int bounces;
+};
+
+layout(std430, binding = 0) buffer agentsBuffer {
+    uint count;
+    agent agents[];
+}ab;
+
+layout(binding = 1, rgba32f) uniform image2D imgOut;
+
+layout(binding = 2) uniform Cfg {
+    uint max_bounces;
+};
+
+layout(local_size_x = 32) in;
+
+float sdSegment( in vec2 p, in vec2 a, in vec2 b ){
+
+    vec2 pa = p-a, ba = b-a;
+    float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+    return length( pa - ba*h );
+}
+
+void draw_line_with_AA(vec2 pos, vec2 dir, float col){
+
+    //rough anti-aliasing
+    vec2 a = pos;
+    vec2 b = pos-dir*2;
+
+    ivec2 mm = ivec2(min(a.x, b.x), min(a.y, b.y));
+    ivec2 MM = ivec2(max(a.x, b.x), max(a.y, b.y));
+
+    for(int x = mm.x; x <= MM.x; x++){
+        for(int y = mm.y; y <= MM.y; y++){
+
+            float d = sdSegment(vec2(x,y)+0.5, a, b);
+            d = smoothstep(1,0,d);
+            if(d > 0.0){
+                ivec2 iuv = ivec2(x,y);
+                float prevVal = imageLoad(imgOut, iuv).w;
+                imageStore(imgOut, iuv, vec4(d*col + prevVal));
+            }
+        }
+    }
+}
+
+void main(){
+
+    uint id = gl_GlobalInvocationID.x;
+    if(id >= ab.count) return;
+
+    //copy the buffer's content locally
+    agent a = ab.agents[id];
+
+    vec2 imgSize = vec2(imageSize(imgOut).xy);
+
+    //return if this agent bounced more than 10 times
+    if(a.bounces > max_bounces) return;
+
+    a.currPos += a.dir;
+    
+    //if the agent steps onto another line or if it's outside the screen
+    if( imageLoad(imgOut, ivec2(a.currPos + a.dir*(1 + abs(a.dir.x)*abs(a.dir.y)*0.8))).w > 0 || 
+        a.currPos.x < 0 || a.currPos.y < 0 || 
+        a.currPos.x >= imgSize.x || a.currPos.y >= imgSize.y){
+        
+        a.currPos = (a.startPos + a.currPos)*0.5;
+
+        //pick a random perpendicular direction
+        a.dir = cos(float(id)*1.447619 + float(a.bounces)*4.1193082) > 0 ? vec2(a.dir.y, -a.dir.x) : vec2(-a.dir.y, a.dir.x);
+        a.bounces++;
+
+        ab.agents[id].dir = a.dir;
+        ab.agents[id].bounces = a.bounces;
+        ab.agents[id].startPos = a.currPos;
+        ab.agents[id].bounces = a.bounces;
+        a.currPos += a.dir;
+    }
+
+    ab.agents[id].currPos = a.currPos;
+
+    //Draw the line
+    float outCol = 1 / float(a.bounces*2+1);
+    draw_line_with_AA(a.currPos, a.dir, outCol);
+}

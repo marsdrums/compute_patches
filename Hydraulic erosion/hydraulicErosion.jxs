@@ -1,3 +1,5 @@
+// Based on https://www.firespark.de/resources/downloads/implementation%20of%20a%20methode%20for%20hydraulic%20erosion.pdf
+
 #version 450
 
 layout(std430, set = 0, binding = 0) buffer droplets {
@@ -26,12 +28,33 @@ layout(binding = 2) uniform ErosionParams {
 
 layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
 
-const float w[9] = float[](0.3679, 0.6065, 0.3679,
-                            0.6065, 1.0000, 0.6065,
-                            0.3679, 0.6065, 0.3679);
-const ivec2 off[9] = ivec2[](  ivec2(-1,-1), ivec2(0,-1), ivec2(+1,-1), 
-                                ivec2(-1,+0), ivec2(0,+0), ivec2(+1,+0), 
-                                ivec2(-1,+1), ivec2(0,+1), ivec2(+1,+1));
+const float w[21] = float[](
+    0.03076, 0.03076,
+    0.04703, 0.04703,
+    0.03076, 0.03076,
+
+    0.06196, 0.08153, 0.06196,
+    0.08153, 0.10870, 0.08153,
+    0.06196, 0.08153, 0.06196,
+
+    0.03076, 0.03076,
+    0.04703, 0.04703,
+    0.03076, 0.03076
+);
+
+const ivec2 off[21] = ivec2[](
+    ivec2(-2,-1), ivec2(-1,-2),
+    ivec2(-2, 0), ivec2( 0,-2),
+    ivec2(-2, 1), ivec2( 1,-2),
+
+    ivec2(-1,-1), ivec2(-1, 0), ivec2(-1, 1),
+    ivec2( 0,-1), ivec2( 0, 0), ivec2( 0, 1),
+    ivec2( 1,-1), ivec2( 1, 0), ivec2( 1, 1),
+
+    ivec2( 2,-1), ivec2( 1, 2),
+    ivec2( 2, 0), ivec2( 0, 2),
+    ivec2( 2, 1), ivec2(-1, 2)
+);
 
 vec3 CalculateHeightAndGradient (vec2 pos) {
 
@@ -149,7 +172,7 @@ void main(){
             // Clamp the erosion to the change in height so that it doesn't dig a hole in the terrain behind the droplet
             float amountToErode = min ((sedimentCapacity - sediment) * erodeSpeed, -deltaHeight);
 
-            for(int k = 0; k < 9; k++){
+            for(int k = 0; k < 21; k++){
                 ivec2 erodeUV = cell + off[k];
                 erodeUV = clamp(erodeUV, ivec2(0), ivec2(mapSize - 1));
                 float weightedErodeAmount = amountToErode * w[k];

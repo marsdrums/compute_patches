@@ -1,0 +1,344 @@
+#version 460
+#extension GL_ARB_shading_language_include : require //<-- enable include functionality
+
+// ============================================================
+// Compute-shader path tracer (spheres only) with a Disney-ish BSDF.
+// Key ideas:
+//  - Each invocation shades one pixel and progressively accumulates into accumImg.
+//  - Scene is an SSBO of spheres that also carry material parameters.
+//  - Workgroup caches camera basis + sphere bounds into shared memory.
+//  - BSDF uses GGX VNDF sampling for specular reflection/refraction + Disney diffuse.
+//  - Keeps classic dot-product names: NoL, NoV, NoH, VoH, LoH.
+// ============================================================
+
+#define PI      3.1415927410125732421875
+#define TWOPI   6.283185482025146484375
+#define INV_PI  0.3183098733425140380859375
+#define MIN_DIST   0.0001          // epsilon to avoid self-intersections
+
+// 32x32 threads per workgroup.
+layout(local_size_x = 32, local_size_y = 32) in;
+
+// Accumulation render target. Each pixel stores running average-like accumulation.
+layout(rgba32f, binding = 0) uniform image2D accumImg;
+
+// -------------------------------
+// Scene data (SSBO)
+// -------------------------------
+// Sphere carries both geometry (center/radius) and shading params.
+// (specAlbedo is currently not used in the BSDF; it’s included for flexibility.)
+struct sphere {
+    vec3  center;
+    float radius;
+
+    vec3  diffAlbedo;   // base color for diffuse / used to tint glass in this shader
+    vec3  specAlbedo;   // unused currently
+    vec3  emissive;     // emitted radiance (adds directly on hit)
+
+    float ior;          // index of refraction
+    float roughness;    // perceptual roughness in [0..1]
+    float metallic;     // metallic workflow in [0..1]
+    float specTrans;    // specular transmission weight in [0..1] (glassiness)
+    float absorption;   // absorption coefficient for medium attenuation (Beer-Lambert)
+};
+
+// Material struct is what the BSDF consumes (copied from a sphere on hit).
+struct material {
+    vec3  diffAlbedo;
+    vec3  specAlbedo;
+    vec3  emissive;
+
+    float ior;
+    float roughness;
+    float metallic;
+    float specTrans;
+    float absorption;
+};
+
+// SSBO: first uint is sphere count, followed by an unsized array of spheres.
+layout(std430, binding = 1) buffer sphereBuff {
+    uint   count;
+    sphere spheres[];
+};
+
+// -------------------------------
+// Camera + render params (UBO)
+// -------------------------------
+// Minimal camera: position and forward direction.
+// Camera basis (right/up/forward) is computed in shader.
+layout(binding = 2) uniform camParams {
+    vec3 pos;
+    vec3 dir;
+    float aperture;
+    float focal_dist;
+} cam;
+
+// Render controls:
+// iter   : frame/iteration counter (used to decorrelate RNG)
+// interp : blend factor for progressive accumulation
+layout(binding = 3) uniform renderParams {
+    uint  iter;
+    float interp;
+    uint num_bounces;
+    uint samples_per_frame;
+} render;
+
+layout(rgba32f, binding = 4) uniform image2D jitTheCatImg;
+
+// -------------------------------
+// Ray / hit structs
+// -------------------------------
+struct ray {
+    vec3 origin;
+    vec3 direction; // should be normalized
+};
+
+struct hit {
+    float t;       // distance to closest hit
+    vec3  normal;  // oriented surface normal at hit (points against incoming ray)
+    vec3  alb;     // unused (reserved)
+    vec3  emi;     // unused (reserved)
+    uint  id;      // sphere index, or 0xFFFFFFFFu for no hit
+};
+
+// Refraction state tracking:
+// - isRefracted toggles when we choose the refraction lobe (enter/exit).
+// - hasBeenRefracted is used to apply absorption on the segment after a refraction.
+// - lastIOR is the current medium IOR (starts at 1.0 for air).
+struct State {
+    bool  isRefracted;
+    bool  hasBeenRefracted;
+    float lastIOR;
+};
+
+// -------------------------------
+// Workgroup shared caches
+// -------------------------------
+// Cache camera basis once per group (thread 0 writes it).
+shared mat3 cameraBasis;         // columns: right, up, forward
+
+// Cache sphere centers/radii for faster intersection.
+// NOTE: fixed size of 256 => code assumes count <= 256 (or you clamp externally).
+shared vec4 sphereBounds[256];   // xyz=center, w=radius
+
+// Initialize the per-path refraction state.
+State initState() {
+    State s;
+    s.hasBeenRefracted = false;
+    s.isRefracted      = false;
+    s.lastIOR          = 1.0; // start in air
+    return s;
+}
+
+#include "comp.path_tracer.random_functions.glsl" //<--- include external files
+#include "comp.path_tracer.intersection_functions.glsl"
+#include "comp.path_tracer.microfacet_functions.glsl"
+#include "comp.path_tracer.BSDF_evaluation_functions.glsl"
+#include "comp.path_tracer.BSDF_sampling_functions.glsl"
+
+// Copy sphere's material parameters into a local material struct.
+material copyMaterialFromSphere(uint sphereId) {
+    material mat;
+    mat.diffAlbedo = spheres[sphereId].diffAlbedo;
+    mat.specAlbedo = spheres[sphereId].specAlbedo;
+    mat.emissive   = spheres[sphereId].emissive;
+    mat.ior        = spheres[sphereId].ior;
+    mat.roughness  = spheres[sphereId].roughness;
+    mat.metallic   = spheres[sphereId].metallic;
+    mat.specTrans  = spheres[sphereId].specTrans;
+    mat.absorption = spheres[sphereId].absorption;
+    return mat;
+}
+
+
+// ============================================================
+// Path tracing loop
+// ============================================================
+// Traces up to 8 bounces. Adds emissive at each hit.
+// Applies absorption on the segment after a refraction (simple medium model).
+vec3 rayTrace(inout ray r, inout hit h, inout uint rngState) {
+    State state = initState();
+
+    vec3 radiance   = vec3(0.0); // accumulated radiance along this path
+    vec3 throughput = vec3(1.0); // multiplicative path weight
+
+    for (uint bounce = 0u; bounce < render.num_bounces; bounce++) {
+        // Find closest hit
+        h.t  = 1e30;
+        h.id = 0xFFFFFFFFu;
+
+        for (uint sphereId = 0u; sphereId < count; sphereId++) {
+            vec4 s = sphereBounds[sphereId];
+            if (intersectSphere(r, h, s.xyz, s.w)) {
+                h.id = sphereId;
+            }
+        }
+
+        // Miss: environment/background (here essentially black + a small "sun")
+        if (h.id == 0xFFFFFFFFu) {
+
+            vec3 background = r.direction*0.5 + 0.5;
+
+            background += smoothstep(0.95, 0.96, dot(r.direction, normalize(vec3(1,1,1))))
+                          * vec3(20, 15, 10);
+            radiance += background * throughput;
+            return radiance;
+        }
+
+        // Closest hit material
+        material mat = copyMaterialFromSphere(h.id);
+
+        if(h.id == 0){ //if this is the big sphere in the middle
+            ivec2 uv = ivec2((h.normal.xy*2+0.5)*500);
+            uv.y = 500 - uv.y;
+            float catLogoMask = imageLoad(jitTheCatImg, uv).r;
+            mat.roughness = fract(mat.roughness + catLogoMask*0.5);
+            mat.diffAlbedo = fract(mat.diffAlbedo + catLogoMask*0.5);
+        }
+
+        // Add emissive immediately (no light sampling / NEE here)
+        radiance += mat.emissive * throughput;
+
+        // Sample BSDF to get next direction + (f*cos, pdf)
+        vec3 wo;
+        vec4 bsdf = sampleDisneyBSDF(-r.direction, h.normal, mat, wo, state, rngState);
+
+        // Throughput update: throughput *= (f*cos) / pdf
+        if (bsdf.a > 0.0) {
+            throughput *= bsdf.rgb / bsdf.a;
+        }
+
+        // If we were inside a medium on the previous segment, apply Beer-Lambert absorption
+        if (state.hasBeenRefracted) {
+            throughput *= exp(-h.t * ((vec3(1.0) - mat.diffAlbedo) * mat.absorption));
+        }
+
+        // Advance ray to the hit point
+        r.origin += r.direction * h.t;
+        r.direction = wo;
+
+        // Offset to avoid self-intersection (depends on refractive state)
+        if (state.isRefracted) {
+            // traveling "inside" -> push opposite normal
+            r.origin += -h.normal * 0.0001;
+        } else if (state.hasBeenRefracted && !state.isRefracted) {
+            // just exited -> push opposite normal + reset medium IOR to air
+            r.origin += -h.normal * 0.0001;
+            state.lastIOR = 1.0;
+        } else {
+            // outside -> push along normal
+            r.origin +=  h.normal * 0.0001;
+        }
+    }
+
+    return radiance;
+}
+
+// Concentric mapping (Shirley/Chiu) for uniform disk sampling
+vec2 SampleConcentricDisk(inout uint rngState)
+{
+    float u1 = 2.0 * RandomFloat01(rngState) - 1.0;
+    float u2 = 2.0 * RandomFloat01(rngState) - 1.0;
+
+    if (u1 == 0.0 && u2 == 0.0) return vec2(0.0);
+
+    float r, theta;
+    if (abs(u1) > abs(u2)) {
+        r = u1;
+        theta = (PI / 4.0) * (u2 / u1);
+    } else {
+        r = u2;
+        theta = (PI / 2.0) - (PI / 4.0) * (u1 / u2);
+    }
+    return r * vec2(cos(theta), sin(theta));
+}
+
+// ============================================================
+// Main
+// ============================================================
+// For each pixel:
+//  - seed RNG
+//  - jitter sample position for AA
+//  - build camera ray
+//  - trace 1 sample (samplesPerPixel = 1 here)
+//  - blend into accumulation buffer
+void main() {
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    uint  lid   = gl_LocalInvocationIndex;
+
+    ivec2 size = imageSize(accumImg);
+    if (pixel.x >= size.x || pixel.y >= size.y) return;
+
+    vec2 fsize = vec2(size);
+
+    // Per-pixel RNG seed (also depends on render.iter)
+    uint rngState = initRngSeed();
+
+    // Subpixel jitter for anti-aliasing (uniform in [0,1) per axis).
+    vec2 jitter = vec2(RandomFloat01(rngState), RandomFloat01(rngState));
+
+    // Normalized device coordinates in [-1,1] with aspect correction.
+    // Jitter is added in pixel space for AA.
+    vec2 ndc = 2.0 * (vec2(pixel) + jitter) / (fsize - 1.0) - 1.0;
+    ndc.y *= fsize.y / fsize.x;
+
+    // Compute camera basis once per workgroup.
+    if (lid == 0u) {
+        vec3 right = normalize(cross(cam.dir, vec3(0,1,0)));
+        vec3 up    = normalize(cross(cam.dir, right));
+        cameraBasis = mat3(right, up, cam.dir);
+    }
+
+    // Cache sphere bounds into shared memory for faster intersection.
+    if (lid < count) {
+        sphereBounds[lid] = vec4(spheres[lid].center, spheres[lid].radius);
+    }
+
+    // Synchronize: ensure cameraBasis and sphereBounds are ready.
+    barrier();
+
+    // Build primary ray direction in camera space then transform to world.
+    vec3 dirCam = normalize(vec3(ndc, 1.0));
+    vec3 dirWorld =
+        dirCam.x * cameraBasis[0] +
+        dirCam.y * cameraBasis[1] +
+        dirCam.z * cameraBasis[2];
+
+    // Previous accumulation (progressive rendering)
+    vec3 prevAccum = imageLoad(accumImg, pixel).xyz;
+
+    ray r;
+    hit h;
+
+    //float focal_dist = 2;
+    //float aperture = 0.2;
+
+    vec3 focusPlanePoint = cam.pos + cam.dir * cam.focal_dist;
+    float denom = dot(dirWorld, cam.dir);
+
+    // Avoid near-parallel rays (should be rare unless extreme FOV)
+    float tFocus = (abs(denom) > 1e-6) ? dot(focusPlanePoint - cam.pos, cam.dir) / denom : cam.focal_dist;
+
+    vec3 focusPoint = cam.pos + dirWorld * tFocus;
+
+    vec3 sampleSum = vec3(0.0);
+
+    // Trace "samples_per_frame" samples per pixel per dispatch
+    for (uint s = 0u; s < render.samples_per_frame; s++) {
+
+        //Sample a point on the lens (in camera right/up plane)
+        vec2 lensUv = SampleConcentricDisk(rngState) * cam.aperture;
+        vec3 lensOffset = cameraBasis[0] * lensUv.x + cameraBasis[1] * lensUv.y;
+    
+        r.origin = cam.pos + lensOffset;
+        r.direction = normalize(focusPoint - r.origin);
+        sampleSum  += rayTrace(r, h, rngState);
+    }
+
+    vec3 newSample = sampleSum / float(render.samples_per_frame);
+
+    // Blend new sample into running accumulation.
+    vec3 blended = mix(prevAccum, newSample, render.interp);
+
+    imageStore(accumImg, pixel, vec4(blended, 1.0));
+}
