@@ -18,7 +18,6 @@
                     "numinlets": 1,
                     "numoutlets": 0,
                     "patching_rect": [ 110.0, 22.0, 133.0, 20.0 ],
-                    "presentation_linecount": 5,
                     "text": "1) enable the rendering"
                 }
             },
