@@ -1,0 +1,44 @@
+#version 460
+
+struct minMax {
+    vec3 mm; //minimum
+    vec3 MM; //maximum
+};
+
+layout(std430, binding = 2) buffer minMaxBuff {
+    minMax mmMM[];
+};
+
+layout(binding = 3) uniform Config {
+    uint triCount;
+    uint step;
+};
+
+layout(local_size_x = 16) in;
+
+shared minMax shaMinMax[16];
+
+void main() {
+
+    uint gid = gl_GlobalInvocationID.x;
+    uint lid = gl_LocalInvocationIndex;
+
+    if(gid >= triCount) return;
+
+    //cooperatively load data into shared memory
+    uint id = min(gid * step, triCount - 1u);
+    shaMinMax[lid].mm = mmMM[id].mm;
+    shaMinMax[lid].MM = mmMM[id].MM;
+    barrier();
+
+    if(lid == 0u){
+        vec3 mm = shaMinMax[0].mm;
+        vec3 MM = shaMinMax[0].MM;
+        for(uint i = 1u; i < 16u; i++){
+            mm = min(mm, shaMinMax[i].mm);
+            MM = max(MM, shaMinMax[i].MM);
+        }       
+        mmMM[id].mm = mm;
+        mmMM[id].MM = MM; 
+    }
+}

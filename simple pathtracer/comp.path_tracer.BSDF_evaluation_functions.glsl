@@ -14,7 +14,7 @@ vec3 evalDisneyDiffuse(material mat, float NoL, float NoV, float LoH, float roug
 // Microfacet specular reflection BRDF (GGX).
 vec3 evalDisneySpecularReflection(material mat, vec3 F, float NoH, float NoV, float NoL) {
     float roughness = mat.roughness * mat.roughness;
-    float D = D_GTR(roughness, NoH, 2.0);
+    float D = D_GTR(roughness, NoH);
 
     // Slight roughness remap for the geometry term (kept as in original).
     float G = GeometryTerm(NoL, NoV, pow(0.5 + mat.roughness * 0.5, 2.0));
@@ -32,7 +32,7 @@ vec3 evalDisneySpecularRefraction(
     out float pdf
 ) {
     float roughness = mat.roughness * mat.roughness;
-    float D = D_GTR(roughness, NoH, 2.0);
+    float D = D_GTR(roughness, NoH);
     float G = GeometryTerm(NoL, NoV, pow(0.5 + mat.roughness * 0.5, 2.0));
 
     // Jacobian for mapping between half-vector PDF and direction PDF in transmission

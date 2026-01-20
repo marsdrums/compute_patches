@@ -38,9 +38,11 @@ float F_Schlick(float f0, float f90, float theta) {
 }
 
 // Generalized Trowbridge-Reitz distribution (GTR). k=2 => GGX.
-float D_GTR(float roughness, float NoH, float k) {
+float D_GTR(float roughness, float NoH) {
     float a2 = roughness * roughness;
-    return a2 / (PI * pow((NoH*NoH)*(a2*a2-1.0)+1.0, k));
+    float val = (NoH*NoH)*(a2*a2-1.0)+1.0;
+    val *= val;
+    return a2 / (PI * val);
 }
 
 // Smith masking term (single direction).
@@ -86,7 +88,7 @@ vec3 SampleGGXVNDF(vec3 V, float ax, float ay, float r1, float r2) {
 
 // PDF for VNDF-sampled half-vector.
 float GGXVNDFPdf(float NoH, float NoV, float roughness) {
-    float D  = D_GTR(roughness, NoH, 2.0);
+    float D  = D_GTR(roughness, NoH);
     float G1 = SmithG(NoV, roughness*roughness);
     return (D * G1) / max(0.00001, 4.0 * NoV);
 }

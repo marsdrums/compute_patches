@@ -13,6 +13,16 @@
         "boxes": [
             {
                 "box": {
+                    "id": "obj-17",
+                    "maxclass": "comment",
+                    "numinlets": 1,
+                    "numoutlets": 0,
+                    "patching_rect": [ 439.0, 492.0, 100.0, 20.0 ],
+                    "text": "<- scene building"
+                }
+            },
+            {
+                "box": {
                     "id": "obj-8",
                     "maxclass": "comment",
                     "numinlets": 1,
@@ -304,8 +314,8 @@
                     "maxclass": "comment",
                     "numinlets": 1,
                     "numoutlets": 0,
-                    "patching_rect": [ 386.0, 305.0, 239.0, 20.0 ],
-                    "text": "<- bang to generate a new random spheres"
+                    "patching_rect": [ 386.0, 305.0, 229.0, 20.0 ],
+                    "text": "<- bang to generate new random spheres"
                 }
             },
             {
@@ -575,7 +585,6 @@
                         },
                         "classnamespace": "box",
                         "rect": [ 84.0, 144.0, 1000.0, 780.0 ],
-                        "visible": 1,
                         "boxes": [
                             {
                                 "box": {
@@ -939,7 +948,7 @@
                             }
                         ]
                     },
-                    "patching_rect": [ 788.0, 533.0, 143.0, 22.0 ],
+                    "patching_rect": [ 788.0, 593.0, 143.0, 22.0 ],
                     "text": "p load jitter compute logo"
                 }
             },
@@ -1004,7 +1013,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 788.0, 566.0, 196.0, 22.0 ],
+                    "patching_rect": [ 788.0, 626.0, 196.0, 22.0 ],
                     "text": "jit.gpu.image @format rgba32_float"
                 }
             },
@@ -1086,7 +1095,7 @@
                     },
                     "text": "v8 @embed 1",
                     "textfile": {
-                        "text": "autowhatch = 1;\n\nfunction randomPosOnSphere(radius){\n    z = Math.random() * 2 - 1;\n    a = Math.random() * Math.PI * 2;\n    r = Math.sqrt(1 - z * z);\n    x = r * Math.cos(a);\n    y = r * Math.sin(a);\n    radius += 1.001;\n    x *= radius; y *= radius; z *= radius;\n    return [x, y, z];\n}\n\nfunction randcolor(maxVal) {\n\treturn [Math.random()*maxVal + 0.05, \n            Math.random()*maxVal + 0.05, \n            Math.random()*maxVal + 0.05];\n}\nfunction initSpheres(count){\n\tlet spheres = [];\n\tfor(let i=0; i<count; i++) {\n\t\tlet sphere = {};\n        let bigSPhere = i == 0;\n        sphere.radius = bigSPhere ? 1 : Math.random()*0.4 + 0.1;\n\t\tsphere.center = bigSPhere ? [0,0,0] : randomPosOnSphere(sphere.radius);\n        sphere.diffAlbedo = randcolor(0.94);\n        sphere.specAlbedo = [0.9, 0.9, 0.9];\n        sphere.emissive = Math.random() > 0.9 ? randcolor(30) : [0,0,0];\n\t\tsphere.ior = 1.2;\n\t\tsphere.roughness = Math.random()*0.5 + 0.01;\n        sphere.metallic = Math.random() > 0.8 ? 1.0 : 0.0;\n        sphere.specTrans = Math.random() > 0.5 && sphere.metallic == 0.0 ? 1.0 : 0.0;\n        sphere.absorption = Math.random()*10;\n        spheres.push(sphere);\n\t}\n    let ob = {};\n    ob.count = count;\n\tob.spheres = spheres;\n\tlet d = new Dict();\n\td.parse(JSON.stringify(ob));\n\toutlet(0, \"dictionary\", d.name);\n}",
+                        "text": "autowhatch = 1;\n\nfunction randomPosOnSphere(radius){\n    z = Math.random() * 2 - 1;\n    a = Math.random() * Math.PI * 2;\n    r = Math.sqrt(1 - z * z);\n    x = r * Math.cos(a);\n    y = r * Math.sin(a);\n    radius += 1.001;\n    x *= radius; y *= radius; z *= radius;\n    return [x, y, z];\n}\n\nfunction randcolor(maxVal) {\n\treturn [Math.random()*maxVal + 0.05, \n            Math.random()*maxVal + 0.05, \n            Math.random()*maxVal + 0.05];\n}\nfunction initSpheres(count){\n\tlet spheres = [];\n\tfor(let i=0; i<count; i++) {\n\t\tlet sphere = {};\n        let bigSPhere = i == 0;\n        sphere.radius = bigSPhere ? 1 : Math.random()*0.4 + 0.1;\n\t\tsphere.center = bigSPhere ? [0,0,0] : randomPosOnSphere(sphere.radius);\n        sphere.diffAlbedo = randcolor(0.94);\n        sphere.specAlbedo = [0.9, 0.9, 0.9];\n        sphere.emissive = Math.random() > 0.9 ? randcolor(30) : [0,0,0];\n\t\tsphere.ior = 1.1 + Math.random()*0.5;\n\t\tsphere.roughness = Math.random()*0.5 + 0.01;\n        sphere.metallic = Math.random() > 0.8 ? 1.0 : 0.0;\n        sphere.specTrans = Math.random() > 0.5 && sphere.metallic == 0.0 ? 1.0 : 0.0;\n        sphere.absorption = Math.random()*10;\n        spheres.push(sphere);\n\t}\n    let ob = {};\n    ob.count = count;\n\tob.spheres = spheres;\n\tlet d = new Dict();\n\td.parse(JSON.stringify(ob));\n\toutlet(0, \"dictionary\", d.name);\n}",
                         "filename": "none",
                         "flags": 1,
                         "embed": 1,
@@ -1114,7 +1123,7 @@
                     "numoutlets": 2,
                     "outlettype": [ "", "bang" ],
                     "parameter_enable": 0,
-                    "patching_rect": [ 1099.0, 200.0, 126.0, 29.0 ]
+                    "patching_rect": [ 1098.0, 195.5, 126.0, 29.0 ]
                 }
             },
             {
