@@ -1,27 +1,56 @@
 #version 460
 
 // ------------------------------------------------------------
-// "Fast" version notes (practical optimizations applied):
-// 1) Build pyramid sizes using pure integer math (ceil div via (x + s-1) >> level)
-// 2) Precompute gImgSizeMinus1 once per workgroup
-// 3) Root range computed with mostly integer math + bit shifts (px >> level)
-// 4) Root-level outside test before launching traversal (cuts stack work)
-// 5) Cell bounds computed in integer pixel space (mn = ij<<level)
+// OVERVIEW
 // ------------------------------------------------------------
+// This compute shader splats "particles" (projected points with a screen-space radius)
+// into a *multi-resolution grid pyramid* (mip-like hierarchy of 2D cell layers).
 //
-// Changes requested:
-// (2) Faster bounds: avoid clipping work for interior cells (only last row/col clips)
-// (3) Faster traversal: remove inBounds() on pop; push only valid children (edge-aware)
+// Each particle covers a circle in pixel space. Instead of iterating pixels,
+// it traverses the pyramid:
+//   - If a cell is fully outside the circle -> skip.
+//   - If a cell is fully inside the circle  -> emit that cell (atomic add) and stop descending.
+//   - Otherwise -> descend to children (finer level) until level 0.
+//
+// "Fast version" improvements implemented here focus on:
+//   1) Building pyramid dimensions with integer ceil-div.
+//   2) Avoiding repeated image-size computations.
+//   3) Computing root-range with shifts (>> level).
+//   4) Early root pruning.
+//   5) Computing cell bounds in integer pixel space (mn = ij<<level).
+//
+// Requested changes addressed:
+// (2) Faster bounds: interior cells skip clipping (only last row/col clamps).
+// (3) Faster traversal: no inBounds() at pop; only push valid children (edge-aware).
 // ------------------------------------------------------------
 
 layout(local_size_x = 32, local_size_y = 32) in;
 
+// ------------------------------------------------------------
+// OUTPUT GRID STORAGE
+// ------------------------------------------------------------
+// A flat uint buffer holding all pyramid levels laid out back-to-back.
+// Each cell accumulates alpha via atomicAdd.
+//
+// Memory layout:
+//   level 0 cells first, then level 1, ...
+// offset[L] tells where level L starts in this flat array.
 layout(std430, set = 0, binding = 0) buffer grid {
     uint cell[];
 };
 
+// ------------------------------------------------------------
+// INPUT PARTICLE POSITIONS
+// ------------------------------------------------------------
+// Each invocation processes one particle (one pixel in posImg).
+// imageLoad(posImg, gid) returns xyz position in world/object space (as authored).
 layout(binding = 1, rgba32f) uniform image2D posImg;
 
+// ------------------------------------------------------------
+// UNIFORMS / CAMERA CONFIG
+// ------------------------------------------------------------
+// v0..v3 and p0..p3 encode view and projection matrices as 4 vec4 rows/cols.
+// viewPort is the *intended* viewport size in pixels (used as truth for splat grid).
 layout(binding = 2) uniform Config {
     vec4 v0;
     vec4 v1;
@@ -36,59 +65,97 @@ layout(binding = 2) uniform Config {
 
 #define MAX_LEVELS 11
 
-shared int   levelWidth[MAX_LEVELS];
-shared int   levelHeight[MAX_LEVELS];
-shared int   offset[MAX_LEVELS];
-shared ivec2 gImgSize;
-shared ivec2 gImgSizeMinus1;
+// ------------------------------------------------------------
+// SHARED (WORKGROUP) STATE
+// ------------------------------------------------------------
+// These are computed once per workgroup (gl_LocalInvocationIndex == 0) and
+// reused by all invocations in the group.
+shared int   levelWidth[MAX_LEVELS];    // cells in X at each level
+shared int   levelHeight[MAX_LEVELS];   // cells in Y at each level
+shared int   offset[MAX_LEVELS];        // base index into cell[] for that level
+shared ivec2 gImgSize;                  // viewport size in pixels
+shared ivec2 gImgSizeMinus1;            // viewport size - 1 (for clamp)
 
-const float radiusViewSpace = 0.001;
+const float radiusViewSpace = 0.001;    // small view-space offset used to estimate screen-space radius
 
-shared mat4 V;
-shared mat4 P;
-shared vec4 radiusOffsetProj;
+shared mat4 V;                          // view matrix
+shared mat4 P;                          // projection matrix
+shared vec4 radiusOffsetProj;           // clip-space offset corresponding to radiusViewSpace
 
+// ------------------------------------------------------------
+// PARTICLE REPRESENTATION (IN SCREEN/PIXEL SPACE)
+// ------------------------------------------------------------
 struct particle {
-    vec2  ce;  // center in pixel space
-    float r;   // radius in pixel space
+    vec2  ce;  // circle center in pixel space
+    float r;   // radius in pixels
     float r2;  // radius squared
     float d;   // diameter in pixels
 };
 
+// ------------------------------------------------------------
+// coord2id
+// ------------------------------------------------------------
+// Map (ij, level) -> linear index into flat buffer cell[].
+// index = x + y*width + offset[level]
 uint coord2id(ivec2 coord, int level)
 {
     return uint(coord.x + coord.y * levelWidth[level] + offset[level]);
 }
 
-// number of cells at that level
+// Number of cells at that pyramid level (width/height).
 ivec2 gridSizeAtLevel(int level)
 {
     return ivec2(levelWidth[level], levelHeight[level]);
 }
 
+// Generic bounds test for indices at a level.
+// NOTE: This is intentionally NOT used in the traversal loop anymore (perf).
 bool inBounds(ivec2 ij, int level)
 {
     ivec2 gs = gridSizeAtLevel(level);
     return all(greaterThanEqual(ij, ivec2(0))) && all(lessThan(ij, gs));
 }
 
-// Integer cell bounds in base pixel space.
-// Fast path: interior cells avoid clipping; only last row/col at a level clamp to gImgSize.
+// ------------------------------------------------------------
+// cellBoundsClippedInt
+// ------------------------------------------------------------
+// Compute integer pixel bounds [mnI, mxI) of a cell at a given level,
+// expressed in *base pixel coordinates* (level 0 pixels).
+//
+// Key idea:
+//   Each level L cell spans s = 2^L pixels in each dimension.
+//   mnI = ij * s  (exact via bit shift)
+//   mxI = mnI + s
+//
+// BUT: pyramid dimensions are built using ceil-div, so the last row/col may be
+// smaller than s and can extend beyond the real image size.
+// Optimization requested: *avoid clamps for interior cells*.
+// Only the last row/col can exceed gImgSize, so only they clamp.
 void cellBoundsClippedInt(ivec2 ij, int level, out ivec2 mnI, out ivec2 mxI)
 {
-    int s = 1 << level;            // cell size in pixels
-    mnI = ij << level;             // ij * s, exact
-    mxI = mnI + ivec2(s);
+    int s = 1 << level;            // cell size in pixels at this level (2^level)
+    mnI = ij << level;             // ij * s, exact and fast
+    mxI = mnI + ivec2(s);          // half-open max bound
 
     // Only edge cells can exceed image size due to ceil-div pyramid.
     int lastX = levelWidth[level]  - 1;
     int lastY = levelHeight[level] - 1;
 
+    // Clamp only if we're on the final column / final row.
     if (ij.x == lastX) mxI.x = min(mxI.x, gImgSize.x);
     if (ij.y == lastY) mxI.y = min(mxI.y, gImgSize.y);
 }
 
-// Completely inside circle (with clipped bounds)
+// ------------------------------------------------------------
+// cellFullyInsideCircle_r2_level
+// ------------------------------------------------------------
+// Returns true if the entire cell rectangle is contained within the circle.
+//
+// Implementation detail:
+//   Compute the *farthest* rectangle corner from circle center in each axis.
+//   If farthest-corner distance^2 <= r^2 then the rectangle is fully inside.
+//
+// Uses clipped integer bounds so partial edge cells are handled correctly.
 bool cellFullyInsideCircle_r2_level(ivec2 ij, int level, in particle p)
 {
     ivec2 mnI, mxI;
@@ -97,15 +164,25 @@ bool cellFullyInsideCircle_r2_level(ivec2 ij, int level, in particle p)
     vec2 mn = vec2(mnI);
     vec2 mx = vec2(mxI);
 
-    // Farthest corner distance^2 from center (rectangle -> circle containment)
+    // For containment: measure distance to the farthest corner (axis-wise farthest).
+    // Note mx is the "exclusive" edge; for conservative containment, this is fine
+    // because any small off-by-one is mitigated by eps below.
     float dx = max(abs(p.ce.x - mn.x), abs(p.ce.x - mx.x));
     float dy = max(abs(p.ce.y - mn.y), abs(p.ce.y - mx.y));
     float d2 = dx * dx + dy * dy;
 
+    // eps reduces flicker from float rounding at boundaries.
     return d2 <= p.r2 + 1e-6;
 }
 
-// Completely outside circle (with clipped bounds)
+// ------------------------------------------------------------
+// cellFullyOutsideCircle_r2_level
+// ------------------------------------------------------------
+// Returns true if the entire cell rectangle is outside the circle.
+//
+// Standard AABB-vs-circle rejection:
+//   Find closest point on rectangle to circle center (clamp center to rect).
+//   If distance(center, closest)^2 > r^2 then no overlap.
 bool cellFullyOutsideCircle_r2_level(ivec2 ij, int level, in particle p)
 {
     ivec2 mnI, mxI;
@@ -120,44 +197,92 @@ bool cellFullyOutsideCircle_r2_level(ivec2 ij, int level, in particle p)
     return dot(diff, diff) > p.r2 + 1e-6;
 }
 
+// ------------------------------------------------------------
+// emitCell
+// ------------------------------------------------------------
+// Convert a float alpha into a uint addition and atomically accumulate it.
+// Notes:
+//  - Scaling uses 2^32-1 style mapping via 4294967295.0.
+//  - atomicAdd allows many threads/particles to contribute to the same cell.
+//
+// IMPORTANT: This assumes downstream interprets uint accumulation as coverage/alpha.
 void emitCell(ivec2 ij, int level, float particleAlpha)
 {
     uint colorToAdd = uint(4294967295.0 * particleAlpha);
     atomicAdd(cell[coord2id(ij, level)], colorToAdd);
 }
 
-// Fast root range computation using integer math + bit shifts.
-// Returns an inclusive [minIJ, maxIJ] range at the chosen level.
+// ------------------------------------------------------------
+// rootsFromCircleAABB_fast
+// ------------------------------------------------------------
+// Compute a root-level *inclusive* IJ range that covers the circle's AABB,
+// for a chosen pyramid level.
+//
+// Steps:
+// 1) Compute pixel-space AABB bounds [minX..maxX], [minY..maxY].
+// 2) Clamp those bounds to valid pixel indices [0..size-1].
+// 3) Convert pixels -> root cell indices by shifting (>> level) (divide by 2^level).
+// 4) Clamp to valid cell indices at that level.
+//
+// This avoids expensive float/integer conversions in loops and uses shifts
+// instead of divides.
 void rootsFromCircleAABB_fast(int level, vec2 ce, float r, out ivec2 minIJ, out ivec2 maxIJ)
 {
+    // Pixel-space AABB around the circle.
     int minX = int(floor(ce.x - r));
     int minY = int(floor(ce.y - r));
+
+    // Subtract a tiny epsilon so that a circle exactly on an integer boundary
+    // doesn't accidentally include the next pixel due to float error.
     int maxX = int(floor(ce.x + r - 1e-6));
     int maxY = int(floor(ce.y + r - 1e-6));
 
+    // Clamp to valid pixel coordinates.
     minX = clamp(minX, 0, gImgSizeMinus1.x);
     minY = clamp(minY, 0, gImgSizeMinus1.y);
     maxX = clamp(maxX, 0, gImgSizeMinus1.x);
     maxY = clamp(maxY, 0, gImgSizeMinus1.y);
 
+    // If clamped max < min then the AABB is empty (circle outside image).
     if (maxX < minX || maxY < minY)
     {
         minIJ = ivec2(1);
-        maxIJ = ivec2(0); // empty
+        maxIJ = ivec2(0); // empty range marker
         return;
     }
 
+    // Convert pixel AABB to cell range at 'level' by dividing by 2^level.
     minIJ = ivec2(minX >> level, minY >> level);
     maxIJ = ivec2(maxX >> level, maxY >> level);
 
-    ivec2 gs   = gridSizeAtLevel(level);
-    ivec2 last = gs - ivec2(1);
+    // Clamp to valid grid indices for that level.
+    ivec2 last = gridSizeAtLevel(level) - ivec2(1);
     minIJ = clamp(minIJ, ivec2(0), last);
     maxIJ = clamp(maxIJ, ivec2(0), last);
 }
 
+// ------------------------------------------------------------
+// coverCircleFromRoot
+// ------------------------------------------------------------
+// Hierarchical coverage traversal starting from a single root cell.
+// This does a DFS using a manual stack.
+//
+// Traversal rules:
+//  - If cell fully outside -> discard.
+//  - If cell fully inside  -> emit and stop descending.
+//  - Else:
+//      - if level==0 -> emit (pixel-level stamp).
+//      - otherwise push children at level-1.
+//
+// Requested traversal optimization:
+//  - We do NOT call inBounds() after popping.
+//  - Instead, we guarantee validity by only pushing valid children:
+//      * interior parent -> all 4 children valid (fast path)
+//      * edge parent     -> test children against child dimensions
 void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p, float colorScale)
 {
+    // Max stack depth depends on how large roots get + how complex overlap is.
+    // These caps prevent infinite loops / runaway memory use.
     const int MAX_STACK = 512;
     const int MAX_ITERS = 512;
 
@@ -165,11 +290,12 @@ void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p, float colorS
     int   stackLv[MAX_STACK];
     int sp = 0;
 
-    // Root is assumed valid (generated from clamped root range)
+    // Root is assumed valid (generated from clamped root range).
     stackIJ[sp] = rootIJ;
     stackLv[sp] = maxLevel;
     sp++;
 
+    // "colorScale" here acts like a dimmer hook (currently scale=1.0).
     float colorDimmer = 1.0 / colorScale;
 
     int iters = 0;
@@ -177,40 +303,48 @@ void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p, float colorS
     {
         iters++;
 
-        // pop
+        // Pop node
         sp--;
         ivec2 ij   = stackIJ[sp];
         int level  = stackLv[sp];
 
-        // No inBounds() here: we only push valid children.
+        // We intentionally do NOT check inBounds(ij, level) here.
+        // Validity is enforced when pushing children (edge-aware).
+        // This saves a few comparisons per popped node.
 
+        // Reject: cell is completely outside circle.
         if (cellFullyOutsideCircle_r2_level(ij, level, p))
             continue;
 
+        // Accept: cell is completely inside circle -> emit and stop.
         if (cellFullyInsideCircle_r2_level(ij, level, p))
         {
             emitCell(ij, level, 0.003 * colorDimmer);
             continue;
         }
 
+        // Base case: level 0 means pixel-level.
+        // For partial overlap at level 0, we still emit (conservative coverage).
         if (level == 0)
         {
-            // Same behavior as your previous shader: also emit on boundary at level 0.
             emitCell(ij, level, 0.003 * colorDimmer);
             continue;
         }
 
+        // Descend to next finer level.
         int childLevel = level - 1;
-        ivec2 base = ij << 1; // ij * 2
+        ivec2 base = ij << 1; // multiply by 2: top-left child index
 
-        // Fast path: if parent cell is not on the last row/col at this level,
-        // all 4 children are guaranteed valid.
+        // Fast edge check:
+        // If the parent isn't on the last col/row at this level, then the level
+        // dimensions imply a full 2x2 child block exists at childLevel.
         int w  = levelWidth[level];
         int h  = levelHeight[level];
         bool edge = (ij.x == w - 1) || (ij.y == h - 1);
 
         if (!edge)
         {
+            // Interior: push all 4 children without bounds checks.
             if (sp + 4 <= MAX_STACK)
             {
                 stackIJ[sp] = base + ivec2(0,0); stackLv[sp] = childLevel; sp++;
@@ -220,20 +354,24 @@ void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p, float colorS
             }
             else
             {
-                return; // stack overflow
+                // Bail out on overflow rather than corrupting memory.
+                return;
             }
         }
         else
         {
-            // Edge path: only push children that are in range at childLevel.
+            // Edge: because pyramid uses ceil-div, last parent can map to
+            // a partial child block (some children outside child grid).
             int cw = levelWidth[childLevel];
             int ch = levelHeight[childLevel];
 
+            // Candidate children.
             ivec2 c0 = base + ivec2(0,0);
             ivec2 c1 = base + ivec2(1,0);
             ivec2 c2 = base + ivec2(0,1);
             ivec2 c3 = base + ivec2(1,1);
 
+            // Collect only the valid children (x < cw && y < ch).
             int need = 0;
             ivec2 c[4];
 
@@ -246,7 +384,7 @@ void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p, float colorS
 
             if (sp + need <= MAX_STACK)
             {
-                // DFS order: push in fixed order
+                // Push in a fixed order (deterministic DFS).
                 for (int k = 0; k < need; ++k)
                 {
                     stackIJ[sp] = c[k];
@@ -256,41 +394,60 @@ void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p, float colorS
             }
             else
             {
-                return; // stack overflow
+                return;
             }
         }
     }
 }
 
+// ------------------------------------------------------------
+// main
+// ------------------------------------------------------------
+// Each invocation corresponds to one texel in posImg.
+// It projects that particle to screen, estimates its screen-space radius,
+// culls it, computes a root cell range, and traverses the pyramid coverage.
 void main()
 {
     ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
 
-    // Use viewPort as the "truth" for pixel size
+    // Use viewPort as the authoritative splat grid size.
+    // posImg could be a different dimension (e.g., particle texture size).
     ivec2 size  = ivec2(viewPort);
     ivec2 particleImgSize = imageSize(posImg);
 
-    // Prevent out-of-bounds imageLoad early
+    // Guard against reading outside posImg.
+    // (We base invocation grid on something else, or dispatch may be larger.)
     if (gid.x >= particleImgSize.x || gid.y >= particleImgSize.y)
         return;
 
     // ---- Shared init (one barrier total) ----
+    // Only one lane computes shared constants for the whole workgroup.
     if (gl_LocalInvocationIndex == 0u)
     {
-        // Matrices
+        // Build view and projection matrices from vec4 blocks.
         V = mat4(v0, v1, v2, v3);
+
+        // This shader negates p0 and p2 when forming P.
+        // That likely matches a coordinate system convention (e.g. Vulkan vs GL clip rules,
+        // or a handedness / axis flip).
         P = mat4(-p0, p1, -p2, p3);
 
-        // Radius offset in clip space
+        // Precompute how far a small view-space x-offset moves in clip space.
+        // Later used to estimate pixel radius cheaply.
         radiusOffsetProj = P * vec4(radiusViewSpace, 0.0, 0.0, 0.0);
 
-        // Image size
+        // Store image size and size-1 for clamp operations (avoid recomputing).
         gImgSize       = size;
         gImgSizeMinus1 = size - ivec2(1);
 
-        // Pyramid sizes and offsets:
+        // Build pyramid sizes and offsets.
+        //
         // levelWidth[L]  = ceil(size.x / 2^L)
         // levelHeight[L] = ceil(size.y / 2^L)
+        //
+        // Using integer ceil-div:
+        //   ceil(x / s) = (x + s - 1) / s
+        // Because s is power of two, divide becomes >> L.
         int runningOffset = 0;
         for (int L = 0; L < MAX_LEVELS; ++L)
         {
@@ -307,52 +464,66 @@ void main()
         }
     }
 
+    // Ensure all shared values are written before use.
     barrier();
 
     // ---- Project particle to screen ----
+    // Load world/object-space position from posImg.
     vec3 pos = imageLoad(posImg, gid).xyz;
 
+    // Transform to view space.
     vec4 vPos = V * vec4(pos, 1.0);
 
-    // Quick near-plane check (keep same as your version)
+    // Near-plane-ish reject (view space z).
+    // vPos.z is likely negative in front of the camera in this convention.
+    // This quickly culls particles behind/too close to the camera.
     if (vPos.z >= -0.01)
         return;
 
+    // Project to clip space.
     vec4 projPos = P * vPos;
 
+    // Need perspective divide by w to get NDC.
     float w = projPos.w;
     if (w == 0.0)
         return;
 
     float invW = 1.0 / w;
-
     vec2 ndcPos = projPos.xy * invW;
 
-    // Quick clip check
+    // Quick clip test in NDC.
+    // If center is outside [-1,1], we skip (note: doesn’t account for radius).
     if (ndcPos.x < -1.0 || ndcPos.x >  1.0 ||
         ndcPos.y < -1.0 || ndcPos.y >  1.0)
     {
         return;
     }
 
-    // NDC -> [0,1] -> pixels
+    // Convert NDC [-1,1] -> [0,1] -> pixel coordinates.
     vec2 screenPos = (ndcPos * 0.5 + 0.5) * viewPort;
 
-    // Screen-space radius estimate (x-axis)
+    // ---- Estimate screen-space radius ----
+    // Take projected x and add a tiny clip-space offset corresponding to
+    // a fixed view-space x offset. Convert both to pixels and measure delta.
     vec2 offsetNDC   = vec2(projPos.x + radiusOffsetProj.x, projPos.y) * invW;
     vec2 offsetPixel = (offsetNDC * 0.5 + 0.5) * viewPort;
 
     float radiusOnScreen = offsetPixel.x - screenPos.x;
 
-    float scale = 1.0; // optional scaling hook
+    // Optional scaling hook for tuning (currently no-op).
+    float scale = 1.0;
     radiusOnScreen *= scale;
 
-    // Small radius fallback: stamp at level 0
+    // ---- Small radius fallback ----
+    // If the estimated radius is tiny, hierarchical traversal isn't worth it.
+    // Stamp directly at level 0 (pixel cell).
     if (radiusOnScreen <= 0.5)
     {
         ivec2 pix = ivec2(floor(screenPos));
         if (all(greaterThanEqual(pix, ivec2(0))) && all(lessThan(pix, size)))
         {
+            // Small splats scale alpha by diameter-ish (d) with an extra factor.
+            // This approximates coverage so tiny circles aren't too dim.
             float d = radiusOnScreen * 2.0;
             float alpha = 0.003 * d * 4.0;
             emitCell(pix, 0, alpha);
@@ -360,13 +531,15 @@ void main()
         return;
     }
 
+    // Fill particle struct in pixel space.
     particle p;
     p.ce = screenPos;
     p.r  = radiusOnScreen;
     p.r2 = p.r * p.r;
     p.d  = p.r * 2.0;
 
-    // Circle-vs-viewport culling
+    // ---- Circle vs viewport culling ----
+    // Reject if circle AABB does not intersect viewport AABB.
     vec2 fsize = vec2(size);
     if (p.ce.x + p.r < 0.0 || p.ce.x - p.r >= fsize.x ||
         p.ce.y + p.r < 0.0 || p.ce.y - p.r >= fsize.y)
@@ -374,21 +547,27 @@ void main()
         return;
     }
 
-    // Choose starting level based on diameter
+    // ---- Choose pyramid level ----
+    // The coarser the level, the fewer cells to traverse.
+    // Heuristic: start at floor(log2(diameter)).
     float dSafe = max(p.d, 1.0);
     int level = int(floor(log2(dSafe)));
     level = clamp(level, 0, MAX_LEVELS - 1);
 
-    // Root range at that level
+    // ---- Compute root range on chosen level ----
     ivec2 rootMin, rootMax;
     rootsFromCircleAABB_fast(level, p.ce, p.r, rootMin, rootMax);
 
-    // Early pruning on roots: skip roots that are fully outside
+    // ---- Early pruning at root level ----
+    // Instead of pushing all roots blindly, reject roots fully outside upfront.
+    // This reduces stack work and branching inside DFS.
     for (int i = rootMin.x; i <= rootMax.x; ++i)
     {
         for (int j = rootMin.y; j <= rootMax.y; ++j)
         {
             ivec2 root = ivec2(i, j);
+
+            // Only traverse roots that overlap the circle.
             if (!cellFullyOutsideCircle_r2_level(root, level, p))
             {
                 coverCircleFromRoot(root, level, p, scale);

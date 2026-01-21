@@ -13,6 +13,80 @@
         "boxes": [
             {
                 "box": {
+                    "id": "obj-89",
+                    "maxclass": "message",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 1453.0, 788.0, 50.0, 22.0 ]
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-88",
+                    "maxclass": "comment",
+                    "numinlets": 1,
+                    "numoutlets": 0,
+                    "patching_rect": [ 1350.0, 670.0, 29.0, 20.0 ],
+                    "text": "grid"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-87",
+                    "maxclass": "comment",
+                    "numinlets": 1,
+                    "numoutlets": 0,
+                    "patching_rect": [ 1132.75, 670.0, 59.0, 20.0 ],
+                    "text": "countBuff"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-86",
+                    "maxclass": "button",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "bang" ],
+                    "parameter_enable": 0,
+                    "patching_rect": [ 1467.0, 540.0, 24.0, 24.0 ]
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-85",
+                    "maxclass": "button",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "bang" ],
+                    "parameter_enable": 0,
+                    "patching_rect": [ 1336.0, 525.0, 24.0, 24.0 ]
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-84",
+                    "maxclass": "button",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "bang" ],
+                    "parameter_enable": 0,
+                    "patching_rect": [ 1132.0, 516.0, 24.0, 24.0 ]
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-83",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 3,
+                    "outlettype": [ "", "", "" ],
+                    "patching_rect": [ 56.0, 1103.0, 79.0, 22.0 ],
+                    "text": "jit.gpu.submit"
+                }
+            },
+            {
+                "box": {
                     "id": "obj-80",
                     "maxclass": "newobj",
                     "numinlets": 1,
@@ -38,11 +112,11 @@
                     "filename": "clearCanvas.jxs",
                     "id": "obj-77",
                     "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "" ],
-                    "patching_rect": [ 91.0, 792.0, 909.0, 22.0 ],
-                    "text": "jit.gpu.compute @name clearCanvas @file clearCanvas.jxs @threads 120 68 1 @automatic 0 @smallParticlesCanvas smallParticlesCanvas @depends_on clearCounter",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 87.0, 796.0, 452.0, 22.0 ],
+                    "text": "jit.gpu.compute @name clearCanvas @file clearCanvas.jxs @workgroups 120 68 1",
                     "textfile": {
                         "filename": "clearCanvas.jxs",
                         "flags": 0,
@@ -58,7 +132,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 635.0, 435.0, 149.0, 22.0 ],
+                    "patching_rect": [ 635.0, 454.0, 149.0, 22.0 ],
                     "text": "jit.matrix 1 long 1920 1080"
                 }
             },
@@ -69,7 +143,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 635.0, 453.0, 445.0, 22.0 ],
+                    "patching_rect": [ 635.0, 472.0, 445.0, 22.0 ],
                     "text": "jit.gpu.image @dim 1920 1080 @format R32_UINT @name smallParticlesCanvas"
                 }
             },
@@ -80,7 +154,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "bang" ],
-                    "patching_rect": [ 1709.0, 92.0, 22.0, 22.0 ],
+                    "patching_rect": [ 1759.0, 95.0, 22.0, 22.0 ],
                     "text": "t b"
                 }
             },
@@ -439,7 +513,7 @@
                             "modernui": 1
                         },
                         "classnamespace": "box",
-                        "rect": [ 0.0, 0.0, 1000.0, 780.0 ],
+                        "rect": [ 59.0, 119.0, 1000.0, 780.0 ],
                         "boxes": [
                             {
                                 "box": {
@@ -526,7 +600,7 @@
                                     "maxclass": "inlet",
                                     "numinlets": 0,
                                     "numoutlets": 1,
-                                    "outlettype": [ "" ],
+                                    "outlettype": [ "jit_gl_texture" ],
                                     "patching_rect": [ 51.0, 40.0, 30.0, 30.0 ]
                                 }
                             },
@@ -599,7 +673,7 @@
                             }
                         ]
                     },
-                    "patching_rect": [ 273.0, 1107.0, 72.0, 22.0 ],
+                    "patching_rect": [ 391.5, 1103.0, 72.0, 22.0 ],
                     "text": "p fps_meter"
                 }
             },
@@ -612,7 +686,7 @@
                     "numoutlets": 2,
                     "outlettype": [ "", "bang" ],
                     "parameter_enable": 0,
-                    "patching_rect": [ 273.0, 1141.0, 195.0, 22.0 ]
+                    "patching_rect": [ 391.5, 1141.0, 195.0, 22.0 ]
                 }
             },
             {
@@ -722,7 +796,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_gl_texture", "" ],
-                    "patching_rect": [ 56.0, 1105.0, 75.0, 22.0 ],
+                    "patching_rect": [ 175.5, 1103.0, 75.0, 22.0 ],
                     "text": "jit.fx.lin2srgb",
                     "textfile": {
                         "filename": "jit.fx.lin2srgb.jxs",
@@ -750,7 +824,7 @@
                     "maxclass": "comment",
                     "numinlets": 1,
                     "numoutlets": 0,
-                    "patching_rect": [ 597.0, 487.0, 194.0, 33.0 ],
+                    "patching_rect": [ 597.0, 506.0, 194.0, 33.0 ],
                     "text": "to do:\n- precompute the offsets in a buffer"
                 }
             },
@@ -759,11 +833,11 @@
                     "filename": "copyOriginalPosition.jxs",
                     "id": "obj-53",
                     "maxclass": "newobj",
-                    "numinlets": 2,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "" ],
-                    "patching_rect": [ 87.0, 845.0, 1013.0, 22.0 ],
-                    "text": "jit.gpu.compute @name copyOriginalPosition @file copyOriginalPosition.jxs @threads 63 63 1 @automatic 0 @posImg posImg @originalPosImg originalPosImg @depends_on clearCanvas",
+                    "numinlets": 3,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 87.0, 845.0, 531.0, 22.0 ],
+                    "text": "jit.gpu.compute @name copyOriginalPosition @file copyOriginalPosition.jxs @workgroups 63 63 1",
                     "textfile": {
                         "filename": "copyOriginalPosition.jxs",
                         "flags": 0,
@@ -845,7 +919,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "int" ],
-                    "patching_rect": [ 990.0, 616.0, 29.5, 22.0 ],
+                    "patching_rect": [ 942.0, 609.0, 29.5, 22.0 ],
                     "text": "int"
                 }
             },
@@ -867,7 +941,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "bang" ],
-                    "patching_rect": [ 1333.0, 34.0, 58.0, 22.0 ],
+                    "patching_rect": [ 1193.0, 72.0, 58.0, 22.0 ],
                     "text": "loadbang"
                 }
             },
@@ -878,8 +952,8 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 990.0, 643.0, 85.0, 22.0 ],
-                    "text": "threads $1 1 1"
+                    "patching_rect": [ 942.0, 645.0, 107.0, 22.0 ],
+                    "text": "workgroups $1 1 1"
                 }
             },
             {
@@ -889,7 +963,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 990.0, 582.0, 101.0, 22.0 ],
+                    "patching_rect": [ 942.0, 575.0, 101.0, 22.0 ],
                     "text": "expr ceil($i1 / 32)"
                 }
             },
@@ -907,12 +981,12 @@
             {
                 "box": {
                     "id": "obj-44",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
+                    "maxclass": "message",
+                    "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 1121.75, 603.0, 115.0, 22.0 ],
-                    "text": "prepend item_count"
+                    "patching_rect": [ 1121.75, 603.0, 84.0, 22.0 ],
+                    "text": "allocitems $1"
                 }
             },
             {
@@ -934,7 +1008,7 @@
                     "numoutlets": 1,
                     "outlettype": [ "bang" ],
                     "parameter_enable": 0,
-                    "patching_rect": [ 1349.0, 57.0, 24.0, 24.0 ]
+                    "patching_rect": [ 1193.0, 115.0, 24.0, 24.0 ]
                 }
             },
             {
@@ -980,8 +1054,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 1121.75, 643.0, 174.0, 22.0 ],
-                    "text": "jit.gpu.buffer @name countBuff"
+                    "patching_rect": [ 1121.75, 643.0, 74.0, 22.0 ],
+                    "text": "jit.gpu.buffer"
                 }
             },
             {
@@ -989,11 +1063,11 @@
                     "filename": "renderParticles.jxs",
                     "id": "obj-40",
                     "maxclass": "newobj",
-                    "numinlets": 6,
-                    "numoutlets": 6,
-                    "outlettype": [ "", "", "", "", "", "" ],
-                    "patching_rect": [ 56.0, 956.0, 1373.0, 22.0 ],
-                    "text": "jit.gpu.compute @name renderParticles @file renderParticles.jxs @automatic 0 @threads 120 68 1 @countBuff countBuff @posImg posImg @canvasImg canvasImg @grid grid @smallParticlesCanvas smallParticlesCanvas @depends_on transformPosition",
+                    "numinlets": 7,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 56.0, 956.0, 480.0, 22.0 ],
+                    "text": "jit.gpu.compute @name renderParticles @file renderParticles.jxs @workgroups 120 68 1",
                     "textfile": {
                         "filename": "renderParticles.jxs",
                         "flags": 0,
@@ -1008,10 +1082,10 @@
                     "id": "obj-39",
                     "maxclass": "newobj",
                     "numinlets": 3,
-                    "numoutlets": 3,
-                    "outlettype": [ "", "", "" ],
-                    "patching_rect": [ 87.0, 749.0, 525.0, 22.0 ],
-                    "text": "jit.gpu.compute @name clearCounter @file clearCounter.jxs @automatic 0 @countBuff countBuff",
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 87.0, 749.0, 328.0, 22.0 ],
+                    "text": "jit.gpu.compute @name clearCounter @file clearCounter.jxs",
                     "textfile": {
                         "filename": "clearCounter.jxs",
                         "flags": 0,
@@ -1023,12 +1097,12 @@
             {
                 "box": {
                     "id": "obj-38",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
+                    "maxclass": "message",
+                    "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 1308.0, 609.0, 115.0, 22.0 ],
-                    "text": "prepend item_count"
+                    "patching_rect": [ 1308.0, 609.0, 84.0, 22.0 ],
+                    "text": "allocitems $1"
                 }
             },
             {
@@ -1038,8 +1112,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 1308.0, 643.0, 143.0, 22.0 ],
-                    "text": "jit.gpu.buffer @name grid"
+                    "patching_rect": [ 1308.0, 643.0, 74.0, 22.0 ],
+                    "text": "jit.gpu.buffer"
                 }
             },
             {
@@ -1132,23 +1206,12 @@
             },
             {
                 "box": {
-                    "id": "obj-6",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 1,
-                    "outlettype": [ "" ],
-                    "patching_rect": [ 86.0, 597.0, 70.0, 22.0 ],
-                    "text": "loadmess 1"
-                }
-            },
-            {
-                "box": {
                     "id": "obj-36",
                     "maxclass": "newobj",
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 57.0, 1141.0, 201.0, 22.0 ],
+                    "patching_rect": [ 175.5, 1141.0, 201.0, 22.0 ],
                     "text": "jit.gl.videoplane @transform_reset 2"
                 }
             },
@@ -1156,11 +1219,11 @@
                 "box": {
                     "id": "obj-35",
                     "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "" ],
-                    "patching_rect": [ 56.0, 1059.0, 369.0, 22.0 ],
-                    "text": "jit.gpu.totexture @source canvasImg @depends_on renderParticles"
+                    "numinlets": 2,
+                    "numoutlets": 3,
+                    "outlettype": [ "", "jit_gl_texture", "" ],
+                    "patching_rect": [ 56.0, 1059.0, 258.0, 22.0 ],
+                    "text": "jit.gpu.totexture"
                 }
             },
             {
@@ -1180,10 +1243,10 @@
                     "id": "obj-32",
                     "maxclass": "newobj",
                     "numinlets": 6,
-                    "numoutlets": 6,
-                    "outlettype": [ "", "", "", "", "", "" ],
-                    "patching_rect": [ 56.0, 906.0, 1273.0, 22.0 ],
-                    "text": "jit.gpu.compute @name transformPosition @file transformPosition.jxs @automatic 0 @threads 63 63 1 @countBuff countBuff @posImg posImg @grid grid @smallParticlesCanvas smallParticlesCanvas @depends_on copyOriginalPosition",
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 56.0, 906.0, 499.0, 22.0 ],
+                    "text": "jit.gpu.compute @name transformPosition @file transformPosition.jxs @workgroups 63 63 1",
                     "textfile": {
                         "filename": "transformPosition.jxs",
                         "flags": 0,
@@ -1471,6 +1534,30 @@
             },
             {
                 "patchline": {
+                    "color": [ 0.2627450980392157, 0.796078431372549, 0.6313725490196078, 1.0 ],
+                    "destination": [ "obj-32", 2 ],
+                    "order": 2,
+                    "source": [ "obj-14", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "color": [ 0.2627450980392157, 0.796078431372549, 0.6313725490196078, 1.0 ],
+                    "destination": [ "obj-40", 5 ],
+                    "order": 1,
+                    "source": [ "obj-14", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "color": [ 0.2627450980392157, 0.796078431372549, 0.6313725490196078, 1.0 ],
+                    "destination": [ "obj-77", 1 ],
+                    "order": 0,
+                    "source": [ "obj-14", 0 ]
+                }
+            },
+            {
+                "patchline": {
                     "destination": [ "obj-13", 0 ],
                     "source": [ "obj-15", 0 ]
                 }
@@ -1483,8 +1570,48 @@
             },
             {
                 "patchline": {
+                    "color": [ 0.22745098039215686, 0.5647058823529412, 0.7411764705882353, 1.0 ],
+                    "destination": [ "obj-32", 4 ],
+                    "order": 0,
+                    "source": [ "obj-19", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "color": [ 0.22745098039215686, 0.5647058823529412, 0.7411764705882353, 1.0 ],
+                    "destination": [ "obj-40", 4 ],
+                    "order": 1,
+                    "source": [ "obj-19", 0 ]
+                }
+            },
+            {
+                "patchline": {
                     "destination": [ "obj-17", 0 ],
                     "source": [ "obj-2", 1 ]
+                }
+            },
+            {
+                "patchline": {
+                    "color": [ 0.8509803921568627, 0.3803921568627451, 0.3803921568627451, 1.0 ],
+                    "destination": [ "obj-32", 1 ],
+                    "order": 1,
+                    "source": [ "obj-20", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "color": [ 0.8509803921568627, 0.3803921568627451, 0.3803921568627451, 1.0 ],
+                    "destination": [ "obj-40", 1 ],
+                    "order": 2,
+                    "source": [ "obj-20", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "color": [ 0.8509803921568627, 0.3803921568627451, 0.3803921568627451, 1.0 ],
+                    "destination": [ "obj-53", 1 ],
+                    "order": 0,
+                    "source": [ "obj-20", 0 ]
                 }
             },
             {
@@ -1497,6 +1624,28 @@
                 "patchline": {
                     "destination": [ "obj-60", 0 ],
                     "source": [ "obj-22", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "color": [ 0.6627450980392157, 0.7019607843137254, 0.19215686274509805, 1.0 ],
+                    "destination": [ "obj-35", 1 ],
+                    "order": 0,
+                    "source": [ "obj-23", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "color": [ 0.6627450980392157, 0.7019607843137254, 0.19215686274509805, 1.0 ],
+                    "destination": [ "obj-40", 3 ],
+                    "order": 1,
+                    "source": [ "obj-23", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-53", 2 ],
+                    "source": [ "obj-24", 0 ]
                 }
             },
             {
@@ -1557,6 +1706,12 @@
             },
             {
                 "patchline": {
+                    "destination": [ "obj-40", 0 ],
+                    "source": [ "obj-32", 0 ]
+                }
+            },
+            {
+                "patchline": {
                     "destination": [ "obj-38", 0 ],
                     "source": [ "obj-33", 0 ]
                 }
@@ -1571,13 +1726,19 @@
                 "patchline": {
                     "destination": [ "obj-42", 0 ],
                     "order": 1,
-                    "source": [ "obj-35", 0 ]
+                    "source": [ "obj-35", 1 ]
                 }
             },
             {
                 "patchline": {
                     "destination": [ "obj-81", 0 ],
                     "order": 0,
+                    "source": [ "obj-35", 1 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-83", 0 ],
                     "source": [ "obj-35", 0 ]
                 }
             },
@@ -1595,8 +1756,20 @@
             },
             {
                 "patchline": {
+                    "destination": [ "obj-77", 0 ],
+                    "source": [ "obj-39", 0 ]
+                }
+            },
+            {
+                "patchline": {
                     "destination": [ "obj-1", 0 ],
                     "source": [ "obj-4", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-35", 0 ],
+                    "source": [ "obj-40", 0 ]
                 }
             },
             {
@@ -1684,20 +1857,52 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-21", 0 ],
+                    "destination": [ "obj-21", 1 ],
                     "source": [ "obj-50", 2 ]
                 }
             },
             {
                 "patchline": {
-                    "destination": [ "obj-33", 0 ],
+                    "destination": [ "obj-33", 1 ],
+                    "order": 1,
                     "source": [ "obj-50", 1 ]
                 }
             },
             {
                 "patchline": {
-                    "destination": [ "obj-45", 0 ],
+                    "destination": [ "obj-45", 1 ],
                     "source": [ "obj-50", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-89", 1 ],
+                    "order": 0,
+                    "source": [ "obj-50", 1 ]
+                }
+            },
+            {
+                "patchline": {
+                    "color": [ 0.6549019607843137, 0.12941176470588237, 0.7019607843137254, 1.0 ],
+                    "destination": [ "obj-32", 3 ],
+                    "order": 0,
+                    "source": [ "obj-51", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "color": [ 0.6549019607843137, 0.12941176470588237, 0.7019607843137254, 1.0 ],
+                    "destination": [ "obj-39", 1 ],
+                    "order": 1,
+                    "source": [ "obj-51", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "color": [ 0.6549019607843137, 0.12941176470588237, 0.7019607843137254, 1.0 ],
+                    "destination": [ "obj-40", 2 ],
+                    "order": 2,
+                    "source": [ "obj-51", 0 ]
                 }
             },
             {
@@ -1712,6 +1917,12 @@
                     "destination": [ "obj-40", 0 ],
                     "order": 0,
                     "source": [ "obj-52", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-32", 0 ],
+                    "source": [ "obj-53", 0 ]
                 }
             },
             {
@@ -1750,12 +1961,6 @@
                 "patchline": {
                     "destination": [ "obj-67", 0 ],
                     "source": [ "obj-59", 0 ]
-                }
-            },
-            {
-                "patchline": {
-                    "destination": [ "obj-34", 0 ],
-                    "source": [ "obj-6", 0 ]
                 }
             },
             {
@@ -1856,6 +2061,12 @@
             },
             {
                 "patchline": {
+                    "destination": [ "obj-53", 0 ],
+                    "source": [ "obj-77", 0 ]
+                }
+            },
+            {
+                "patchline": {
                     "destination": [ "obj-14", 0 ],
                     "source": [ "obj-78", 0 ]
                 }
@@ -1890,6 +2101,24 @@
                 "patchline": {
                     "destination": [ "obj-1", 0 ],
                     "source": [ "obj-82", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-45", 0 ],
+                    "source": [ "obj-84", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-33", 0 ],
+                    "source": [ "obj-85", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-21", 0 ],
+                    "source": [ "obj-86", 0 ]
                 }
             },
             {

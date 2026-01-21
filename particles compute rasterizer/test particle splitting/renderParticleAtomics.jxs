@@ -6,7 +6,9 @@ layout(std430, set = 0, binding = 0) buffer grid {
     uint cell[];
 };
 
-layout(binding = 1) uniform Config {
+layout(binding = 1, r32ui) writeonly uniform uimage2D heatImg;
+
+layout(binding = 2) uniform Config {
     vec2 particlePos;
     float particleRad;
 };
@@ -84,7 +86,7 @@ void emitCell(ivec2 ij, int level, float particleAlpha)
     atomicAdd(cell[coord2id(ij, level)], colorToAdd);
 }
 
-void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p)
+void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p, inout uint heatMap)
 {
     const int MAX_STACK = 1024;
     const int MAX_ITERS = 2048;
@@ -117,6 +119,7 @@ void coverCircleFromRoot(ivec2 rootIJ, int maxLevel, in particle p)
         if (cellFullyInsideCircle_r2_level(ij, level, p))
         {
             emitCell(ij, level, 0.25);
+            heatMap++;
             continue;
         }
 
@@ -205,11 +208,13 @@ void main()
     int iyMin = max(0, int(floor(minYf)));
     int iyMax = min(upper.y - 1, int(floor(maxYf)));
 
+    uint heatMap = 0u;
     for(int i = ixMin; i <= ixMax; i++)
     {
         for(int j = iyMin; j <= iyMax; j++)
         {
-            coverCircleFromRoot(ivec2(i,j), level, p);
+            coverCircleFromRoot(ivec2(i,j), level, p, heatMap);
         }
     }
+    imageStore(heatImg, ivec2(0), uvec4(heatMap));
 }

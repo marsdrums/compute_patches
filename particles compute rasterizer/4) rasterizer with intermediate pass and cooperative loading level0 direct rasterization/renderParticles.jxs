@@ -15,11 +15,11 @@ layout(std430, set = 0, binding = 3) buffer grid {
     uint cell[];
 };
 
-layout(binding = 4) uniform Config {
+layout(binding = 4, r32ui) uniform uimage2D smallParticlesCanvas;
+
+layout(binding = 5) uniform Config {
     uint numLevels;
 };
-
-layout(binding = 5, r32ui) uniform uimage2D smallParticlesCanvas;
 
 const uint MAX_COUNT = 1024u;
 shared vec3 center_radius[MAX_COUNT];
