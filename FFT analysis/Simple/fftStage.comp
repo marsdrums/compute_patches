@@ -1,0 +1,56 @@
+#version 450
+
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) buffer buff_complex {
+    vec2 A[];
+};
+
+layout(binding = 1) uniform Params {
+    uint stage;  // 1..LOG2N
+    int  dir;    // -1 forward, +1 inverse
+    uint readOffset;
+    uint writeOffset;
+} pc;
+
+layout(binding = 2) uniform samps_info {
+    uint WS; //number of samples in this chunk
+    uint log2WS; //log2 of the number of samples in this chunk
+} cfg;
+
+const float TWOPI = 6.2831853071795864769252867665590;
+
+vec2 cmul(vec2 a, vec2 b) {
+    return vec2(a.x*b.x - a.y*b.y,  // re
+                a.x*b.y + a.y*b.x); // im
+}
+
+void main() {
+    uint tid = gl_GlobalInvocationID.x;
+
+    // One thread per butterfly => WS/2 butterflies
+    if (tid >= (cfg.WS >> 1)) return;
+
+    uint m    = 1u << pc.stage; // 2,4,8,...,N
+    uint halfm = m >> 1;
+
+    // Identify which block and which butterfly within block
+    uint block = tid / halfm;
+    uint j     = tid - block * halfm; // tid % halfm
+
+    uint i0 = block * m + j;
+    uint i1 = i0 + halfm;
+
+    vec2 a0 = A[i0+pc.readOffset];
+    vec2 a1 = A[i1+pc.readOffset];
+
+    // Twiddle: exp(-i 2pi j/m) for forward
+    // and exp(+i 2pi j/m) for inverse
+    float angle = float(pc.dir) * TWOPI * float(j) / float(m);
+    vec2 W = vec2(cos(angle), sin(angle));
+
+    vec2 t = cmul(a1, W);
+
+    A[i0+pc.writeOffset] = a0 + t;
+    A[i1+pc.writeOffset] = a0 - t;
+}

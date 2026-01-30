@@ -1,0 +1,174 @@
+#version 450
+
+layout(set = 0, rgba32f, binding = 0) uniform image3D rendImg;
+layout(set = 0, rgba32f, binding = 1) uniform image2D norHeightImg;
+layout(set = 0, rgba32f, binding = 2) uniform image3D bouncesImg;
+layout(set = 0, rgba32f, binding = 3) uniform image2D albedoImg;
+
+layout(binding = 4) uniform Cfg {
+    float senseAngle;
+    float turnAngle;
+    float senseDist;
+    float speed;
+    uint frame;
+    float maxPheromone;
+    float evaporate;
+};
+
+layout(binding = 5) uniform Iteration {
+    uint iteration;
+};
+
+layout(binding = 6) uniform slice {
+    int readSlice;
+    int writeSlice;
+}pc;
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+
+//___ RNG functions
+uint wang_hash(inout uint seed){
+
+    seed = uint(seed ^ uint(61)) ^ uint(seed >> uint(16));
+    seed *= uint(9);
+    seed = seed ^ (seed >> 4);
+    seed *= uint(0x27d4eb2d);
+    seed = seed ^ (seed >> 15);
+    return seed;
+}
+ 
+float RandomFloat01(inout uint seed){
+
+    return float(wang_hash(seed)) / 4294967296.0;
+}
+
+vec3 RandomUnitVector(inout uint seed){
+
+    float z = RandomFloat01(seed) * 2.0f - 1.0f;
+    float a = RandomFloat01(seed) * 6.28318530718;
+    float r = sqrt(1.0f - z * z);
+    float x = r * cos(a);
+    float y = r * sin(a);
+    return vec3(x, y, z);
+}
+
+uint getRandSeed(uint idx){ 
+    return  idx + frame*9281u; 
+}
+
+vec3 calcIndirectLight(ivec2 gid, ivec2 size, vec3 ro, vec3 N, inout uint seed)
+{
+    const int   NUM_DIRS   = 3;
+    const int   NUM_STEPS  = 12;
+    const float MAX_DIST   = 500.0;
+    const float START_DIST = 1.5;
+    const float ATTEN      = 0.005;
+
+    const float TWO_PI = 6.28318530718;
+    const float LOG2E  = 1.4426950408889634;
+
+    float stepGrow = mix(1.33, 1.77, RandomFloat01(seed));
+
+    float rot = RandomFloat01(seed) * TWO_PI;
+
+    // trig only a few times
+    float delta = TWO_PI / float(NUM_DIRS);
+    float c = cos(delta), s = sin(delta);
+
+    vec2 rd = vec2(cos(rot), sin(rot));
+
+    vec2  roxy = ro.xy;
+    float roz  = ro.z;
+
+    vec3  sum  = vec3(0.0);
+    float wsum = 0.0;
+
+    for (int i = 0; i < NUM_DIRS; ++i)
+    {
+        float maxSlope = -1e20;
+
+        // precompute per-direction term used in dot(N, v)
+        float nrd = dot(N.xy, rd);
+
+        float d = START_DIST;
+
+        for (int st = 0; st < NUM_STEPS && d < MAX_DIST; ++st)
+        {
+            vec2 uv = roxy + rd * d;
+            ivec2 ip = ivec2(uv);
+
+            // single bounds check handles <0 and >=size
+            if (uint(ip.x) >= uint(size.x) || uint(ip.y) >= uint(size.y))
+                break;
+
+            vec4 lookup;
+
+            if(iteration == 0){
+                lookup = imageLoad(rendImg, ivec3(ip, pc.readSlice));
+            } else {
+                lookup = imageLoad(bouncesImg, ivec3(ip, iteration-1));
+            }
+
+            float h  = lookup.w;
+            float dz = h - roz;
+
+            float slope = dz / d;
+            if (slope > maxSlope)
+            {
+                maxSlope = slope;
+
+                // ndl = dot(N, v)/|v| where v = (rd*d, dz)
+                float invLen = inversesqrt(d*d + dz*dz);
+                float ndl = (nrd * d + N.z * dz) * invLen;
+                ndl = max(0.0, ndl);
+
+                // attenuation via exp2 (faster than exp)
+                float att = exp2(-d * ATTEN * LOG2E);
+
+                float w = ndl * att;
+                // you can remove this branch and always do the madds;
+                // branch vs no-branch depends on GPU + scene.
+                if (w > 0.0)
+                {
+                    sum  += lookup.rgb * w;
+                    wsum += w;
+                }
+            }
+
+            d *= stepGrow;
+        }
+
+        // rotate rd by fixed delta
+        rd = vec2(rd.x*c - rd.y*s, rd.x*s + rd.y*c);
+    }
+
+    return (wsum > 1e-6) ? (sum / wsum) : vec3(0.0);
+}
+
+
+
+void main(){
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(rendImg).xy;
+
+    uint seed = getRandSeed(gid.x + gid.y*uint(size.x) + 7777u + 8839u*iteration);
+
+
+    if (gid.x >= size.x || gid.y >= size.y) return;
+
+    vec4 lookup = imageLoad(norHeightImg, gid);
+    vec3 N = lookup.xyz;
+    float h = lookup.w;
+
+    vec3 ro = vec3(gid.x, gid.y, h);
+    vec3 ind = calcIndirectLight(gid, ivec2(size), ro, N, seed);
+
+    // sensible scaling (you can push this, but start lower than *10)
+    //ind *= 1;
+    vec3 alb = imageLoad(albedoImg, gid).rgb;
+    ind *= alb;
+
+    imageStore(bouncesImg, ivec3(gid, iteration), vec4(ind, h));
+}

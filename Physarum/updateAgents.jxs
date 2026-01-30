@@ -11,10 +11,9 @@ layout(std430, set = 0, binding = 0) buffer agentsBuff {
     Agent agents[];
 };
 
-layout(set = 0, r32f, binding = 1) uniform image2D rendImg;
-layout(set = 0, rgba32f, binding = 2) uniform image2D shadedImg;
+layout(set = 0, rgba32f, binding = 1) uniform image3D rendImg;
 
-layout(binding = 3) uniform Cfg {
+layout(binding = 2) uniform Cfg {
     float senseAngle;
     float turnAngle;
     float senseDist;
@@ -24,9 +23,12 @@ layout(binding = 3) uniform Cfg {
     float evaporate;
 };
 
-layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+layout(binding = 3) uniform slice {
+    int readSlice;
+    int writeSlice;
+}pc;
 
-#define HALFPI 1.5707963267948966
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
 
 //___ RNG functions
 uint wang_hash(inout uint seed){
@@ -75,17 +77,17 @@ float findNewAngle( in float ang,
     //forward
     testAngle = ang;// + f*sa;
     iuv = ivec2(pos + vec2(cos(testAngle), sin(testAngle)) * dist);
-    fVal = imageLoad(rendImg, contain(iuv)).r;
+    fVal = imageLoad(rendImg, ivec3(contain(iuv), pc.readSlice)).a;
 
     //left
     testAngle = ang - sa;
     iuv = ivec2(pos + vec2(cos(testAngle), sin(testAngle)) * dist);
-    lVal = imageLoad(rendImg, contain(iuv)).r;
+    lVal = imageLoad(rendImg, ivec3(contain(iuv), pc.readSlice)).a;
 
     //right
     testAngle = ang + sa;
     iuv = ivec2(pos + vec2(cos(testAngle), sin(testAngle)) * dist);
-    rVal = imageLoad(rendImg, contain(iuv)).r;
+    rVal = imageLoad(rendImg, ivec3(contain(iuv), pc.readSlice)).a;
 
     float rand = RandomFloat01(seed);
  
@@ -99,7 +101,7 @@ float findNewAngle( in float ang,
 void main(){
 
     uint idx = gl_GlobalInvocationID.x;
-    vec2 rendImgSize = vec2(imageSize(rendImg));
+    vec2 rendImgSize = vec2(imageSize(rendImg).xy);
 
     if (idx >= count) return;
     
@@ -108,22 +110,6 @@ void main(){
     uint seed = getRandSeed(idx);
 
     a.angle = findNewAngle(a.angle, a.pos, senseAngle*0.5, turnAngle*0.5, senseDist, seed);
-/*
-    vec2 shift = vec2(cos(a.angle), sin(a.angle))*speed;
-    vec2 newPos = a.pos + shift;
-    if(newPos.x < 0){
-        a.angle += shift.y < 0 ? HALFPI : -HALFPI;
-    }
-    if(newPos.y < 0){
-        a.angle += shift.x > 0 ? HALFPI : -HALFPI;
-    }
-    if(newPos.x >= rendImgSize.x){
-        a.angle += shift.y > 0 ? HALFPI : -HALFPI;
-    }
-    if(newPos.y >= rendImgSize.y){
-        a.angle += shift.x < 0 ? HALFPI : -HALFPI;
-    }
-*/
     a.pos += vec2(cos(a.angle), sin(a.angle))*speed;
     a.pos += rendImgSize*10;
     a.pos = mod(a.pos, rendImgSize);

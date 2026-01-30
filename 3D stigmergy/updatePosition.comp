@@ -1,25 +1,26 @@
 #version 450
 
-layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = 512, local_size_y = 1, local_size_z = 1) in;
 
 layout(r32f, binding = 0) uniform image3D field;
 
-layout(std430, binding = 1) buffer agentPos {
-    vec4 pos[]; 
+struct agent{
+    vec3 pos;
+    vec3 vel;
 };
 
-layout(std430, binding = 2) buffer agentVel {
-    vec4 vel[]; 
+layout(std430, binding = 1) buffer agentsBuff {
+    agent agents[]; 
 };
+
+layout(rgba32f, binding = 2) writeonly uniform image2D outImg;
 
 layout(binding = 3) uniform Config {
    float frontness;
    float speed;
    float radius;
    float randomness;
-} config;
-
-layout(rgba32f, binding = 4) writeonly uniform image2D outImg;
+};
 
 #define OCTAVES 6.
 #define PI 3.14159265359
@@ -103,18 +104,18 @@ void main()
     float mutlplier = 1;//float(coord > 245000)*10 + 1;
 
     for(int i = 0; i < 5; i++){
-        senseDir[i] = normalize(senseDir[i] + front*config.frontness*mutlplier);
-        vec3 g = (pos[coord].xyz*0.5 + 0.5) + senseDir[i]*config.radius*mutlplier;
+        senseDir[i] = normalize(senseDir[i] + front*frontness*mutlplier);
+        vec3 g = (pos[coord].xyz*0.5 + 0.5) + senseDir[i]*radius*mutlplier;
         if(g.x < 0.0 || g.y < 0.0 || g.z < 0.0 || g.x >= 1.0 || g.y >= 1.0 || g.z >= 1.0) continue;
         float density = readImage3DTrilinear(g);// * mix(0.9, 1.0, RandomFloat01(seed));
         meanDir += senseDir[i] * density;
         weight += density;
     }
 
-    meanDir += randomUnitVector3(seed)*config.randomness;
+    meanDir += randomUnitVector3(seed)*randomness;
 
     vel[coord].xyz = weight > 0.0 ? normalize(meanDir) : front;
-    vel[coord].xyz *= config.speed;
+    vel[coord].xyz *= speed;
 
     vec3 nextPos = pos[coord].xyz + vel[coord].xyz;
 

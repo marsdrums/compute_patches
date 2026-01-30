@@ -1,0 +1,57 @@
+// Read the image content, perform the first reduction, and write the result into a buffer
+
+#version 460
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+struct m3 { vec4 mm; vec4 MM; vec4 mean; };
+
+layout(std430, set = 0, binding = 0) buffer buff_values { m3 val[]; };
+layout(rgba32f, binding = 1) uniform readonly image2D image_in;
+
+shared m3 shaVal[256];
+
+void main() {
+
+    ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
+    uint lid = gl_LocalInvocationIndex;
+    ivec2 size = imageSize(image_in);
+
+    if(gid.x < size.x && gid.y < size.y){
+
+        vec4 thisVal = imageLoad(image_in, gid);
+        shaVal[lid].mm   = thisVal;
+        shaVal[lid].MM   = thisVal;
+        shaVal[lid].mean = thisVal;// / (1920*1080);
+    } else {
+        shaVal[lid].mm   = vec4( 1e30);
+        shaVal[lid].MM   = vec4(-1e30);
+        shaVal[lid].mean = vec4(0.0);
+    }
+    //memoryBarrierShared();
+    barrier();
+
+    // stage 1: 16-way reduction (each of 16 threads reduces 16 items)
+    if (lid < 16u) {
+        uint start = lid * 16u;
+        uint end   = start + 16u;
+        for (uint i = start+1u; i < end; i++) {
+            shaVal[start].mm    =   min(shaVal[start].mm, shaVal[i].mm);
+            shaVal[start].MM    =   max(shaVal[start].MM, shaVal[i].MM);
+            shaVal[start].mean  +=  shaVal[i].mean;
+        }
+    }
+    //memoryBarrierShared();
+    barrier();
+
+    // stage 2: final reduction by thread 0 over the 16 partials at 0,16,32,...
+    if (lid == 0u) {
+        uint writeID = gl_WorkGroupID.x + gl_WorkGroupID.y*gl_NumWorkGroups.x;
+        for (uint i = 16u; i < 256u; i += 16u) {
+            shaVal[0].mm   = min(shaVal[0].mm, shaVal[i].mm);
+            shaVal[0].MM   = max(shaVal[0].MM, shaVal[i].MM);
+            shaVal[0].mean += shaVal[i].mean;
+        }
+        val[writeID] = shaVal[0];
+    }
+}

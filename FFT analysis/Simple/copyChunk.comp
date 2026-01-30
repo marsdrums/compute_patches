@@ -1,0 +1,22 @@
+#version 460
+layout(local_size_x = 256) in;
+
+layout(std430, set = 0, binding = 0) readonly buffer buff_samples {
+    float samples[];
+};
+layout(std430, set = 0, binding = 1) writeonly buffer buff_real {
+    float r[];
+};
+layout(binding = 2) uniform chunk_offset {
+    uint offset;
+    uint N;
+    uint WS;
+} cfg;
+
+void main() {
+    uint id = gl_GlobalInvocationID.x;
+    if (id >= cfg.WS) return;
+
+    uint readID = id + cfg.offset;
+    r[id] = (readID < cfg.N) ? samples[readID] : 0.0;
+}

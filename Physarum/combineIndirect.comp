@@ -1,0 +1,19 @@
+#version 460
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(set = 0, rgba32f, binding = 0) uniform image3D bouncesImg;
+
+void main() {
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(bouncesImg).xy;
+
+    if(gid.x >= size.x || gid.y >= size.y) return;
+
+    vec4 val = imageLoad(bouncesImg, ivec3(gid, 0));
+    val += imageLoad(bouncesImg, ivec3(gid, 1));
+    val += imageLoad(bouncesImg, ivec3(gid, 2));
+    val += imageLoad(bouncesImg, ivec3(gid, 3));
+    imageStore(bouncesImg, ivec3(gid, 0), val);
+}

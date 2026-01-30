@@ -1,0 +1,21 @@
+#version 460
+
+layout(local_size_x = 1) in;
+
+struct m3{ vec4 mm; vec4 MM; vec4 mean; };
+
+layout(std430, set = 0, binding = 0) buffer buff_values { m3 val[]; };
+layout(rgba32f, binding = 1) uniform writeonly image1D image_mm;
+layout(rgba32f, binding = 2) uniform writeonly image1D image_MM;
+layout(rgba32f, binding = 3) uniform writeonly image1D image_mean;
+layout(binding = 4) uniform constants {
+    float normalizer; 
+    uint readOffset; 
+} pc;
+
+void main() {
+
+    imageStore(image_mm,   0, val[pc.readOffset].mm);
+    imageStore(image_MM,   0, val[pc.readOffset].MM);
+    imageStore(image_mean, 0, val[pc.readOffset].mean * pc.normalizer);
+}

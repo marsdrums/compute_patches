@@ -3,14 +3,51 @@
         "fileversion": 1,
         "appversion": {
             "major": 9,
-            "minor": 1,
-            "revision": 3,
+            "minor": 2,
+            "revision": 0,
             "architecture": "x64",
             "modernui": 1
         },
         "classnamespace": "box",
-        "rect": [ 477.0, 100.0, 1017.0, 893.0 ],
+        "rect": [ 34.0, 100.0, 1660.0, 896.0 ],
         "boxes": [
+            {
+                "box": {
+                    "id": "obj-81",
+                    "maxclass": "message",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 688.0, 954.0, 69.0, 22.0 ],
+                    "text": "_________"
+                }
+            },
+            {
+                "box": {
+                    "depthbuffer": 1,
+                    "doublebuffer": 1,
+                    "fsaa": 0,
+                    "id": "obj-42",
+                    "maxclass": "jit.pwindow",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "jit_matrix", "" ],
+                    "patching_rect": [ 700.0, 644.5, 608.0, 135.0 ],
+                    "stereo": 0,
+                    "sync": 1
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-40",
+                    "maxclass": "newobj",
+                    "numinlets": 2,
+                    "numoutlets": 3,
+                    "outlettype": [ "", "jit_matrix", "" ],
+                    "patching_rect": [ 483.0, 581.0, 87.0, 22.0 ],
+                    "text": "jit.gpu.tomatrix"
+                }
+            },
             {
                 "box": {
                     "id": "obj-79",
@@ -19,7 +56,6 @@
                     "numinlets": 1,
                     "numoutlets": 0,
                     "patching_rect": [ 633.5, 231.0, 253.0, 74.0 ],
-                    "presentation_linecount": 5,
                     "text": "todo:\n\nthe buffer size can bo lowered to:\nx = ceil(w/16)*ceil(h/16);\nbufferSize = x + ceil(x/256);"
                 }
             },
@@ -271,34 +307,46 @@
             },
             {
                 "box": {
+                    "depthbuffer": 1,
+                    "doublebuffer": 1,
+                    "fsaa": 0,
                     "id": "obj-65",
                     "maxclass": "jit.pwindow",
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
                     "patching_rect": [ 628.0, 1427.0, 80.0, 60.0 ],
+                    "stereo": 0,
                     "sync": 1
                 }
             },
             {
                 "box": {
+                    "depthbuffer": 1,
+                    "doublebuffer": 1,
+                    "fsaa": 0,
                     "id": "obj-66",
                     "maxclass": "jit.pwindow",
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
                     "patching_rect": [ 766.0, 1427.0, 80.0, 60.0 ],
+                    "stereo": 0,
                     "sync": 1
                 }
             },
             {
                 "box": {
+                    "depthbuffer": 1,
+                    "doublebuffer": 1,
+                    "fsaa": 0,
                     "id": "obj-67",
                     "maxclass": "jit.pwindow",
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
                     "patching_rect": [ 904.0, 1427.0, 80.0, 60.0 ],
+                    "stereo": 0,
                     "sync": 1
                 }
             },
@@ -590,34 +638,46 @@
             },
             {
                 "box": {
+                    "depthbuffer": 1,
+                    "doublebuffer": 1,
+                    "fsaa": 0,
                     "id": "obj-34",
                     "maxclass": "jit.pwindow",
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
                     "patching_rect": [ 628.0, 1489.0, 80.0, 60.0 ],
+                    "stereo": 0,
                     "sync": 1
                 }
             },
             {
                 "box": {
+                    "depthbuffer": 1,
+                    "doublebuffer": 1,
+                    "fsaa": 0,
                     "id": "obj-33",
                     "maxclass": "jit.pwindow",
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
                     "patching_rect": [ 766.0, 1489.0, 80.0, 60.0 ],
+                    "stereo": 0,
                     "sync": 1
                 }
             },
             {
                 "box": {
+                    "depthbuffer": 1,
+                    "doublebuffer": 1,
+                    "fsaa": 0,
                     "id": "obj-32",
                     "maxclass": "jit.pwindow",
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
                     "patching_rect": [ 904.0, 1489.0, 80.0, 60.0 ],
+                    "stereo": 0,
                     "sync": 1
                 }
             },
@@ -676,7 +736,7 @@
                     "patching_rect": [ 190.0, 1026.0, 261.0, 22.0 ],
                     "text": "jit.gpu.compute",
                     "textfile": {
-                        "text": "#version 460\n\nstruct m3{\n    vec4 mm;\n    vec4 accum;\n    vec4 MM;\n};\n\nlayout(std430, binding = 0) buffer itemsBuff{\n    m3 items[];\n};\n\nlayout(binding = 1) uniform Cfg {\n    uint readOffset;\n    uint writeOffset;\n    uint numElements;\n}cfg;\n\nshared vec4 sMin[256];\nshared vec4 sMax[256];\nshared vec4 sSum[256];\nshared vec4 lMin[16];\nshared vec4 lMax[16];\nshared vec4 lSum[16];\n\nlayout(local_size_x = 256) in;\n\nvoid main()\n{\n    uint idx = gl_GlobalInvocationID.x;\n    bool valid = idx < cfg.numElements;\n\n    //initialize 3m with neutral values\n    vec4 vMin = vec4( 1e30);\n    vec4 vMax = vec4(-1e30);\n    vec4 vSum = vec4(0.0);\n\n    //if this thread is valid, read the actual data\n    if (valid) {\n        uint readIdx = idx + cfg.readOffset;\n        vMin = items[readIdx].mm;\n        vMax = items[readIdx].MM;\n        vSum = items[readIdx].accum;\n    }\n\n    uint lid = gl_LocalInvocationIndex;\n    sMin[lid] = vMin;\n    sMax[lid] = vMax;\n    sSum[lid] = vSum;\n\n    memoryBarrierShared();\n    barrier();\n\n    // Reduce 256 -> 16: store results at indices 0..15\n    if (lid < 16u) {\n        uint base = lid * 16u;\n\n        vec4 mn  = sMin[base];\n        vec4 mx  = sMax[base];\n        vec4 sum = sSum[base];\n\n        for (uint j = 1u; j < 16u; j++) {\n            uint k = base + j;\n            mn  = min(mn, sMin[k]);\n            mx  = max(mx, sMax[k]);\n            sum += sSum[k];\n        }\n\n        lMin[lid] = mn;\n        lMax[lid] = mx;\n        lSum[lid] = sum;\n    }\n\n    memoryBarrierShared();\n    barrier();\n\n    // Reduce 16 -> 1\n    if (lid == 0u) {\n        vec4 mn  = lMin[0];\n        vec4 mx  = lMax[0];\n        vec4 sum = lSum[0];\n\n        for (uint i = 1u; i < 16u; i++) {\n            mn  = min(mn, lMin[i]);\n            mx  = max(mx, lMax[i]);\n            sum += lSum[i];\n        }\n\n        uint outIndex = gl_WorkGroupID.x + cfg.writeOffset;\n        items[outIndex].mm    = mn;\n        items[outIndex].MM    = mx;\n        items[outIndex].accum = sum;\n    }\n}\n",
+                        "text": "#version 460\n\nstruct m3{\n    vec4 mm;\n    vec4 accum;\n    vec4 MM;\n};\n\nlayout(std430, binding = 0) buffer itemsBuff{\n    m3 items[];\n};\n\nlayout(binding = 1) uniform Cfg {\n    uint readOffset;\n    uint writeOffset;\n    uint numElements;\n}cfg;\n\nshared vec4 sMin[256];\nshared vec4 sMax[256];\nshared vec4 sSum[256];\nshared vec4 lMin[16];\nshared vec4 lMax[16];\nshared vec4 lSum[16];\n\nlayout(local_size_x = 256) in;\n\nvoid main()\n{\n    uint idx = gl_GlobalInvocationID.x;\n    uint lid = gl_LocalInvocationIndex;\n\n    bool valid = idx < cfg.numElements;\n    uint readIdx = idx + cfg.readOffset;\n    \n    sMin[lid] = valid ? items[readIdx].mm : vec4( 1e30);\n    sMax[lid] = valid ? items[readIdx].MM : vec4(-1e30);\n    sSum[lid] = valid ? items[readIdx].accum : vec4(0.0);\n\n    barrier();\n\n    // Reduce 256 -> 16: store results at indices 0..15\n    if (lid < 16u) {\n        uint base = lid * 16u;\n\n        vec4 mn  = sMin[base];\n        vec4 mx  = sMax[base];\n        vec4 sum = sSum[base];\n\n        for (uint j = 1u; j < 16u; j++) {\n            uint k = base + j;\n            mn  = min(mn, sMin[k]);\n            mx  = max(mx, sMax[k]);\n            sum += sSum[k];\n        }\n\n        lMin[lid] = mn;\n        lMax[lid] = mx;\n        lSum[lid] = sum;\n    }\n\n    barrier();\n\n    // Reduce 16 -> 1\n    if (lid == 0u) {\n        vec4 mn  = lMin[0];\n        vec4 mx  = lMax[0];\n        vec4 sum = lSum[0];\n\n        for (uint i = 1u; i < 16u; i++) {\n            mn  = min(mn, lMin[i]);\n            mx  = max(mx, lMax[i]);\n            sum += lSum[i];\n        }\n\n        uint outIndex = gl_WorkGroupID.x + cfg.writeOffset;\n        //uint outIndex = gid;//gl_WorkGroupID.x + cfg.writeOffset;\n        items[outIndex].mm    = mn;\n        items[outIndex].MM    = mx;\n        items[outIndex].accum = sum;\n    }\n}\n",
                         "filename": "none",
                         "flags": 0,
                         "embed": 1,
@@ -877,12 +937,16 @@
             },
             {
                 "box": {
+                    "depthbuffer": 1,
+                    "doublebuffer": 1,
+                    "fsaa": 0,
                     "id": "obj-9",
                     "maxclass": "jit.pwindow",
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
                     "patching_rect": [ 44.0, 1302.0, 365.0, 225.0 ],
+                    "stereo": 0,
                     "sync": 1
                 }
             },
@@ -1006,7 +1070,15 @@
             },
             {
                 "patchline": {
+                    "destination": [ "obj-40", 0 ],
+                    "order": 0,
+                    "source": [ "obj-11", 0 ]
+                }
+            },
+            {
+                "patchline": {
                     "destination": [ "obj-57", 0 ],
+                    "order": 1,
                     "source": [ "obj-11", 0 ]
                 }
             },
@@ -1069,20 +1141,27 @@
             {
                 "patchline": {
                     "destination": [ "obj-11", 2 ],
-                    "order": 1,
-                    "source": [ "obj-18", 0 ]
-                }
-            },
-            {
-                "patchline": {
-                    "destination": [ "obj-24", 1 ],
                     "order": 2,
                     "source": [ "obj-18", 0 ]
                 }
             },
             {
                 "patchline": {
+                    "destination": [ "obj-24", 1 ],
+                    "order": 3,
+                    "source": [ "obj-18", 0 ]
+                }
+            },
+            {
+                "patchline": {
                     "destination": [ "obj-26", 1 ],
+                    "order": 1,
+                    "source": [ "obj-18", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-40", 1 ],
                     "order": 0,
                     "source": [ "obj-18", 0 ]
                 }
@@ -1165,6 +1244,7 @@
             {
                 "patchline": {
                     "destination": [ "obj-26", 0 ],
+                    "order": 1,
                     "source": [ "obj-25", 0 ]
                 }
             },
@@ -1172,6 +1252,13 @@
                 "patchline": {
                     "destination": [ "obj-43", 0 ],
                     "source": [ "obj-25", 2 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-81", 0 ],
+                    "order": 0,
+                    "source": [ "obj-25", 0 ]
                 }
             },
             {
@@ -1262,6 +1349,12 @@
                 "patchline": {
                     "destination": [ "obj-1", 0 ],
                     "source": [ "obj-4", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-42", 0 ],
+                    "source": [ "obj-40", 1 ]
                 }
             },
             {
@@ -1426,6 +1519,14 @@
             {
                 "patchline": {
                     "destination": [ "obj-26", 0 ],
+                    "order": 1,
+                    "source": [ "obj-60", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-69", 1 ],
+                    "order": 0,
                     "source": [ "obj-60", 0 ]
                 }
             },
@@ -1513,14 +1614,6 @@
             {
                 "patchline": {
                     "destination": [ "obj-60", 0 ],
-                    "order": 1,
-                    "source": [ "obj-74", 0 ]
-                }
-            },
-            {
-                "patchline": {
-                    "destination": [ "obj-69", 1 ],
-                    "order": 0,
                     "source": [ "obj-74", 0 ]
                 }
             },
@@ -1586,6 +1679,12 @@
                 "patchline": {
                     "destination": [ "obj-25", 1 ],
                     "source": [ "obj-80", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-69", 1 ],
+                    "source": [ "obj-81", 0 ]
                 }
             },
             {

@@ -1,0 +1,25 @@
+#version 460
+layout(local_size_x = 256) in;
+
+layout(std430, set = 0, binding = 0) readonly buffer buff_reconstructed {
+    float y[];
+};
+
+layout(std430, set = 0, binding = 1) writeonly buffer buff_processed {
+    float s[];
+};
+
+layout(binding = 2) uniform Cfg {
+    uint offset; //offset for this chunk of samples
+    uint N; //total number of samples
+} cfg;
+
+
+void main() {
+    uint id = gl_GlobalInvocationID.x;
+    uint writeID = id + cfg.offset;
+
+    if(writeID >= cfg.N) return;
+
+    s[writeID] = y[id];
+}

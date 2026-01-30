@@ -1,0 +1,36 @@
+#version 460
+layout(local_size_x = 256, local_size_y = 1) in;
+
+layout(std430, set = 0, binding = 0) readonly buffer buff_complex {
+    vec2 A[];
+};
+
+layout(std430, set = 0, binding = 1) writeonly buffer buff_processed {
+    float s[];
+};
+
+layout(binding = 2) uniform samps_info {
+    uint WS;
+    uint log2WS; // unused but kept to match your existing uniform block pattern
+} cfg;
+
+layout(binding = 3) uniform Params {
+    uint readOffset; // ping base offset in ELEMENTS (vec2)
+} pc;
+
+layout(binding = 4) uniform Cfg {
+    uint N;
+} outcfg;
+
+void main() {
+    uint i = gl_GlobalInvocationID.x; // index in window
+    uint c = gl_GlobalInvocationID.y; // chunk index
+    if (i >= cfg.WS) return;
+
+    uint base    = c * cfg.WS;
+    uint outIdx  = base + i;
+    if (outIdx >= outcfg.N) return;
+
+    float y = A[pc.readOffset + base + i].x / float(cfg.WS);
+    s[outIdx] = y;
+}

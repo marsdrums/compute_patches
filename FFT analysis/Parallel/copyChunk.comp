@@ -1,0 +1,27 @@
+#version 460
+layout(local_size_x = 256, local_size_y = 1) in;
+
+layout(std430, set = 0, binding = 0) readonly buffer buff_samples {
+    float samples[];
+};
+
+layout(std430, set = 0, binding = 1) writeonly buffer buff_real {
+    float r[];
+};
+
+layout(binding = 2) uniform chunk_cfg {
+    uint N;
+    uint WS;
+} cfg;
+
+void main() {
+    uint i = gl_GlobalInvocationID.x; // index inside window
+    uint c = gl_GlobalInvocationID.y; // chunk index
+    if (i >= cfg.WS) return;
+
+    uint base   = c * cfg.WS;
+    uint readID = base + i;
+
+    // r is padded (totalSize). samples is only N.
+    r[base + i] = (readID < cfg.N) ? samples[readID] : 0.0;
+}

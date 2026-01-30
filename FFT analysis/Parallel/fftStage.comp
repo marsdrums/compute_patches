@@ -1,0 +1,54 @@
+#version 460
+layout(local_size_x = 256, local_size_y = 1) in;
+
+layout(std430, set = 0, binding = 0) buffer buff_complex {
+    vec2 A[];
+};
+
+layout(binding = 1) uniform Params {
+    uint stage;       // 1..log2WS
+    int  dir;         // -1 forward, +1 inverse
+    uint readOffset;  // ping base offset in ELEMENTS (vec2)
+    uint writeOffset; // pong base offset in ELEMENTS (vec2)
+} pc;
+
+layout(binding = 2) uniform samps_info {
+    uint WS;
+    uint log2WS;
+} cfg;
+
+const float TWOPI = 6.2831853071795864769;
+
+vec2 cmul(vec2 a, vec2 b) {
+    return vec2(a.x*b.x - a.y*b.y,
+                a.x*b.y + a.y*b.x);
+}
+
+void main() {
+    uint tid = gl_GlobalInvocationID.x; // butterfly id
+    uint c   = gl_GlobalInvocationID.y; // chunk id
+
+    if (tid >= (cfg.WS >> 1)) return;
+
+    uint base = c * cfg.WS;
+
+    uint m     = 1u << pc.stage;
+    uint halfm = m >> 1;
+
+    uint block = tid / halfm;
+    uint j     = tid - block * halfm;
+
+    uint i0 = block * m + j;
+    uint i1 = i0 + halfm;
+
+    vec2 a0 = A[pc.readOffset + base + i0];
+    vec2 a1 = A[pc.readOffset + base + i1];
+
+    float angle = float(pc.dir) * TWOPI * float(j) / float(m);
+    vec2 W = vec2(cos(angle), sin(angle));
+
+    vec2 t = cmul(a1, W);
+
+    A[pc.writeOffset + base + i0] = a0 + t;
+    A[pc.writeOffset + base + i1] = a0 - t;
+}

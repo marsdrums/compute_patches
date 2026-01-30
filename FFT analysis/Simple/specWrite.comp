@@ -1,0 +1,42 @@
+#version 460
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) readonly buffer buff_complex {
+    vec2 A[];
+};
+
+layout(rgba32f, binding = 1) uniform writeonly image2D img_spectrogram;
+
+layout(binding = 2) uniform Params {
+    int iteration; // x
+    uint readOffset;
+} pc;
+
+layout(binding = 3) uniform samps_info {
+    uint WS;
+    uint log2WS;
+} cfg;
+
+void main() {
+    uint id = gl_GlobalInvocationID.x;
+    uint maxBin = cfg.WS >> 1;         // WS/2
+    if (id > maxBin) return;           // only 0..WS/2 inclusive
+
+    float mag = length(A[id+pc.readOffset]);
+
+    const float epsilon = 1e-12;
+    const float dbFloor = -80.0;
+    const float dbCeil  = 0.0;
+
+    float db = 20.0 * log2(mag + epsilon) / log2(10.0);
+    float t = clamp((db - dbFloor) / (dbCeil - dbFloor), 0.0, 1.0);
+
+    // Flip so low freq at bottom (optional)
+    int y = int(maxBin - id);
+
+    imageStore(
+        img_spectrogram,
+        ivec2(pc.iteration, y),
+        sin(vec4(t*2, t*3, t*7, 0.0))*0.5 + 0.5
+    );
+}
