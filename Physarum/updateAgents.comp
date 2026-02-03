@@ -1,0 +1,210 @@
+#version 450
+
+// Each simulated "agent" is a point that moves around the 2D domain.
+// It keeps:
+// - pos:   2D position in pixel space
+// - angle: heading angle in radians
+// - dir:   cached unit direction vector corresponding to angle (cos/sin of angle)
+struct Agent {
+    vec2  pos;
+    float angle;
+    vec2  dir;
+};
+
+// SSBO containing a count header + a packed array of Agents.
+// std430 layout = tightly packed for SSBOs.
+layout(std430, set = 0, binding = 0) buffer agentsBuff {
+    uint  count;   // number of agents stored in agents[]
+    Agent agents[];
+};
+
+// 3D image used for sampling "trail" / render data.
+// We read alpha from a selected Z slice (readSlice).
+// Format rgba32f: each texel is 4x float32.
+layout(set = 0, rgba32f, binding = 1) uniform image3D rendImg;
+
+// Configuration uniform block.
+// cosSenseAngle / sinSenseAngle are precomputed on CPU to avoid trig per invocation.
+layout(binding = 2) uniform Cfg {
+    float turnAngle;      // max turn step (radians) used when steering
+    float senseDist;      // distance ahead/left/right to sample alpha
+    uint  frame;          // current frame index (used to vary RNG)
+    float cosSenseAngle;  // cos(senseAngle)
+    float sinSenseAngle;  // sin(senseAngle)
+};
+
+// Small block used like push constants / uniform block for selecting Z slices.
+// readSlice  = which slice to sample from
+// writeSlice = (not used in this shader) which slice to write to in other passes
+layout(binding = 3) uniform slice {
+    int readSlice;
+    int writeSlice;
+} pc;
+
+// Compute shader workgroup size: 256 threads per workgroup in X.
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+// -----------------------------------------------------------------------------
+// RNG functions
+// -----------------------------------------------------------------------------
+
+// A tiny hash-based RNG step ("Wang hash").
+// We mutate 'seed' in-place and return the hashed value.
+// Note: this is not cryptographic; it's for cheap decorrelated randomness.
+uint wang_hash(inout uint seed){
+    seed = uint(seed ^ uint(61)) ^ uint(seed >> uint(16));
+    seed *= uint(9);
+    seed = seed ^ (seed >> 4);
+    seed *= uint(0x27d4eb2d);
+    seed = seed ^ (seed >> 15);
+    return seed;
+}
+
+// Convert hashed uint to float in [0, 1).
+// Divisor 2^32 = 4294967296.0.
+float RandomFloat01(inout uint seed){
+    return float(wang_hash(seed)) / 4294967296.0;
+}
+
+// Create a per-agent seed for this frame.
+// Uses agent index + frame offset * count so seeds change each frame
+// and remain distinct between agents.
+uint getRandSeed(uint idx){
+    return idx + frame * count;
+}
+
+// Clamp integer pixel coordinates to a fixed render size.
+// NOTE: hard-coded bounds (0..1919, 0..1079). If rendImg size differs,
+// this will sample only within that rectangle.
+ivec2 contain(ivec2 iuv){
+    return max(ivec2(0), min(ivec2(1919, 1079), iuv));
+}
+
+// Sample alpha at position 'pos' offset by direction 'dir' * 'dist'.
+// We load from the 3D image at Z = pc.readSlice and return the .a component.
+// pos/dir are float; cast to ivec2 truncates toward zero.
+float sampleAlphaAt(vec2 pos, vec2 dir, float dist) {
+    ivec2 iuv = ivec2(pos + dir * dist);
+    return imageLoad(rendImg, ivec3(contain(iuv), pc.readSlice)).a;
+}
+
+// Rotate vector v by an angle specified by cosine/sine = (c, s).
+// This avoids calling cos() / sin() in the shader when you already have them.
+vec2 rotate(vec2 v, float c, float s) {
+    // rotation matrix:
+    // [ c -s ]
+    // [ s  c ]
+    return vec2(c * v.x - s * v.y,
+                s * v.x + c * v.y);
+}
+
+// -----------------------------------------------------------------------------
+// Steering logic
+// -----------------------------------------------------------------------------
+//
+// Uses cached direction for sensing.
+// Updates angle, and returns the (possibly updated) direction.
+// Trigonometry only happens if the angle actually changes (to refresh dir).
+vec2 findNewAngleAndUpdateDir(
+    inout float ang,      // current angle; updated if steering changes it
+    in    vec2  pos,      // current position (for sampling)
+    in    vec2  dirFwd,   // cached forward direction; must correspond to ang
+    in    float ta,       // turnAngle (max turn amount per update)
+    in    float dist,     // senseDist (sample distance)
+    inout uint  seed      // RNG seed; mutated by RandomFloat01
+){
+
+    float c = cosSenseAngle;
+    float s = sinSenseAngle;
+
+    // Forward direction is already known.
+    vec2 dirF = dirFwd;
+
+    // Left/right sensing directions are computed by rotating forward.
+    // Left uses -s, right uses +s (i.e., ±senseAngle).
+    vec2 dirL = rotate(dirFwd, c, -s);
+    vec2 dirR = rotate(dirFwd, c,  s);
+
+    // Sample trail intensity (alpha) in three directions at a fixed distance.
+    float fVal = sampleAlphaAt(pos, dirF, dist);
+    float lVal = sampleAlphaAt(pos, dirL, dist);
+    float rVal = sampleAlphaAt(pos, dirR, dist);
+
+    float newAng = ang;
+
+    // If forward isn't the best (>= both left and right), adjust heading.
+    // Otherwise keep going straight with no RNG cost.
+    if (!(fVal >= lVal && fVal >= rVal)) {
+        float rand = RandomFloat01(seed); // in [0,1)
+
+        // If forward is worse than BOTH, randomly turn left or right.
+        // (rand*2-1) gives [-1,1), multiplied by turnAngle.
+        if (fVal < lVal && fVal < rVal) {
+            newAng = ang + (rand * 2.0 - 1.0) * ta;
+
+        // Otherwise turn toward the stronger side with a random fraction
+        // of turnAngle to reduce lockstep motion.
+        } else if (lVal > rVal) {
+            newAng = ang + rand * ta;
+        } else if (rVal > lVal) {
+            newAng = ang - rand * ta;
+
+        // Equal left/right: keep current direction (no bias).
+        } else {
+            newAng = ang;
+        }
+    }
+
+    // Refresh cached direction only if angle changed.
+    // This is where trig happens: cos/sin of the new heading.
+    if (newAng != ang) {
+        ang = newAng;
+        return vec2(cos(newAng), sin(newAng));
+    } else {
+        return dirFwd;
+    }
+}
+
+void main(){
+    // Each invocation handles one agent by global index.
+    uint idx = gl_GlobalInvocationID.x;
+    if (idx >= count) return; // guard against extra threads beyond agent count
+
+    // Fetch 2D size of the 3D image for wrapping movement.
+    // Only xy are used; z is slice index.
+    vec2 rendImgSize = vec2(imageSize(rendImg).xy);
+
+    // Load agent state into registers.
+    Agent a = agents[idx];
+
+    // Build a deterministic seed per agent per frame.
+    uint seed = getRandSeed(idx);
+
+    // If dir isn't initialized on the CPU, initialize it once from angle.
+    // (Remove this if you always initialize dir on the host.)
+    if (dot(a.dir, a.dir) < 1e-12) {
+        a.dir = vec2(cos(a.angle), sin(a.angle));
+    } else {
+        // Keep it normalized-ish in case of drift (optional).
+        // inversesqrt is fast and stable for unit-length maintenance.
+        a.dir *= inversesqrt(max(dot(a.dir, a.dir), 1e-12));
+    }
+
+    // Update angle + cached dir:
+    // - samples forward/left/right alpha
+    // - chooses a new angle if needed
+    // - only recomputes cos/sin if angle changes
+    a.dir = findNewAngleAndUpdateDir(a.angle, a.pos, a.dir, turnAngle, senseDist, seed);
+
+    // Move using cached direction
+    a.pos += a.dir;
+
+    // Wrap around the domain using modulus.
+    // Adding rendImgSize keeps the argument positive before mod, to avoid
+    // negative results from mod when position is negative.
+    a.pos += rendImgSize;
+    a.pos = mod(a.pos, rendImgSize);
+
+    // Write updated agent back to SSBO.
+    agents[idx] = a;
+}

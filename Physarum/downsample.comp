@@ -1,0 +1,95 @@
+#version 450
+
+// ----------------------------------------------------------------------------
+// Downsample pass (2x2 -> 1)
+// - Reads full-res:  rendImg (3D slice), norHeightImg (2D), albedoImg (2D)
+// - Writes half-res: half_rendImg (3D slice), half_norHeightImg (2D), half_albedoImg (2D)
+// ----------------------------------------------------------------------------
+
+// Full-resolution inputs
+layout(set = 0, rgba32f, binding = 0) uniform readonly image3D rendImg;       // RGBA: RGB=color, A=height (or other)
+layout(set = 0, rgba32f, binding = 1) uniform readonly image2D norHeightImg;  // RGB=normal, A=height
+layout(set = 0, rgba32f, binding = 2) uniform readonly image2D albedoImg;     // RGB=albedo, A=1
+
+// Half-resolution outputs
+layout(set = 0, rgba32f, binding = 3) uniform writeonly image3D half_rendImg;      // downsampled rendImg (per slice)
+layout(set = 0, rgba32f, binding = 4) uniform writeonly image2D half_norHeightImg; // downsampled normal+height
+layout(set = 0, rgba32f, binding = 5) uniform writeonly image2D half_albedoImg;    // downsampled albedo
+
+// Slice routing for 3D images.
+// NOTE: This shader uses pc.readSlice for both reading *and* writing half_rendImg.
+// pc.writeSlice is not used (kept for symmetry with other passes).
+layout(binding = 6) uniform slice {
+    int readSlice;
+    int writeSlice;
+} pc;
+
+// 16x16 threads per workgroup. Each invocation computes one half-res output pixel.
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+void main() {
+    // Half-resolution pixel coordinate this thread is responsible for.
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+
+    // Output size is defined by the half-resolution targets.
+    ivec2 halfSize = imageSize(half_rendImg).xy;
+
+    // Bounds guard (important if dispatch padded up to multiples of 16).
+    if (gid.x >= halfSize.x || gid.y >= halfSize.y) return;
+
+    // Map half-res pixel -> top-left full-res pixel of its 2x2 block:
+    // (gid00 gid10)
+    // (gid01 gid11)
+    ivec2 gid00 = gid * 2;
+    ivec2 gid10 = gid00 + ivec2(1, 0);
+    ivec2 gid01 = gid00 + ivec2(0, 1);
+    ivec2 gid11 = gid00 + ivec2(1, 1);
+
+    // -------------------------------------------------------------------------
+    // 1) Downsample rendImg (3D slice): box filter (average 2x2).
+    // -------------------------------------------------------------------------
+    vec4 valR =  imageLoad(rendImg, ivec3(gid00, pc.readSlice));
+    valR     += imageLoad(rendImg, ivec3(gid10, pc.readSlice));
+    valR     += imageLoad(rendImg, ivec3(gid01, pc.readSlice));
+    valR     += imageLoad(rendImg, ivec3(gid11, pc.readSlice));
+    valR     *= 0.25;
+
+    // Write into half_rendImg at the same slice index used for reading.
+    imageStore(half_rendImg, ivec3(gid, pc.readSlice), valR);
+
+    // -------------------------------------------------------------------------
+    // 2) Downsample normal+height:
+    //    - sum the 4 texels
+    //    - renormalize normal (xyz) after averaging
+    //    - average alpha (height) normally
+    // -------------------------------------------------------------------------
+    vec4 valNH =  imageLoad(norHeightImg, gid00);
+    valNH     += imageLoad(norHeightImg, gid10);
+    valNH     += imageLoad(norHeightImg, gid01);
+    valNH     += imageLoad(norHeightImg, gid11);
+
+    // Normalize summed normal (equivalent to normalize(averageNormal)).
+    float n2 = dot(valNH.xyz, valNH.xyz);
+    if (n2 > 1e-12) {
+        valNH.xyz *= inversesqrt(n2);
+    } else {
+        // Fallback normal if input is degenerate.
+        valNH.xyz = vec3(0.0, 0.0, 1.0);
+    }
+
+    // Convert summed height -> averaged height.
+    valNH.w *= 0.25;
+
+    imageStore(half_norHeightImg, gid, valNH);
+
+    // -------------------------------------------------------------------------
+    // 3) Downsample albedo (2D): box filter (average 2x2).
+    // -------------------------------------------------------------------------
+    vec4 valA =  imageLoad(albedoImg, gid00);
+    valA     += imageLoad(albedoImg, gid10);
+    valA     += imageLoad(albedoImg, gid01);
+    valA     += imageLoad(albedoImg, gid11);
+    valA     *= 0.25;
+
+    imageStore(half_albedoImg, gid, valA);
+}

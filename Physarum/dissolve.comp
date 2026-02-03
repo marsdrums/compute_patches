@@ -1,0 +1,159 @@
+#version 450
+
+// 3D image holding the simulation field (e.g., pheromone/trail) in alpha (w).
+// We read from pc.readSlice and write the updated field to pc.writeSlice.
+// Format rgba32f: 4x float32 per texel.
+layout(set = 0, rgba32f, binding = 0) uniform image3D rendImg;
+
+// 2D mask image used to modulate evaporation strength.
+// Format rgba32f as well (declared rgba32f); we only read the red channel.
+layout(set = 0, rgba32f, binding = 1) uniform image2D maskImg;
+
+// Configuration parameters.
+layout(binding = 2) uniform Cfg {
+    float evaporate; // base evaporation amount per frame
+};
+
+// Slice selection parameters
+// readSlice  = source slice in rendImg
+// writeSlice = destination slice in rendImg
+layout(binding = 3) uniform slice {
+    int readSlice;
+    int writeSlice;
+} pc;
+
+// Workgroup is 16x16 threads.
+// Each thread computes one output pixel (gid).
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+// -----------------------------------------------------------------------------
+// Shared-memory tiling for fast 3x3 blur
+// -----------------------------------------------------------------------------
+//
+// We need each thread to access a 3x3 neighborhood in the source.
+// For a 16x16 output tile, a 1-pixel "halo" around it makes an 18x18 source tile.
+// We only blur the alpha channel (w), so store just that in shared memory.
+//
+// Indexing convention here is [row][col] => [y][x].
+shared float sTile[18][18];
+
+// Clamp pixel coordinates into the valid [0..size-1] range (edge handling).
+ivec2 clampCoord(ivec2 p, ivec2 size) {
+    return clamp(p, ivec2(0), size - ivec2(1));
+}
+
+// Helper to load only the alpha channel from rendImg at Z = readSlice.
+float loadW(ivec2 p) {
+    return imageLoad(rendImg, ivec3(p, pc.readSlice)).w;
+}
+
+void main() {
+    // Dimensions of the 2D slice we’re processing.
+    ivec2 size = imageSize(rendImg).xy;
+
+    // Global pixel coordinate this invocation is responsible for.
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+
+    // Bounds check in case the dispatch covers more than the image size.
+    if (gid.x >= size.x || gid.y >= size.y) return;
+
+    // Local coordinate within the 16x16 workgroup: 0..15 in x and y.
+    ivec2 lid  = ivec2(gl_LocalInvocationID.xy);
+
+    // Compute the global coordinate of the top-left pixel covered by this workgroup.
+    // Since gid = base + lid, then base = gid - lid.
+    ivec2 base = gid - lid;
+
+    // Shared tile coords: shift by +1 so that [1..16] maps to the 16x16 interior,
+    // leaving [0] and [17] as the 1-pixel halo.
+    int sx = lid.x + 1;
+    int sy = lid.y + 1;
+
+    // -------------------------------------------------------------------------
+    // 1) Load the interior: each thread loads its corresponding center texel.
+    // -------------------------------------------------------------------------
+    {
+        ivec2 p = clampCoord(base + lid, size);
+        sTile[sy][sx] = loadW(p);
+    }
+
+    // -------------------------------------------------------------------------
+    // 2) Load the halo: edges and corners of the 18x18 shared tile.
+    //    This is distributed across a few threads to avoid extra work.
+    // -------------------------------------------------------------------------
+
+    // Left halo column: threads with lid.x == 0 load x = -1 neighbor.
+    if (lid.x == 0) {
+        ivec2 p = clampCoord(base + ivec2(-1, lid.y), size);
+        sTile[sy][0] = loadW(p);
+    }
+
+    // Right halo column: threads with lid.x == 15 load x = +16 neighbor.
+    if (lid.x == 15) {
+        ivec2 p = clampCoord(base + ivec2(16, lid.y), size);
+        sTile[sy][17] = loadW(p);
+    }
+
+    // Top halo row: threads with lid.y == 0 load y = -1 neighbor.
+    if (lid.y == 0) {
+        ivec2 p = clampCoord(base + ivec2(lid.x, -1), size);
+        sTile[0][sx] = loadW(p);
+    }
+
+    // Bottom halo row: threads with lid.y == 15 load y = +16 neighbor.
+    if (lid.y == 15) {
+        ivec2 p = clampCoord(base + ivec2(lid.x, 16), size);
+        sTile[17][sx] = loadW(p);
+    }
+
+    // Corner halo texels: only 4 threads handle these.
+    if (lid.x == 0 && lid.y == 0) {
+        sTile[0][0] = loadW(clampCoord(base + ivec2(-1, -1), size));
+    }
+    if (lid.x == 15 && lid.y == 0) {
+        sTile[0][17] = loadW(clampCoord(base + ivec2(16, -1), size));
+    }
+    if (lid.x == 0 && lid.y == 15) {
+        sTile[17][0] = loadW(clampCoord(base + ivec2(-1, 16), size));
+    }
+    if (lid.x == 15 && lid.y == 15) {
+        sTile[17][17] = loadW(clampCoord(base + ivec2(16, 16), size));
+    }
+
+    // Synchronize so all shared-memory loads complete before any thread blurs.
+    barrier();
+
+    // -------------------------------------------------------------------------
+    // 3) 3x3 Gaussian blur on alpha channel (w), reading from shared tile.
+    //    Kernel:
+    //      [1 2 1]
+    //      [2 4 2]  * (1/16)
+    //      [1 2 1]
+    // -------------------------------------------------------------------------
+    float v =
+        (sTile[sy-1][sx-1] + 2.0*sTile[sy-1][sx]   + sTile[sy-1][sx+1] +
+         2.0*sTile[sy  ][sx-1] + 4.0*sTile[sy  ][sx] + 2.0*sTile[sy  ][sx+1] +
+         sTile[sy+1][sx-1] + 2.0*sTile[sy+1][sx]   + sTile[sy+1][sx+1]) * (1.0/16.0);
+
+    // -------------------------------------------------------------------------
+    // 4) Evaporation modulated by a mask image.
+    // -------------------------------------------------------------------------
+    //
+    // The mask lookup uses an offset: gid - (710, 290).
+    // That effectively positions a 500x500 mask region around screen center
+    //
+    // If mask.r < 0.3 => stronger evaporation factor (mask = 1.0)
+    // else            => weaker evaporation factor (mask = 0.3)
+    //
+    // NOTE: There is no bounds check for maskImg coordinates here.
+    float mask = imageLoad(maskImg, gid - ivec2(710, 290)).r < 0.3 ? 1.0 : 0.3;
+
+    // Apply evaporation and clamp to >= 0.
+    v = max(0.0, v - evaporate * mask);
+
+    // -------------------------------------------------------------------------
+    // 5) Write result into rendImg at Z = writeSlice.
+    // RGB are set to 0, alpha holds the updated blurred/evaporated value.
+    // -------------------------------------------------------------------------
+    imageStore(rendImg, ivec3(gid, pc.writeSlice), vec4(0, 0, 0, v));
+}

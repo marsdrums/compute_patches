@@ -1,0 +1,222 @@
+#version 450
+
+// ----------------------------------------------------------------------------
+// Indirect lighting / multi-bounce gather pass
+//
+// Writes one "bounce layer" per iteration into bouncesImg:
+//   bouncesImg(x,y,iteration).rgb = estimated indirect light at that pixel
+//   bouncesImg(x,y,iteration).a   = terrain height (passed through)
+//
+// For iteration == 0, we gather radiance from rendImg (pc.readSlice).
+// For iteration  > 0, we gather radiance from the previous bounce layer:
+//   bouncesImg(..., iteration - 1)
+//
+// Inputs:
+//  - norHeightImg: normal (xyz) + height (w)
+//  - albedoImg:    base color (rgb)
+//  - rendImg:      base direct-lit color in rgb, height in a (used only at iter 0)
+//  - bouncesImg:   previous bounce layers (used at iter > 0)
+//
+// This is a heightfield GI approximation: for a few azimuth directions we walk
+// outward in expanding steps, track the maximum slope (horizon) and accumulate
+// contributions from points that extend the horizon.
+//
+// ----------------------------------------------------------------------------
+
+// Base render field (3D slices). At iteration 0 we read rgb as source radiance.
+layout(set = 0, rgba32f, binding = 0) uniform image3D rendImg;
+
+// Surface attributes
+layout(set = 0, rgba32f, binding = 1) uniform image2D norHeightImg; // xyz = normal, w = height
+layout(set = 0, rgba32f, binding = 3) uniform image2D albedoImg;    // rgb = albedo
+
+// Bounce storage (3D, using z as bounce iteration index)
+layout(set = 0, rgba32f, binding = 2) uniform image3D bouncesImg;
+
+// Iteration state
+layout(binding = 4) uniform Iteration {
+    uint iteration; // which bounce we are computing (0 = first indirect layer)
+    uint frame;     // frame index for RNG decorrelation
+};
+
+// Slice routing for rendImg (bouncesImg ignores these; it uses iteration as z)
+layout(binding = 5) uniform slice {
+    int readSlice;
+    int writeSlice; // unused here; kept for API symmetry
+} pc;
+
+// 16x16 threads per workgroup
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+// ----------------------------------------------------------------------------
+// RNG (cheap hash-based)
+// ----------------------------------------------------------------------------
+
+uint wang_hash(inout uint seed) {
+    seed = (seed ^ 61u) ^ (seed >> 16u);
+    seed *= 9u;
+    seed ^= (seed >> 4u);
+    seed *= 0x27d4eb2du;
+    seed ^= (seed >> 15u);
+    return seed;
+}
+
+float rand01(inout uint seed) {
+    return float(wang_hash(seed)) / 4294967296.0; // 2^32
+}
+
+uint makeSeed(uint idx) {
+    return idx + frame * 9281u;
+}
+
+// ----------------------------------------------------------------------------
+// Indirect light gather
+// ----------------------------------------------------------------------------
+
+vec3 calcIndirectLight(
+    ivec2 gid,      // (unused) pixel coordinate; kept for potential debugging
+    ivec2 size,     // image size in pixels
+    vec3  ro,       // ray origin: (x,y,height) in "world" units (pixel units)
+    vec3  N,        // surface normal at ro
+    inout uint seed // RNG state
+){
+    // Sampling parameters (quality/perf knobs)
+    const int   NUM_DIRS   = 3;    // number of azimuth directions per pixel
+    const int   NUM_STEPS  = 8;    // horizon-walk steps per direction
+    const float MAX_DIST   = 500.0;
+    const float START_DIST = 1.5;
+
+    // Distance attenuation (heuristic falloff)
+    const float ATTEN = 0.005;
+
+    // Constants
+    const float TWO_PI = 6.28318530718;
+    const float LOG2E  = 1.4426950408889634; // log2(e)
+
+    // Randomize the geometric step growth to break up banding.
+    float stepGrow = mix(1.33, 2.0, rand01(seed));
+
+    // Random starting azimuth angle.
+    float rot = rand01(seed) * TWO_PI;
+
+    // We rotate the 2D direction by a fixed delta each loop.
+    float delta = TWO_PI / float(NUM_DIRS);
+    float c = cos(delta);
+    float s = sin(delta);
+
+    // Initial direction in XY plane (unit length).
+    vec2 rd = vec2(cos(rot), sin(rot));
+
+    // Cache origin pieces (avoid repeated swizzles)
+    vec2  roxy = ro.xy;
+    float roz  = ro.z;
+
+    // Accumulators: weighted radiance sum and total weight
+    vec3  sum  = vec3(0.0);
+    float wsum = 0.0;
+
+    // For each azimuth direction...
+    for (int i = 0; i < NUM_DIRS; ++i) {
+        // "Horizon" tracking: we only accumulate a sample when it increases maxSlope.
+        float maxSlope = -1e20;
+
+        // Precompute dot(N.xy, rd) for the dot(N, v) term below.
+        float nDotRdXY = dot(N.xy, rd);
+
+        float d = START_DIST;
+
+        // Walk outward with exponentially growing steps.
+        for (int st = 0; st < NUM_STEPS && d < MAX_DIST; ++st) {
+            vec2  uv = roxy + rd * d;
+            ivec2 ip = ivec2(uv);
+
+            // Bounds check (unsigned trick catches <0 and >=size)
+            if (uint(ip.x) >= uint(size.x) || uint(ip.y) >= uint(size.y)) {
+                break;
+            }
+
+            // Source radiance + height:
+            // - iteration == 0: use direct-lit color from rendImg (pc.readSlice)
+            // - iteration  > 0: use previous bounce layer from bouncesImg (iteration-1)
+            vec4 lookup = (iteration == 0u)
+                ? imageLoad(rendImg,    ivec3(ip, pc.readSlice))
+                : imageLoad(bouncesImg, ivec3(ip, int(iteration - 1u)));
+
+            float h  = lookup.w;
+            float dz = h - roz;
+
+            // Slope of the terrain ray to that point along rd.
+            float slope = dz / d;
+
+            // Only consider this sample if it extends the current "horizon".
+            // (This approximates visibility/occlusion along the heightfield.)
+            if (slope > maxSlope) {
+                maxSlope = slope;
+
+                // Direction vector toward sample point in 3D:
+                // v = (rd*d, dz). We want a cosine term ~ dot(N, v)/|v|.
+                float invLen = inversesqrt(d * d + dz * dz);
+                float ndl = (nDotRdXY * d + N.z * dz) * invLen;
+                ndl = max(0.0, ndl);
+
+                // Exponential attenuation by distance.
+                // exp2(-x * log2(e)) == exp(-x). Here x = d*ATTEN.
+                float att = exp2(-d * ATTEN * LOG2E);
+
+                float w = ndl * att;
+
+                // Skip zero-weight samples (branch may or may not be beneficial).
+                if (w > 0.0) {
+                    sum  += lookup.rgb * w;
+                    wsum += w;
+                }
+            }
+
+            // Increase step distance geometrically.
+            d *= stepGrow;
+        }
+
+        // Rotate rd by delta: rd = rot(delta) * rd
+        rd = vec2(rd.x * c - rd.y * s,
+                  rd.x * s + rd.y * c);
+    }
+
+    return (wsum > 1e-6) ? (sum / wsum) : vec3(0.0);
+}
+
+// ----------------------------------------------------------------------------
+// Main
+// ----------------------------------------------------------------------------
+
+void main() {
+    ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(rendImg).xy;
+
+    // Bounds guard
+    if (gid.x >= size.x || gid.y >= size.y) return;
+
+    // Build a per-pixel, per-frame, per-iteration RNG seed.
+    uint linearIdx = uint(gid.x) + uint(gid.y) * uint(size.x);
+    uint seed = makeSeed(linearIdx + 7777u + 8839u * iteration);
+
+    // Surface attributes at this pixel
+    vec4 nh = imageLoad(norHeightImg, gid);
+    vec3 N  = nh.xyz;
+    float h = nh.w;
+
+    // World-space origin at the surface
+    vec3 ro = vec3(float(gid.x), float(gid.y), h);
+
+    // Compute indirect contribution by sampling the heightfield around the point
+    vec3 ind = calcIndirectLight(gid, size, ro, N, seed);
+
+    // Artistic boost
+    ind *= 1.3;
+
+    // Apply albedo so bounced light is tinted by the surface color
+    vec3 alb = imageLoad(albedoImg, gid).rgb;
+    ind *= alb;
+
+    // Store this bounce layer (rgb = indirect radiance, a = height passthrough)
+    imageStore(bouncesImg, ivec3(gid, int(iteration)), vec4(ind, h));
+}

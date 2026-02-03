@@ -1,0 +1,113 @@
+#version 460
+
+// ----------------------------------------------------------------------------
+// Temporal accumulation + reconstruction + tonemap
+//
+// This pass:
+//  1) Reprojects / samples half-res indirect lighting (bouncesImg layer 0)
+//     using a per-frame STBN jitter.
+//  2) Temporally accumulates indirect and direct buffers (exponential moving avg).
+//  3) Produces a final display image with simple Reinhard tonemap + gamma.
+//
+// Notes / assumptions:
+//  - bouncesImg is half resolution relative to indirectImg/directImg/resultImg.
+//  - rendImg is full resolution; we read direct lighting from pc.readSlice.
+//  - stbnImg is an 8x8 atlas of 64x64 tiles (total 512x512) used for jitter.
+// ----------------------------------------------------------------------------
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+// Full-res direct lighting source (RGB) in the selected slice
+layout(set = 0, rgba32f, binding = 0) uniform readonly image3D rendImg;
+
+// Half-res indirect lighting in Z layers (we use layer 0 here)
+layout(set = 0, rgba32f, binding = 1) uniform readonly image3D bouncesImg;
+
+// STBN jitter texture atlas
+layout(set = 0, rgba32f, binding = 2) uniform readonly image2D stbnImg;
+
+// Temporal history buffers (read + write)
+layout(set = 0, rgba32f, binding = 3) uniform image2D indirectImg; // accumulated indirect (full res)
+layout(set = 0, rgba32f, binding = 4) uniform image2D directImg;   // accumulated direct   (full res)
+
+// Final display output
+layout(set = 0, rgba32f, binding = 5) uniform writeonly image2D resultImg;
+
+// Slice selection for rendImg
+layout(binding = 6) uniform slice {
+    int readSlice;
+    int writeSlice; // unused here
+} pc;
+
+// Frame index for STBN tile selection
+layout(binding = 7) uniform frameParam {
+    int frame;
+};
+
+// Fetch a 2D jitter value in [-1, 1] using a 64x64 tile chosen by frame.
+// stbnImg is treated as an 8x8 atlas of 64x64 tiles => 512x512 total.
+vec2 loadStbnJitter(ivec2 gid, int frameIdx) {
+    ivec2 inTile = gid % ivec2(64); // local coordinate inside a 64x64 tile
+
+    int tile = frameIdx & 63;       // frame % 64
+    ivec2 tileOffset = ivec2(tile & 7, tile >> 3) * 64; // (tile%8, tile/8)*64
+
+    ivec2 stbnUV = inTile + tileOffset;
+
+    // Map [0,1] -> [-1,1]
+    return imageLoad(stbnImg, stbnUV).xy * 2.0 - 1.0;
+}
+
+void main() {
+    ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(indirectImg).xy;
+
+    // Bounds guard (dispatch may be padded)
+    if (gid.x >= size.x || gid.y >= size.y) return;
+
+    // -------------------------------------------------------------------------
+    // 1) Jittered lookup into half-resolution indirect buffer
+    // -------------------------------------------------------------------------
+    vec2 jitter = loadStbnJitter(gid, frame);
+
+    // Convert full-res pixel to half-res pixel:
+    //   halfGid ≈ floor((gid + jitter*2) * 0.5)
+    // jitter*2 gives subpixel offsets in full-res space before halving.
+    ivec2 halfGid = ivec2(floor((vec2(gid) + jitter * 2.0) * 0.5));
+
+    // NOTE: No clamp here. If gid is near borders, halfGid can go out-of-bounds.
+    // If that’s possible in your dispatch, clamp to the half-res size:
+    // halfGid = clamp(halfGid, ivec2(0), imageSize(bouncesImg).xy - ivec2(1));
+
+    vec3 indSample = imageLoad(bouncesImg, ivec3(halfGid, 0)).xyz;
+
+    // -------------------------------------------------------------------------
+    // 2) Temporal accumulation (EMA) for indirect + direct
+    // -------------------------------------------------------------------------
+    vec3 prevInd = imageLoad(indirectImg, gid).xyz;
+    vec3 prevDir = imageLoad(directImg,   gid).xyz;
+
+    // Indirect: heavy smoothing (0.91 history weight)
+    vec3 ind = mix(indSample, prevInd, 0.91);
+
+    // Direct: lighter smoothing (0.8 history weight)
+    vec3 dirNow = imageLoad(rendImg, ivec3(gid, pc.readSlice)).xyz;
+    vec3 dir    = mix(dirNow, prevDir, 0.8);
+
+    // Store updated histories
+    imageStore(indirectImg, gid, vec4(ind, 1.0));
+    imageStore(directImg,   gid, vec4(dir, 1.0));
+
+    // -------------------------------------------------------------------------
+    // 3) Combine + tonemap + gamma
+    // -------------------------------------------------------------------------
+    vec3 res = ind + dir;
+
+    // Simple Reinhard tonemap: x / (x + 1)
+    res = res / (res + 1.0);
+
+    // Gamma to approximate sRGB (1/2.2 ≈ 0.4545)
+    res = pow(res, vec3(0.4545454545));
+
+    imageStore(resultImg, gid, vec4(res, 1.0));
+}

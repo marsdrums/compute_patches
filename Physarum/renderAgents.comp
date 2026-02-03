@@ -1,0 +1,69 @@
+#version 450
+
+// Agent state layout must match the SSBO layout used by the simulation pass.
+// Only pos is used in this shader; angle/dir are present for consistency.
+struct Agent {
+    vec2  pos;    // 2D position in pixel coordinates
+    float angle;  // unused here
+    vec2  dir;    // unused here
+};
+
+// SSBO: first a uint count, then a packed array of Agent structs.
+layout(std430, set = 0, binding = 0) buffer agentsBuff {
+    uint  count;   // number of valid agents
+    Agent agents[]; // agent array
+};
+
+// 3D render/pheromone volume. We read & write a single slice (Z = readSlice).
+// rgba32f: RGB can hold color/other channels, A used here as pheromone amount.
+layout(set = 0, rgba32f, binding = 1) uniform image3D rendImg;
+
+// Simple config: upper clamp for pheromone deposit.
+layout(binding = 2) uniform Cfg {
+    float maxPheromone; // maximum allowed alpha (pheromone) value
+};
+
+// Slice selection (acts like per-dispatch parameters).
+// In this shader only readSlice is used; writeSlice is present for symmetry
+// with other passes/pipelines.
+layout(binding = 3) uniform slice {
+    int readSlice;
+    int writeSlice;
+} pc;
+
+// One-dimensional dispatch: 256 threads per workgroup.
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+// From https://iquilezles.org/articles/functions/
+float almostIdentity( float x, float m, float n ) {
+    if( x>m ) return x;
+    float a = 2.0*n - m;
+    float b = 2.0*m - 3.0*n;
+    float t = x/m;
+    return (a*t + b)*t*t + n;
+}
+
+
+void main(){
+    // Global invocation index corresponds to agent index.
+    uint idx = gl_GlobalInvocationID.x;
+
+    // Guard in case dispatch size > agent count.
+    if (idx >= count) return;
+
+    // Load agent data (we only need position).
+    vec2 pos = agents[idx].pos;
+
+    // Load current texel at the agent's position in the chosen slice.
+    // Note: pos is vec2 -> converted to ivec3; the float->int conversion truncates.
+    float curr = imageLoad(rendImg, ivec3(pos, pc.readSlice)).w;
+
+    // Deposit pheromone into alpha channel:
+    // - increment alpha by 1.0
+    // - clamp to maxPheromone
+
+    float newA = min(maxPheromone, 1.0 + curr);
+
+    // Store back to the same location.
+    imageStore(rendImg, ivec3(pos, pc.readSlice), vec4(0,0,0, newA));
+}

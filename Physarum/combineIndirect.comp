@@ -1,19 +1,34 @@
 #version 460
 
+// ----------------------------------------------------------------------------
+// Bounce accumulation pass
+//
+// Sums multiple bounce layers stored in a 3D image into layer 0.
+// After this pass:
+//   bouncesImg(x,y,0) = bouncesImg(x,y,0) + bouncesImg(x,y,1) + bouncesImg(x,y,2) + bouncesImg(x,y,3)
+//
+// Notes:
+// - This pass assumes bouncesImg has at least 4 layers in Z (0..3).
+// ----------------------------------------------------------------------------
+
 layout(local_size_x = 16, local_size_y = 16) in;
 
+// 3D image containing per-bounce contributions across Z layers.
 layout(set = 0, rgba32f, binding = 0) uniform image3D bouncesImg;
 
 void main() {
-
-    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
     ivec2 size = imageSize(bouncesImg).xy;
 
-    if(gid.x >= size.x || gid.y >= size.y) return;
+    // Bounds guard (dispatch may be padded up to multiples of 16).
+    if (gid.x >= size.x || gid.y >= size.y) return;
 
-    vec4 val = imageLoad(bouncesImg, ivec3(gid, 0));
-    val += imageLoad(bouncesImg, ivec3(gid, 1));
-    val += imageLoad(bouncesImg, ivec3(gid, 2));
-    val += imageLoad(bouncesImg, ivec3(gid, 3));
-    imageStore(bouncesImg, ivec3(gid, 0), val);
+    // Load and accumulate four bounce layers at this pixel.
+    vec4 sum =  imageLoad(bouncesImg, ivec3(gid, 0));
+    sum.xyz  += imageLoad(bouncesImg, ivec3(gid, 1)).xyz;
+    sum.xyz  += imageLoad(bouncesImg, ivec3(gid, 2)).xyz;
+    sum.xyz  += imageLoad(bouncesImg, ivec3(gid, 3)).xyz;
+
+    // Write the result back into layer 0.
+    imageStore(bouncesImg, ivec3(gid, 0), sum);
 }
