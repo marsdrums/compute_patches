@@ -17,7 +17,7 @@
                     "maxclass": "comment",
                     "numinlets": 1,
                     "numoutlets": 0,
-                    "patching_rect": [ 667.5, 428.0, 57.0, 20.0 ],
+                    "patching_rect": [ 668.0, 437.0, 57.0, 20.0 ],
                     "text": "Sorted in"
                 }
             },
@@ -368,7 +368,7 @@
                     "numoutlets": 2,
                     "outlettype": [ "", "float" ],
                     "parameter_enable": 1,
-                    "patching_rect": [ 726.5, 429.0, 60.0, 18.0 ],
+                    "patching_rect": [ 727.0, 438.0, 60.0, 18.0 ],
                     "saved_attribute_attributes": {
                         "activebgcolor": {
                             "expression": ""
@@ -459,7 +459,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 653.5, 449.0, 389.0, 39.0 ],
+                    "patching_rect": [ 654.0, 458.0, 389.0, 39.0 ],
                     "stereo": 0,
                     "sync": 1
                 }
@@ -562,7 +562,7 @@
                     "mode": 0,
                     "numinlets": 1,
                     "numoutlets": 0,
-                    "patching_rect": [ 635.5, 384.0, 430.0, 123.0 ],
+                    "patching_rect": [ 636.0, 384.0, 430.0, 132.0 ],
                     "proportion": 0.5
                 }
             }
@@ -670,14 +670,6 @@
         "parameters": {
             "obj-19": [ "live.numbox", "live.numbox", 0 ],
             "obj-22": [ "live.numbox[1]", "live.numbox", 0 ],
-            "parameterbanks": {
-                "0": {
-                    "index": 0,
-                    "name": "",
-                    "parameters": [ "-", "-", "-", "-", "-", "-", "-", "-" ],
-                    "buttons": [ "-", "-", "-", "-", "-", "-", "-", "-" ]
-                }
-            },
             "inherited_shortname": 1
         },
         "autosave": 0
