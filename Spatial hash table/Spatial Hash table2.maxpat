@@ -13,12 +13,52 @@
         "boxes": [
             {
                 "box": {
+                    "id": "obj-54",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "", "" ],
+                    "patching_rect": [ 676.5, 1844.0, 201.0, 22.0 ],
+                    "text": "jit.gl.videoplane @transform_reset 2"
+                }
+            },
+            {
+                "box": {
+                    "filename": "jit.fx.lin2srgb.jxs",
+                    "id": "obj-51",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "jit_gl_texture", "" ],
+                    "patching_rect": [ 676.5, 1809.0, 75.0, 22.0 ],
+                    "text": "jit.fx.lin2srgb",
+                    "textfile": {
+                        "filename": "jit.fx.lin2srgb.jxs",
+                        "flags": 0,
+                        "embed": 0,
+                        "autowatch": 1
+                    }
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-18",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 3,
+                    "outlettype": [ "jit_gl_texture", "", "" ],
+                    "patching_rect": [ 676.5, 1777.0, 375.0, 22.0 ],
+                    "text": "jit.gl.node @capture 1 @type float32 @erase_color 0.04 0.04 0.04 1."
+                }
+            },
+            {
+                "box": {
                     "id": "obj-15",
                     "maxclass": "newobj",
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 989.0, 1955.0, 90.0, 22.0 ],
+                    "patching_rect": [ 1004.0, 1938.0, 90.0, 22.0 ],
                     "text": "prepend param"
                 }
             },
@@ -30,7 +70,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 560.0, 1407.0, 365.0, 22.0 ],
+                    "patching_rect": [ 560.0, 1426.0, 365.0, 22.0 ],
                     "text": "jit.gpu.compute @autoworkgroups img_lines @img_lines img_lines",
                     "textfile": {
                         "text": "// default compute shader\n#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\nlayout(rgba32f, binding = 0) uniform writeonly image2D img_lines;\nvoid main() {\n    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(img_lines);\n\n    if(gid.x >= size.x || gid.y >= size.y) return;\n    \n    imageStore(img_lines, gid, vec4(0.0));\n}",
@@ -48,7 +88,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 1105.0, 1676.0, 53.0, 22.0 ],
+                    "patching_rect": [ 1105.0, 1669.0, 53.0, 22.0 ],
                     "text": "jit.matrix"
                 }
             },
@@ -59,7 +99,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "bang" ],
-                    "patching_rect": [ 737.0, 1768.0, 58.0, 22.0 ],
+                    "patching_rect": [ 1130.0, 1763.0, 58.0, 22.0 ],
                     "text": "loadbang"
                 }
             },
@@ -70,7 +110,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 737.0, 1801.0, 294.0, 22.0 ],
+                    "patching_rect": [ 1130.0, 1796.0, 294.0, 22.0 ],
                     "text": "setcell 0 val 0 0 0, setcell 1 val 2000 2000 2000, bang"
                 }
             },
@@ -81,7 +121,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 737.0, 1839.0, 113.0, 22.0 ],
+                    "patching_rect": [ 1130.0, 1830.0, 113.0, 22.0 ],
                     "text": "jit.matrix 3 float32 2"
                 }
             },
@@ -122,7 +162,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 1105.0, 1811.0, 107.0, 22.0 ],
+                    "patching_rect": [ 1105.0, 1729.0, 107.0, 22.0 ],
                     "text": "prepend instances"
                 }
             },
@@ -133,7 +173,7 @@
                     "numinlets": 9,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 1105.0, 1890.0, 582.0, 22.0 ],
+                    "patching_rect": [ 1105.0, 1869.0, 582.0, 22.0 ],
                     "text": "jit.gl.mesh @draw_mode lines @shader drawLines @blend_enable 1 @depth_enable 0 @gl_color 1 1 1 0.1"
                 }
             },
@@ -144,7 +184,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 1105.0, 1706.0, 41.0, 22.0 ],
+                    "patching_rect": [ 1105.0, 1699.0, 41.0, 22.0 ],
                     "text": "jit.spill"
                 }
             },
@@ -155,7 +195,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 1105.0, 1646.0, 93.0, 22.0 ],
+                    "patching_rect": [ 1105.0, 1639.0, 93.0, 22.0 ],
                     "text": "jit.coerce 1 long"
                 }
             },
@@ -166,7 +206,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 1105.0, 1612.0, 53.0, 22.0 ],
+                    "patching_rect": [ 1105.0, 1605.0, 53.0, 22.0 ],
                     "text": "jit.matrix"
                 }
             },
@@ -217,7 +257,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 1139.0, 1390.0, 267.0, 22.0 ],
+                    "patching_rect": [ 1139.0, 1407.0, 267.0, 22.0 ],
                     "text": "jit.gpu.buffer @name buff_counter @bytecount 4"
                 }
             },
@@ -228,7 +268,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 660.5, 1577.0, 391.0, 22.0 ],
+                    "patching_rect": [ 906.0, 1362.0, 391.0, 22.0 ],
                     "text": "jit.gpu.image @dim 4000 4000 @format rgba32_float @name img_lines"
                 }
             },
@@ -631,7 +671,7 @@
                     "numinlets": 4,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 1133.0, 1322.0, 433.0, 22.0 ],
+                    "patching_rect": [ 1167.0, 1322.0, 433.0, 22.0 ],
                     "text": "jit.gpu.compute @shader bitonicMergeSortHash.comp @buff_points buff_points",
                     "textfile": {
                         "filename": "bitonicMergeSortHash.comp",
@@ -649,7 +689,7 @@
                     "numinlets": 3,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 560.0, 1362.0, 229.0, 22.0 ],
+                    "patching_rect": [ 560.0, 1392.0, 229.0, 22.0 ],
                     "text": "jit.gpu.compute @buff_points buff_points",
                     "textfile": {
                         "text": "// default compute shader\n#version 460\nlayout(local_size_x = 128) in;\n\nstruct points{\n    vec3 pos;\n    uint start;\n    uint key;\n};\n\nlayout(std430, binding = 0) buffer buff_points {\n    points point[];\n};\n\nlayout(binding = 1) uniform buff_info {\n    uint buffer_length;\n};\n\nshared uint keys[128+1];\n\nvoid main() {\n    uint gid = gl_GlobalInvocationID.x;\n\n    if(gid >= buffer_length) return;\n\n    uint lid = gl_LocalInvocationIndex;\n    \n    keys[lid+1] = point[gid].key;\n    if(lid == 0){\n        keys[0] = point[max(0u, gid-1)].key;\n    }\n    barrier();\n    \n    uint thisKey = keys[lid+1];\n    uint prevKey = keys[lid];\n\n    if(thisKey != prevKey){\n        point[thisKey].start = gid;\n    }\n}",
@@ -708,8 +748,8 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "int" ],
-                    "patching_rect": [ 1153.0, 376.0, 30.0, 22.0 ],
-                    "text": "* 20"
+                    "patching_rect": [ 1153.0, 326.0, 30.0, 22.0 ],
+                    "text": "* 24"
                 }
             },
             {
@@ -845,7 +885,7 @@
                                     "numinlets": 1,
                                     "numoutlets": 1,
                                     "outlettype": [ "" ],
-                                    "patching_rect": [ 369.0, 289.0, 61.0, 22.0 ],
+                                    "patching_rect": [ 129.0, 279.0, 61.0, 22.0 ],
                                     "text": "normalize"
                                 }
                             },
@@ -1168,18 +1208,6 @@
                     "patching_rect": [ 103.0, 214.0, 197.0, 22.0 ],
                     "text": "jit.world @floating 1 @size 960 540"
                 }
-            },
-            {
-                "box": {
-                    "attr": "gl_color",
-                    "id": "obj-41",
-                    "maxclass": "attrui",
-                    "numinlets": 1,
-                    "numoutlets": 1,
-                    "outlettype": [ "" ],
-                    "parameter_enable": 0,
-                    "patching_rect": [ 1105.0, 1860.0, 150.0, 22.0 ]
-                }
             }
         ],
         "lines": [
@@ -1297,6 +1325,18 @@
                 "patchline": {
                     "destination": [ "obj-9", 0 ],
                     "source": [ "obj-17", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-51", 0 ],
+                    "source": [ "obj-18", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-70", 0 ],
+                    "source": [ "obj-18", 1 ]
                 }
             },
             {
@@ -1473,12 +1513,6 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-70", 0 ],
-                    "source": [ "obj-41", 0 ]
-                }
-            },
-            {
-                "patchline": {
                     "destination": [ "obj-32", 0 ],
                     "order": 2,
                     "source": [ "obj-42", 0 ]
@@ -1598,6 +1632,12 @@
                 "patchline": {
                     "destination": [ "obj-59", 1 ],
                     "source": [ "obj-50", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-54", 0 ],
+                    "source": [ "obj-51", 0 ]
                 }
             },
             {
