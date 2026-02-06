@@ -1,0 +1,33 @@
+#version 460
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(r32f, binding = 0) uniform readonly image2D img_height;
+layout(r32f, binding = 1) uniform image2D img_atlas;
+
+layout(binding = 2) uniform push_constants{
+    uint iteration;
+    ivec2 size;
+    ivec2 readOffset;
+    ivec2 writeOffset;
+} pc;
+void main() {
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+
+    if(gid.x >= pc.size.x || gid.y >= pc.size.y) return;
+
+    if(pc.iteration == 0u){
+        float h = imageLoad(img_height, gid).x;
+        imageStore(img_atlas, gid, vec4(h));
+        return;
+    } 
+
+    ivec2 readGid = gid*2 + pc.readOffset;
+    float h = imageLoad(img_atlas, readGid).x;
+    h = max(h, imageLoad(img_atlas, readGid + ivec2(1,0)).x);
+    h = max(h, imageLoad(img_atlas, readGid + ivec2(0,1)).x);
+    h = max(h, imageLoad(img_atlas, readGid + ivec2(1,1)).x);
+
+    imageStore(img_atlas, gid + pc.writeOffset, vec4(h));
+}

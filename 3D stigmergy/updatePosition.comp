@@ -4,18 +4,16 @@ layout(local_size_x = 512, local_size_y = 1, local_size_z = 1) in;
 
 layout(r32f, binding = 0) uniform image3D field;
 
-struct agent{
-    vec3 pos;
-    vec3 vel;
+layout(std430, binding = 1) buffer posBuff {
+    vec4 pos[];
+};
+layout(std430, binding = 2) buffer velBuff {
+    vec4 vel[];
 };
 
-layout(std430, binding = 1) buffer agentsBuff {
-    agent agents[]; 
-};
+layout(rgba32f, binding = 3) writeonly uniform image2D outImg;
 
-layout(rgba32f, binding = 2) writeonly uniform image2D outImg;
-
-layout(binding = 3) uniform Config {
+layout(binding = 4) uniform Config {
    float frontness;
    float speed;
    float radius;
@@ -56,18 +54,20 @@ float readImage3DTrilinear(vec3 uvw) {
 
     ivec3 p0 = ivec3(floor(pos));
     ivec3 p1 = p0 + ivec3(1);
+    p0 = clamp(p0, ivec3(0), imgSize - 1);
+    p1 = clamp(p1, ivec3(0), imgSize - 1);
 
     vec3 f = fract(pos);
 
-    float c000 = imageLoad(field, clamp(p0, ivec3(0), imgSize - 1)).x;
-    float c100 = imageLoad(field, clamp(ivec3(p1.x, p0.y, p0.z), ivec3(0), imgSize - 1)).x;
-    float c010 = imageLoad(field, clamp(ivec3(p0.x, p1.y, p0.z), ivec3(0), imgSize - 1)).x;
-    float c110 = imageLoad(field, clamp(ivec3(p1.x, p1.y, p0.z), ivec3(0), imgSize - 1)).x;
+    float c000 = imageLoad(field, p0).x;
+    float c100 = imageLoad(field, ivec3(p1.x, p0.y, p0.z)).x;
+    float c010 = imageLoad(field, ivec3(p0.x, p1.y, p0.z)).x;
+    float c110 = imageLoad(field, ivec3(p1.x, p1.y, p0.z)).x;
 
-    float c001 = imageLoad(field, clamp(ivec3(p0.x, p0.y, p1.z), ivec3(0), imgSize - 1)).x;
-    float c101 = imageLoad(field, clamp(ivec3(p1.x, p0.y, p1.z), ivec3(0), imgSize - 1)).x;
-    float c011 = imageLoad(field, clamp(ivec3(p0.x, p1.y, p1.z), ivec3(0), imgSize - 1)).x;
-    float c111 = imageLoad(field, clamp(p1, ivec3(0), imgSize - 1)).x;
+    float c001 = imageLoad(field, ivec3(p0.x, p0.y, p1.z)).x;
+    float c101 = imageLoad(field, ivec3(p1.x, p0.y, p1.z)).x;
+    float c011 = imageLoad(field, ivec3(p0.x, p1.y, p1.z)).x;
+    float c111 = imageLoad(field, p1).x;
 
     float c00 = mix(c000, c100, f.x);
     float c10 = mix(c010, c110, f.x);
@@ -85,11 +85,16 @@ void main()
     const int coord = int(gl_GlobalInvocationID.x);
     if (coord >= 490000) return;
 
-    uint seed = uint(coord*3) + uint((pos[coord].x+2)*9999) + uint((pos[coord].y+2)*9999) + uint((pos[coord].z+2)*9999);
+    vec4 p = pos[coord];
+    vec4 v = vel[coord];
 
-    vec3 front = normalize(vel[coord].xyz);
-    vec3 right = normalize(cross(front, vec3(0,1,0)));
-    vec3 up = normalize(cross(front, right));
+    uint seed = uint(coord*3) + uint((p.x+2)*9999) + uint((p.y+2)*9999) + uint((p.z+2)*9999);
+
+    vec3 front = normalize(v.xyz);
+    vec3 up0   = vec3(0,1,0);
+    vec3 up    = normalize(up0 - front * dot(up0, front)); // Gram-Schmidt
+    vec3 right = cross(up, front); // unit, no normalize needed
+
 
     vec3 senseDir[5];
     senseDir[0] = front;
@@ -101,11 +106,9 @@ void main()
     vec3 meanDir = vec3(0.0);
     float weight = 0.0;
 
-    float mutlplier = 1;//float(coord > 245000)*10 + 1;
-
     for(int i = 0; i < 5; i++){
-        senseDir[i] = normalize(senseDir[i] + front*frontness*mutlplier);
-        vec3 g = (pos[coord].xyz*0.5 + 0.5) + senseDir[i]*radius*mutlplier;
+        senseDir[i] = normalize(senseDir[i] + front*frontness);
+        vec3 g = (p.xyz*0.5 + 0.5) + senseDir[i]*radius;
         if(g.x < 0.0 || g.y < 0.0 || g.z < 0.0 || g.x >= 1.0 || g.y >= 1.0 || g.z >= 1.0) continue;
         float density = readImage3DTrilinear(g);// * mix(0.9, 1.0, RandomFloat01(seed));
         meanDir += senseDir[i] * density;
@@ -114,27 +117,29 @@ void main()
 
     meanDir += randomUnitVector3(seed)*randomness;
 
-    vel[coord].xyz = weight > 0.0 ? normalize(meanDir) : front;
-    vel[coord].xyz *= speed;
+    v.xyz = weight > 0.0 ? normalize(meanDir) : front;
+    v.xyz *= speed;
 
-    vec3 nextPos = pos[coord].xyz + vel[coord].xyz;
+    vec3 nextPos = p.xyz + v.xyz;
 
     vec3 change = vec3( float(nextPos.x > -1.0 && nextPos.x < 1.0 ),
                         float(nextPos.y > -1.0 && nextPos.y < 1.0 ),
                         float(nextPos.z > -1.0 && nextPos.z < 1.0 )
                     )*2 - 1;
 
-    vel[coord].xyz *= change;
+    v.xyz *= change;
 
     //pos[coord] = mod(pos[coord] + 1.0, 2.0) - 1.0;
-    ivec3 gridPos = ivec3((pos[coord].xyz*0.5 + 0.5) * 512);
+    ivec3 gridPos = ivec3((p.xyz*0.5 + 0.5) * 512);
     float curr = imageLoad(field, gridPos).x;
 
-    barrier();
     float toWrite = weight > 0.0 ? max(10, curr + 0.01) : max(10,curr);//max(curr, weight/5);
-    pos[coord].w = toWrite;
+    p.w = toWrite;
     imageStore(field, gridPos, vec4(toWrite));
 
-    pos[coord].xyz += vel[coord].xyz;//*RandomFloat01(seed);
-    imageStore(outImg, ivec2(coord % 700, int(float(coord) / 700.0)), pos[coord]);
+    p.xyz += v.xyz;//*RandomFloat01(seed);
+    imageStore(outImg, ivec2(coord % 700, int(float(coord) / 700.0)), p);
+
+    pos[coord] = p;
+    vel[coord] = v;
 }

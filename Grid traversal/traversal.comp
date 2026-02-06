@@ -1,0 +1,68 @@
+//clear the grid
+
+#version 460
+
+layout(local_size_x = 1, local_size_y = 1) in;
+
+layout(rgba8, binding = 0) uniform writeonly image2D grid;
+
+layout(binding = 1) uniform constants{
+    vec2 pos;
+    vec2 dir;
+} pc;
+
+void main() {
+
+    ivec2 size = imageSize(grid);
+
+    vec2 ro = pc.pos;
+    vec2 rd = normalize(pc.dir);
+    ivec2 cell = ivec2(floor(ro));
+
+    vec2 invDir = vec2(
+        (rd.x != 0.0) ? 1.0 / rd.x : 1e30,
+        (rd.y != 0.0) ? 1.0 / rd.y : 1e30
+    );
+
+    // Step direction (+1 or -1 per axis)
+    ivec2 stepv = ivec2(sign(rd));
+
+    // Compute initial tMax: t at which we first cross a vertical/horizontal grid line
+    // Next grid boundary in the direction of travel
+    float nextGridX = (stepv.x > 0) ? float(cell.x + 1) : float(cell.x);
+    float nextGridY = (stepv.y > 0) ? float(cell.y + 1) : float(cell.y);
+
+    float tMaxX = (rd.x != 0.0) ? (nextGridX - ro.x) * invDir.x : 1e30;
+    float tMaxY = (rd.y != 0.0) ? (nextGridY - ro.y) * invDir.y : 1e30;
+
+    // Ensure tMax are positive distances along the ray (if origin is exactly on a boundary)
+    // This avoids getting stuck when starting precisely on grid lines.
+    if (tMaxX < 0.0) tMaxX = 0.0;
+    if (tMaxY < 0.0) tMaxY = 0.0;
+
+    float t = 0.0;
+
+    vec2 tDelta = abs(invDir);
+
+    for (int i = 0; i < 100; i++) { 
+
+        if(cell.x < 0 || cell.y < 0 || cell.x >= size.x || cell.y >= size.y) return;
+
+        imageStore(grid, cell, vec4(1));
+        // Step to next cell: pick the closest upcoming grid crossing
+        // If equal, you can step both; here we step both to avoid missing thin features.
+        bool stepX = (tMaxX <= tMaxY);
+        bool stepY = (tMaxY <= tMaxX);
+
+        if (stepX) {
+            cell.x += stepv.x;
+            t = tMaxX;
+            tMaxX += tDelta.x;
+        }
+        if (stepY) {
+            cell.y += stepv.y;
+            t = min(t, tMaxY); // keep smallest updated t when stepping both
+            tMaxY += tDelta.y;
+        }
+    }
+}

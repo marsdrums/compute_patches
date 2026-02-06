@@ -1,0 +1,126 @@
+#version 460
+layout(local_size_x = 128) in;
+
+layout(rgba32f, binding = 0) uniform image2D img_render;
+
+struct item{
+    vec2 pos;
+    uint start;
+    uint key;
+};
+
+layout(std430, binding = 1) buffer buff_points {
+    item point[];
+};
+
+layout(binding = 2) uniform buff_info {
+    uint buffer_length;
+    float radius;
+    float radius2;
+};
+
+void draw_line(vec2 a, vec2 b){
+
+    ivec2 size = imageSize(img_render);
+
+    vec2 ro = a;
+    vec2 rd = normalize(b - a);
+    ivec2 cellOfB = ivec2(floor(b));
+    ivec2 cell = ivec2(floor(ro));
+
+    vec2 invDir = vec2(
+        (rd.x != 0.0) ? 1.0 / rd.x : 1e30,
+        (rd.y != 0.0) ? 1.0 / rd.y : 1e30
+    );
+
+    // Step direction (+1 or -1 per axis)
+    ivec2 stepv = ivec2(sign(rd));
+
+    // Compute initial tMax: t at which we first cross a vertical/horizontal grid line
+    // Next grid boundary in the direction of travel
+    float nextGridX = (stepv.x > 0) ? float(cell.x + 1) : float(cell.x);
+    float nextGridY = (stepv.y > 0) ? float(cell.y + 1) : float(cell.y);
+
+    float tMaxX = (rd.x != 0.0) ? (nextGridX - ro.x) * invDir.x : 1e30;
+    float tMaxY = (rd.y != 0.0) ? (nextGridY - ro.y) * invDir.y : 1e30;
+
+    // Ensure tMax are positive distances along the ray (if origin is exactly on a boundary)
+    // This avoids getting stuck when starting precisely on grid lines.
+    if (tMaxX < 0.0) tMaxX = 0.0;
+    if (tMaxY < 0.0) tMaxY = 0.0;
+
+    float t = 0.0;
+
+    vec2 tDelta = abs(invDir);
+
+    while(cell.x != cellOfB.x && cell.y != cellOfB.y) { 
+
+        if(cell.x < 0 || cell.y < 0 || cell.x >= size.x || cell.y >= size.y) return;
+
+        imageStore(img_render, cell, vec4(1));
+
+        // Step to next cell: pick the closest upcoming grid crossing
+        // If equal, you can step both; here we step both to avoid missing thin features.
+        bool stepX = (tMaxX <= tMaxY);
+        bool stepY = (tMaxY <= tMaxX);
+
+        if (stepX) {
+            cell.x += stepv.x;
+            t = tMaxX;
+            tMaxX += tDelta.x;
+        }
+        if (stepY) {
+            cell.y += stepv.y;
+            t = min(t, tMaxY); // keep smallest updated t when stepping both
+            tMaxY += tDelta.y;
+        }
+    }
+}
+
+void main() {
+
+    uint gid = gl_GlobalInvocationID.x;
+    if(gid >= buffer_length) return;
+
+    vec2 canvasSize = vec2(imageSize(img_render));
+    const float ratio = canvasSize.x / canvasSize.y;
+
+    vec2 a = point[gid].pos;
+    vec2 canvas_a_pos = a*2 - 1;
+    canvas_a_pos.x /= ratio;
+    canvas_a_pos = canvasSize*(canvas_a_pos*0.5 + 0.5);
+    uvec2 cell_a = uvec2(floor(a/radius) + vec2(1000));
+
+    for(int x = -1; x <= 1; x++){
+        for(int y = -1; y <= 1; y++){
+
+            uvec2 cell = uvec2(ivec2(cell_a) + ivec2(x,y));
+
+            //vec2 cellDiff = vec2(cell) - vec2(cell_a);
+            //if(dot(cellDiff, cellDiff) > radius2*1.5) continue;
+
+            uint key = (cell.x*2803u + cell.y*2971u) % buffer_length;
+            uint first = point[key].start;
+
+            if(first == 0xFFFFFFFFu) continue; //there's nothing in this bucket
+
+            for(uint i = 0u; i < 1000; i++){
+
+                uint id = first + i;
+                if(id >= buffer_length) break;
+                uint key_b = point[id].key;
+                if(key != key_b) break;
+
+                vec2 b = point[id].pos; 
+                vec2 diff = b-a;
+                if(dot(diff, diff) > radius2) continue;  
+
+                b = b*2 - 1;
+                b.x /= ratio;
+                b = canvasSize*(b*0.5 + 0.5);
+
+                draw_line(canvas_a_pos, b);       
+            }
+        }
+    }
+}

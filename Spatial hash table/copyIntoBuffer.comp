@@ -1,0 +1,37 @@
+// default compute shader
+#version 460
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(rgba32f, binding = 0) uniform readonly image2D img_pos;
+
+struct item{
+    vec2 pos;
+    uint start;
+    uint key;
+};
+
+layout(std430, binding = 1) buffer buff_points {
+    item point[];
+};
+
+layout(binding = 2) uniform buff_info {
+    uint buffer_length;
+    float radius;
+};
+
+void main() {
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(img_pos);
+
+    if(gid.x >= size.x || gid.y >= size.y) return;
+
+    uint id = uint(gid.x + gid.y*size.x);
+
+    vec2 pos = imageLoad(img_pos, gid).xy;
+
+    uvec2 cell = uvec2(floor(pos/radius) + vec2(1000));
+
+    point[id].key = (cell.x*2803u + cell.y*2971u) % buffer_length;
+    point[id].pos = pos;
+    point[id].start = 0xFFFFFFFFu;
+}

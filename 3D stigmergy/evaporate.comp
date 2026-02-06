@@ -12,5 +12,5 @@ void main()
     if (coord.x >= size.x || coord.y >= size.y || coord.z >= size.z) return;
 
     float curr = imageLoad(field, coord).x;
-    imageStore(field, coord, vec4(clamp(curr - 0.05, 0.0, 1.0)));
+    imageStore(field, coord, vec4(max(curr - 0.05, 0.0)));
 }
