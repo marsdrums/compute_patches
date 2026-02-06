@@ -5,7 +5,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 layout(rgba32f, binding = 0) uniform readonly image2D img_pos;
 
 struct item{
-    vec2 pos;
+    vec3 pos;
     uint start;
     uint key;
 };
@@ -27,11 +27,11 @@ void main() {
 
     uint id = uint(gid.x + gid.y*size.x);
 
-    vec2 pos = imageLoad(img_pos, gid).xy;
+    vec3 pos = imageLoad(img_pos, gid).xyz;
 
-    uvec2 cell = uvec2(floor(pos/radius) + vec2(1000));
+    uvec3 cell = uvec3(floor(pos/radius) + 1000);
 
-    point[id].key = (cell.x*2803u + cell.y*2971u) % buffer_length;
+    point[id].key = (cell.x*2803u + cell.y*2971u + cell.z*2053u) % buffer_length;
     point[id].pos = pos;
     point[id].start = 0xFFFFFFFFu;
 }

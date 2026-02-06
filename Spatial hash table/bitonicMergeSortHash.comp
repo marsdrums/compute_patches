@@ -6,12 +6,12 @@ layout(local_size_x = 128) in;
 // SSBO (storage buffer) containing the values to sort.
 // 'val' is a runtime-sized array of floats (length is provided via pc.numValues).
 struct item{
-    vec2 pos;
+    vec3 pos;
     uint start;
     uint key;
 };
 
-layout(std430, binding = 0) buffer buff_values {
+layout(std430, binding = 0) buffer buff_points {
     item point[];
 };
 
@@ -23,6 +23,10 @@ layout(binding = 1) uniform push_constants {
     uint stepIndex;    // Which step within the current stage we are executing.
     uint numValues;    // Actual number of valid elements in val[].
 } pc;
+
+layout(binding = 2) uniform buff_info {
+    uint buffer_length;
+};
 
 void main() {
 
@@ -50,7 +54,7 @@ void main() {
     // Bounds check for the upper index (common when numValues is not a power-of-two
     // but the algorithm dispatches as if it were padded to nextPow2).
     //if (indexHigh >= pc.numValues) return;
-    if (indexHigh >= 400u*400u) return;
+    if (indexHigh >= buffer_length) return;
 
     // Load both elements to be compared.
     item a = point[indexLow];

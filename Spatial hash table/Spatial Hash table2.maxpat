@@ -9,7 +9,7 @@
             "modernui": 1
         },
         "classnamespace": "box",
-        "rect": [ 112.0, 100.0, 1042.0, 893.0 ],
+        "rect": [ 34.0, 100.0, 1660.0, 893.0 ],
         "boxes": [
             {
                 "box": {
@@ -19,7 +19,7 @@
                     "numoutlets": 1,
                     "outlettype": [ "bang" ],
                     "parameter_enable": 0,
-                    "patching_rect": [ 261.0, 174.0, 24.0, 24.0 ]
+                    "patching_rect": [ 269.0, 159.0, 24.0, 24.0 ]
                 }
             },
             {
@@ -29,7 +29,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 977.0, 551.0, 241.0, 22.0 ],
+                    "patching_rect": [ 1153.0, 551.0, 241.0, 22.0 ],
                     "text": "jit.gpu.buffer @name counter @bytecount 4"
                 }
             },
@@ -40,7 +40,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 977.0, 521.0, 384.0, 22.0 ],
+                    "patching_rect": [ 1153.0, 521.0, 384.0, 22.0 ],
                     "text": "jit.gpu.image @dim 4000 100 @format rgba32_float @name img_lines"
                 }
             },
@@ -51,7 +51,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "bang", "bang" ],
-                    "patching_rect": [ 401.0, 54.0, 32.0, 22.0 ],
+                    "patching_rect": [ 577.0, 50.0, 32.0, 22.0 ],
                     "text": "t b b"
                 }
             },
@@ -62,7 +62,7 @@
                     "numinlets": 2,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 272.0, 261.0, 84.0, 22.0 ],
+                    "patching_rect": [ 280.0, 246.0, 84.0, 22.0 ],
                     "text": "routepass dim"
                 }
             },
@@ -73,7 +73,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 1193.0, 408.0, 108.0, 22.0 ],
+                    "patching_rect": [ 1369.0, 408.0, 108.0, 22.0 ],
                     "text": "prepend bytecount"
                 }
             },
@@ -84,7 +84,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "int" ],
-                    "patching_rect": [ 1193.0, 376.0, 29.5, 22.0 ],
+                    "patching_rect": [ 1369.0, 376.0, 29.5, 22.0 ],
                     "text": "* 8"
                 }
             },
@@ -95,7 +95,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 1193.0, 438.0, 212.0, 22.0 ],
+                    "patching_rect": [ 1369.0, 438.0, 212.0, 22.0 ],
                     "text": "jit.gpu.buffer @name buff_screen_pos"
                 }
             },
@@ -106,7 +106,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 731.0, 403.0, 48.0, 22.0 ],
+                    "patching_rect": [ 907.0, 403.0, 48.0, 22.0 ],
                     "text": "time $1"
                 }
             },
@@ -117,7 +117,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "float" ],
-                    "patching_rect": [ 731.0, 376.0, 42.0, 22.0 ],
+                    "patching_rect": [ 907.0, 376.0, 42.0, 22.0 ],
                     "text": "+ 200."
                 }
             },
@@ -128,7 +128,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_gl_texture", "" ],
-                    "patching_rect": [ 713.0, 440.0, 50.0, 22.0 ],
+                    "patching_rect": [ 889.0, 440.0, 50.0, 22.0 ],
                     "text": "jit.gl.bfg"
                 }
             },
@@ -140,7 +140,7 @@
                     "numinlets": 4,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 384.0, 1425.0, 422.0, 22.0 ],
+                    "patching_rect": [ 560.0, 1425.0, 422.0, 22.0 ],
                     "text": "jit.gpu.compute @buff_points buff_points @buff_screen_pos buff_screen_pos",
                     "textfile": {
                         "text": "//Transform position\n\n#version 460\n\nlayout(local_size_x = 128) in;\nstruct points{\n    vec3 pos;\n    uint start;\n    uint key;\n};\n\nlayout(std430, binding = 0) buffer buff_points {\n    points point[];\n};\n\nlayout(std430, binding = 1) buffer buff_screen_pos {\n    vec2 screenPos[];\n};\nlayout(binding = 2) uniform Config {\n    vec4 v0;\n    vec4 v1;\n    vec4 v2;\n    vec4 v3;\n    vec4 p0;\n    vec4 p1;\n    vec4 p2;\n    vec4 p3;\n    uint buffer_length;\n    vec2 canvas_size;\n};\n\nvoid main() {\n\n    uint gid = gl_GlobalInvocationID.x;\n\n    if(gid >= buffer_length) return;\n\n    vec3 pos = point[gid].pos;\n\n    mat4 V = mat4(v0, v1, v2, v3);\n    mat4 P = mat4(-p0, p1, -p2, p3);\n    vec4 vPos = V * vec4(pos, 1.0);\n    vec4 projPos = P * vPos;\n/*\n    bool outsideScreen =    screenPos.x < -1.0 || screenPos.x > 1.0 ||\n                            screenPos.y < -1.0 || screenPos.y > 1.0 ||\n                            vPos.z > 0.0;\n\n    if(outsideScreen) return;\n*/\n    screenPos[gid] = ((projPos.xy / projPos.w)*0.5 + 0.5) * canvas_size;\n\n}\n",
@@ -158,7 +158,7 @@
                     "numinlets": 0,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ -96.0, 952.0, 50.0, 22.0 ],
+                    "patching_rect": [ 80.0, 952.0, 50.0, 22.0 ],
                     "text": "r param"
                 }
             },
@@ -168,7 +168,7 @@
                     "maxclass": "newobj",
                     "numinlets": 1,
                     "numoutlets": 0,
-                    "patching_rect": [ 1219.0, 215.0, 52.0, 22.0 ],
+                    "patching_rect": [ 1138.0, 166.0, 52.0, 22.0 ],
                     "text": "s param"
                 }
             },
@@ -178,7 +178,7 @@
                     "maxclass": "newobj",
                     "numinlets": 1,
                     "numoutlets": 0,
-                    "patching_rect": [ 272.0, 289.0, 52.0, 22.0 ],
+                    "patching_rect": [ 280.0, 274.0, 52.0, 22.0 ],
                     "text": "s param"
                 }
             },
@@ -194,7 +194,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ -96.0, 988.0, 458.0, 301.0 ],
+                    "patching_rect": [ 80.0, 988.0, 458.0, 301.0 ],
                     "saved_object_attributes": {
                         "parameter_enable": 0
                     }
@@ -207,7 +207,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 1053.5, 147.0, 171.0, 22.0 ],
+                    "patching_rect": [ 972.0, 98.0, 171.0, 22.0 ],
                     "text": "getview_matrix, getproj_matrix"
                 }
             },
@@ -218,7 +218,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 155.0, 191.0, 45.0, 22.0 ],
+                    "patching_rect": [ 163.0, 176.0, 45.0, 22.0 ],
                     "text": "getdim"
                 }
             },
@@ -229,7 +229,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 1040.0, 92.0, 145.0, 22.0 ],
+                    "patching_rect": [ 959.0, 63.0, 145.0, 22.0 ],
                     "text": "jit.anim.drive @ui_listen 1"
                 }
             },
@@ -240,7 +240,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_gl_texture", "" ],
-                    "patching_rect": [ 1040.0, 184.0, 198.0, 22.0 ],
+                    "patching_rect": [ 959.0, 135.0, 198.0, 22.0 ],
                     "text": "jit.gl.camera @locklook 1 @tripod 1"
                 }
             },
@@ -251,7 +251,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "bang" ],
-                    "patching_rect": [ 803.0, 369.0, 58.0, 22.0 ],
+                    "patching_rect": [ 979.0, 369.0, 58.0, 22.0 ],
                     "text": "loadbang"
                 }
             },
@@ -262,7 +262,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 803.0, 403.0, 142.0, 22.0 ],
+                    "patching_rect": [ 979.0, 403.0, 142.0, 22.0 ],
                     "text": "basis distorted, zoom 15."
                 }
             },
@@ -272,7 +272,7 @@
                     "maxclass": "comment",
                     "numinlets": 1,
                     "numoutlets": 0,
-                    "patching_rect": [ 296.0, 419.0, 95.0, 20.0 ],
+                    "patching_rect": [ 472.0, 419.0, 95.0, 20.0 ],
                     "text": "3) set the radius"
                 }
             },
@@ -283,7 +283,7 @@
                     "maxclass": "comment",
                     "numinlets": 1,
                     "numoutlets": 0,
-                    "patching_rect": [ 685.0, 60.0, 150.0, 33.0 ],
+                    "patching_rect": [ 753.0, 50.0, 150.0, 33.0 ],
                     "text": "2) set the sqrt of the number of particles"
                 }
             },
@@ -297,7 +297,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 184.0, 261.0, 80.0, 35.0 ]
+                    "patching_rect": [ 192.0, 246.0, 80.0, 35.0 ]
                 }
             },
             {
@@ -307,7 +307,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 243.0, 385.0, 87.0, 22.0 ],
+                    "patching_rect": [ 419.0, 385.0, 87.0, 22.0 ],
                     "text": "loadmess 0.18"
                 }
             },
@@ -318,7 +318,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 262.0, 491.0, 95.0, 22.0 ],
+                    "patching_rect": [ 438.0, 491.0, 95.0, 22.0 ],
                     "text": "prepend radius2"
                 }
             },
@@ -329,7 +329,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 242.0, 525.0, 89.0, 22.0 ],
+                    "patching_rect": [ 418.0, 525.0, 89.0, 22.0 ],
                     "text": "prepend radius"
                 }
             },
@@ -342,7 +342,7 @@
                     "numoutlets": 2,
                     "outlettype": [ "", "bang" ],
                     "parameter_enable": 0,
-                    "patching_rect": [ 242.0, 419.0, 50.0, 22.0 ]
+                    "patching_rect": [ 418.0, 419.0, 50.0, 22.0 ]
                 }
             },
             {
@@ -352,7 +352,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "float" ],
-                    "patching_rect": [ 262.0, 457.0, 29.5, 22.0 ],
+                    "patching_rect": [ 438.0, 457.0, 29.5, 22.0 ],
                     "text": "* 1."
                 }
             },
@@ -363,7 +363,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 629.0, 30.0, 77.0, 22.0 ],
+                    "patching_rect": [ 697.0, 20.0, 77.0, 22.0 ],
                     "text": "loadmess 20"
                 }
             },
@@ -374,7 +374,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 477.0, 1538.0, 59.0, 22.0 ],
+                    "patching_rect": [ 653.0, 1538.0, 59.0, 22.0 ],
                     "text": "jit.gl.layer"
                 }
             },
@@ -385,7 +385,7 @@
                     "numinlets": 2,
                     "numoutlets": 3,
                     "outlettype": [ "", "jit_gl_texture", "" ],
-                    "patching_rect": [ 384.0, 1501.0, 206.0, 22.0 ],
+                    "patching_rect": [ 560.0, 1501.0, 206.0, 22.0 ],
                     "text": "jit.gpu.totexture @source img_render"
                 }
             },
@@ -397,7 +397,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 384.0, 1386.0, 395.0, 22.0 ],
+                    "patching_rect": [ 560.0, 1386.0, 395.0, 22.0 ],
                     "text": "jit.gpu.compute @autoworkgroups img_render @img_render img_render",
                     "textfile": {
                         "text": "//clear the canvas\n#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(rgba32f, binding = 0) uniform writeonly image2D img_render;\n\nvoid main() {\n    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(img_render);\n\n    if(gid.x >= size.x || gid.y >= size.y) return;\n\n    imageStore(img_render, gid, vec4(0.0));\n}",
@@ -415,7 +415,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 653.0, 1346.0, 107.0, 22.0 ],
+                    "patching_rect": [ 361.0, 1328.0, 107.0, 22.0 ],
                     "text": "workgroups $1 1 1"
                 }
             },
@@ -426,7 +426,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 653.0, 1317.0, 122.0, 22.0 ],
+                    "patching_rect": [ 361.0, 1299.0, 122.0, 22.0 ],
                     "text": "expr int(ceil($f1/128))"
                 }
             },
@@ -438,7 +438,7 @@
                     "numinlets": 5,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 384.0, 1463.0, 718.0, 22.0 ],
+                    "patching_rect": [ 560.0, 1463.0, 718.0, 22.0 ],
                     "text": "jit.gpu.compute @shader renderPoints.comp @img_render img_render @buff_points buff_points @buff_screen_pos buff_screen_pos",
                     "textfile": {
                         "filename": "renderPoints.comp",
@@ -455,7 +455,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 977.0, 488.0, 401.0, 22.0 ],
+                    "patching_rect": [ 1153.0, 488.0, 401.0, 22.0 ],
                     "text": "jit.gpu.image @name img_render @dim 1920 1080 @format rgba32_float"
                 }
             },
@@ -466,7 +466,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 434.0, 191.0, 61.0, 22.0 ],
+                    "patching_rect": [ 610.0, 191.0, 61.0, 22.0 ],
                     "text": "dim $1 $1"
                 }
             },
@@ -477,7 +477,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 819.0, 625.0, 126.0, 22.0 ],
+                    "patching_rect": [ 1223.0, 630.0, 126.0, 22.0 ],
                     "text": "prepend buffer_length"
                 }
             },
@@ -489,7 +489,7 @@
                     "numoutlets": 2,
                     "outlettype": [ "", "bang" ],
                     "parameter_enable": 0,
-                    "patching_rect": [ 629.0, 60.0, 50.0, 22.0 ]
+                    "patching_rect": [ 697.0, 50.0, 50.0, 22.0 ]
                 }
             },
             {
@@ -499,7 +499,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "int" ],
-                    "patching_rect": [ 629.0, 157.0, 29.5, 22.0 ],
+                    "patching_rect": [ 697.0, 147.0, 29.5, 22.0 ],
                     "text": "*"
                 }
             },
@@ -509,7 +509,7 @@
                     "maxclass": "comment",
                     "numinlets": 1,
                     "numoutlets": 0,
-                    "patching_rect": [ 155.0, 93.0, 60.0, 20.0 ],
+                    "patching_rect": [ 163.0, 78.0, 60.0, 20.0 ],
                     "text": "1) Enable"
                 }
             },
@@ -520,7 +520,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "bang", "int" ],
-                    "patching_rect": [ 128.0, 130.0, 29.5, 22.0 ],
+                    "patching_rect": [ 136.0, 115.0, 29.5, 22.0 ],
                     "text": "t b i"
                 }
             },
@@ -532,7 +532,7 @@
                     "numoutlets": 1,
                     "outlettype": [ "int" ],
                     "parameter_enable": 0,
-                    "patching_rect": [ 128.0, 89.0, 24.0, 24.0 ]
+                    "patching_rect": [ 136.0, 74.0, 24.0, 24.0 ]
                 }
             },
             {
@@ -542,7 +542,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 95.0, 191.0, 52.0, 22.0 ],
+                    "patching_rect": [ 103.0, 176.0, 52.0, 22.0 ],
                     "text": "gate 1 0"
                 }
             },
@@ -553,7 +553,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 414.0, 1573.0, 54.0, 22.0 ],
+                    "patching_rect": [ 590.0, 1573.0, 54.0, 22.0 ],
                     "text": "deferlow"
                 }
             },
@@ -565,7 +565,7 @@
                     "numinlets": 4,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 957.0, 1322.0, 433.0, 22.0 ],
+                    "patching_rect": [ 1133.0, 1322.0, 433.0, 22.0 ],
                     "text": "jit.gpu.compute @shader bitonicMergeSortHash.comp @buff_points buff_points",
                     "textfile": {
                         "filename": "bitonicMergeSortHash.comp",
@@ -583,7 +583,7 @@
                     "numinlets": 3,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 384.0, 1346.0, 229.0, 22.0 ],
+                    "patching_rect": [ 560.0, 1346.0, 229.0, 22.0 ],
                     "text": "jit.gpu.compute @buff_points buff_points",
                     "textfile": {
                         "text": "// default compute shader\n#version 460\nlayout(local_size_x = 128) in;\n\nstruct points{\n    vec3 pos;\n    uint start;\n    uint key;\n};\n\nlayout(std430, binding = 0) buffer buff_points {\n    points point[];\n};\n\nlayout(binding = 1) uniform buff_info {\n    uint buffer_length;\n};\n\nshared uint keys[128+1];\n\nvoid main() {\n    uint gid = gl_GlobalInvocationID.x;\n\n    if(gid >= buffer_length) return;\n\n    uint lid = gl_LocalInvocationIndex;\n    \n    keys[lid+1] = point[gid].key;\n    if(lid == 0){\n        keys[0] = point[max(0u, gid-1)].key;\n    }\n    barrier();\n    \n    uint thisKey = keys[lid+1];\n    uint prevKey = keys[lid];\n\n    if(thisKey != prevKey){\n        point[thisKey].start = gid;\n    }\n}",
@@ -606,7 +606,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 384.0, 756.0, 592.0, 541.0 ],
+                    "patching_rect": [ 560.0, 756.0, 592.0, 541.0 ],
                     "saved_object_attributes": {
                         "parameter_enable": 0
                     },
@@ -620,7 +620,7 @@
                     "numinlets": 1,
                     "numoutlets": 3,
                     "outlettype": [ "", "", "" ],
-                    "patching_rect": [ 384.0, 1538.0, 79.0, 22.0 ],
+                    "patching_rect": [ 560.0, 1538.0, 79.0, 22.0 ],
                     "text": "jit.gpu.submit"
                 }
             },
@@ -631,7 +631,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 977.0, 408.0, 108.0, 22.0 ],
+                    "patching_rect": [ 1153.0, 408.0, 108.0, 22.0 ],
                     "text": "prepend bytecount"
                 }
             },
@@ -642,7 +642,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "int" ],
-                    "patching_rect": [ 977.0, 376.0, 30.0, 22.0 ],
+                    "patching_rect": [ 1153.0, 376.0, 30.0, 22.0 ],
                     "text": "* 20"
                 }
             },
@@ -654,7 +654,7 @@
                     "numinlets": 4,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 384.0, 723.0, 650.0, 22.0 ],
+                    "patching_rect": [ 560.0, 713.0, 650.0, 22.0 ],
                     "text": "jit.gpu.compute @shader copyIntoBuffer.comp @autoworkgroups img_pos @img_pos img_pos @buff_points buff_points",
                     "textfile": {
                         "filename": "copyIntoBuffer.comp",
@@ -671,7 +671,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 977.0, 438.0, 182.0, 22.0 ],
+                    "patching_rect": [ 1153.0, 438.0, 182.0, 22.0 ],
                     "text": "jit.gpu.buffer @name buff_points"
                 }
             },
@@ -682,7 +682,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 576.0, 514.0, 171.0, 22.0 ],
+                    "patching_rect": [ 752.0, 514.0, 171.0, 22.0 ],
                     "text": "jit.gpu.image @name img_pos"
                 }
             },
@@ -693,7 +693,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 845.0, 189.0, 100.0, 22.0 ],
+                    "patching_rect": [ 1021.0, 189.0, 100.0, 22.0 ],
                     "text": "loadmess 0.0005"
                 }
             },
@@ -706,7 +706,7 @@
                     "numoutlets": 2,
                     "outlettype": [ "", "bang" ],
                     "parameter_enable": 0,
-                    "patching_rect": [ 845.0, 234.0, 50.0, 22.0 ]
+                    "patching_rect": [ 1021.0, 234.0, 75.0, 22.0 ]
                 }
             },
             {
@@ -716,7 +716,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "float", "float" ],
-                    "patching_rect": [ 780.0, 307.0, 29.5, 22.0 ],
+                    "patching_rect": [ 956.0, 307.0, 29.5, 22.0 ],
                     "text": "t f f"
                 }
             },
@@ -727,7 +727,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "float" ],
-                    "patching_rect": [ 780.0, 272.0, 29.5, 22.0 ],
+                    "patching_rect": [ 956.0, 272.0, 29.5, 22.0 ],
                     "text": "+ 0."
                 }
             },
@@ -738,7 +738,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "float" ],
-                    "patching_rect": [ 780.0, 234.0, 29.5, 22.0 ],
+                    "patching_rect": [ 956.0, 234.0, 29.5, 22.0 ],
                     "text": "f 0."
                 }
             },
@@ -996,7 +996,7 @@
                             }
                         ]
                     },
-                    "patching_rect": [ 576.0, 481.0, 156.0, 22.0 ],
+                    "patching_rect": [ 752.0, 481.0, 156.0, 22.0 ],
                     "text": "jit.gl.pix"
                 }
             },
@@ -1007,7 +1007,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 666.0, 403.0, 48.0, 22.0 ],
+                    "patching_rect": [ 842.0, 403.0, 48.0, 22.0 ],
                     "text": "time $1"
                 }
             },
@@ -1018,7 +1018,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 605.0, 403.0, 48.0, 22.0 ],
+                    "patching_rect": [ 781.0, 403.0, 48.0, 22.0 ],
                     "text": "time $1"
                 }
             },
@@ -1029,7 +1029,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "float" ],
-                    "patching_rect": [ 666.0, 376.0, 42.0, 22.0 ],
+                    "patching_rect": [ 842.0, 376.0, 42.0, 22.0 ],
                     "text": "+ 100."
                 }
             },
@@ -1040,7 +1040,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_gl_texture", "" ],
-                    "patching_rect": [ 644.5, 440.0, 50.0, 22.0 ],
+                    "patching_rect": [ 820.0, 440.0, 50.0, 22.0 ],
                     "text": "jit.gl.bfg"
                 }
             },
@@ -1051,7 +1051,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 401.0, 16.0, 47.0, 22.0 ],
+                    "patching_rect": [ 577.0, 20.0, 47.0, 22.0 ],
                     "text": "jit.bang"
                 }
             },
@@ -1064,7 +1064,7 @@
                     "numoutlets": 1,
                     "outlettype": [ "" ],
                     "parameter_enable": 0,
-                    "patching_rect": [ 576.0, 278.0, 165.0, 22.0 ],
+                    "patching_rect": [ 752.0, 278.0, 165.0, 22.0 ],
                     "style": "default",
                     "text_width": 55.333343505859375
                 }
@@ -1076,7 +1076,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_gl_texture", "" ],
-                    "patching_rect": [ 423.0, 229.0, 203.0, 22.0 ],
+                    "patching_rect": [ 599.0, 229.0, 203.0, 22.0 ],
                     "text": "jit.gl.texture @type float32 @adapt 0"
                 }
             },
@@ -1087,7 +1087,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_gl_texture", "" ],
-                    "patching_rect": [ 576.0, 440.0, 50.0, 22.0 ],
+                    "patching_rect": [ 752.0, 440.0, 50.0, 22.0 ],
                     "text": "jit.gl.bfg"
                 }
             },
@@ -1100,7 +1100,7 @@
                     "numoutlets": 1,
                     "outlettype": [ "" ],
                     "parameter_enable": 0,
-                    "patching_rect": [ 576.0, 302.0, 117.0, 22.0 ],
+                    "patching_rect": [ 752.0, 302.0, 117.0, 22.0 ],
                     "text_width": 56.0
                 }
             },
@@ -1111,7 +1111,7 @@
                     "numinlets": 1,
                     "numoutlets": 3,
                     "outlettype": [ "jit_matrix", "bang", "" ],
-                    "patching_rect": [ 95.0, 229.0, 197.0, 22.0 ],
+                    "patching_rect": [ 103.0, 214.0, 197.0, 22.0 ],
                     "text": "jit.world @floating 1 @size 960 540"
                 }
             }
@@ -1158,7 +1158,7 @@
             {
                 "patchline": {
                     "destination": [ "obj-114", 1 ],
-                    "midpoints": [ 800.0, 339.0, 829.375, 339.0, 829.375, 223.02734375, 800.0, 223.02734375 ],
+                    "midpoints": [ 976.0, 339.0, 1005.375, 339.0, 1005.375, 223.02734375, 976.0, 223.02734375 ],
                     "source": [ "obj-112", 1 ]
                 }
             },
@@ -1300,7 +1300,7 @@
             {
                 "patchline": {
                     "destination": [ "obj-91", 1 ],
-                    "midpoints": [ 423.5, 1612.26171875, 60.31640625, 1612.26171875, 60.31640625, 181.0, 137.5, 181.0 ],
+                    "midpoints": [ 599.5, 1611.671875, 61.265625, 1611.671875, 61.265625, 164.3515625, 145.5, 164.3515625 ],
                     "source": [ "obj-35", 0 ]
                 }
             },
@@ -1343,7 +1343,7 @@
             {
                 "patchline": {
                     "destination": [ "obj-16", 0 ],
-                    "order": 1,
+                    "order": 2,
                     "source": [ "obj-40", 0 ]
                 }
             },
@@ -1357,7 +1357,7 @@
             {
                 "patchline": {
                     "destination": [ "obj-43", 0 ],
-                    "order": 2,
+                    "order": 1,
                     "source": [ "obj-40", 0 ]
                 }
             },

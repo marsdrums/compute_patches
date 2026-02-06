@@ -4,7 +4,7 @@ layout(local_size_x = 128) in;
 layout(rgba32f, binding = 0) uniform image2D img_render;
 
 struct item{
-    vec2 pos;
+    vec3 pos;
     uint start;
     uint key;
 };
@@ -13,13 +13,17 @@ layout(std430, binding = 1) buffer buff_points {
     item point[];
 };
 
-layout(binding = 2) uniform buff_info {
+layout(std430, binding = 2) buffer buff_screen_pos {
+    vec2 screenPos[];
+};
+
+layout(binding = 3) uniform buff_info {
     uint buffer_length;
     float radius;
     float radius2;
 };
 
-void draw_line(vec2 a, vec2 b){
+void draw_line(vec2 a, vec2 b, float col){
 
     ivec2 size = imageSize(img_render);
 
@@ -57,7 +61,7 @@ void draw_line(vec2 a, vec2 b){
 
         if(cell.x < 0 || cell.y < 0 || cell.x >= size.x || cell.y >= size.y) return;
 
-        imageStore(img_render, cell, vec4(1));
+        imageStore(img_render, cell, vec4(col));
 
         // Step to next cell: pick the closest upcoming grid crossing
         // If equal, you can step both; here we step both to avoid missing thin features.
@@ -85,41 +89,38 @@ void main() {
     vec2 canvasSize = vec2(imageSize(img_render));
     const float ratio = canvasSize.x / canvasSize.y;
 
-    vec2 a = point[gid].pos;
-    vec2 canvas_a_pos = a*2 - 1;
-    canvas_a_pos.x /= ratio;
-    canvas_a_pos = canvasSize*(canvas_a_pos*0.5 + 0.5);
-    uvec2 cell_a = uvec2(floor(a/radius) + vec2(1000));
+    vec3 a = point[gid].pos;
+    vec2 screenPos_a = screenPos[gid];
+    uvec3 cell_a = uvec3(floor(a/radius) + 1000);
 
     for(int x = -1; x <= 1; x++){
         for(int y = -1; y <= 1; y++){
+            for(int z = -1; z <= 1; z++){
 
-            uvec2 cell = uvec2(ivec2(cell_a) + ivec2(x,y));
+                uvec3 cell = uvec3(ivec3(cell_a) + ivec3(x,y,z));
 
-            //vec2 cellDiff = vec2(cell) - vec2(cell_a);
-            //if(dot(cellDiff, cellDiff) > radius2*1.5) continue;
+                uint key = (cell.x*2803u + cell.y*2971u + cell.z*2053u) % buffer_length;
+                uint first = point[key].start;
 
-            uint key = (cell.x*2803u + cell.y*2971u) % buffer_length;
-            uint first = point[key].start;
+                if(first == 0xFFFFFFFFu) continue; //there's nothing in this bucket
 
-            if(first == 0xFFFFFFFFu) continue; //there's nothing in this bucket
+                for(uint i = 0u; i < 1000; i++){
 
-            for(uint i = 0u; i < 1000; i++){
+                    uint id = first + i;
+                    if(id >= buffer_length) break;
+                    uint key_b = point[id].key;
+                    if(key != key_b) break;
 
-                uint id = first + i;
-                if(id >= buffer_length) break;
-                uint key_b = point[id].key;
-                if(key != key_b) break;
+                    vec3 b = point[id].pos; 
+                    vec3 diff = b-a;
+                    float dist2 = dot(diff, diff);
+                    if(dist2 > radius2) continue;  
 
-                vec2 b = point[id].pos; 
-                vec2 diff = b-a;
-                if(dot(diff, diff) > radius2) continue;  
+                    vec2 screenPos_b = screenPos[id];
+                    //float col = smoothstep(0.2, 0.7, 1 - dist2/radius2);
 
-                b = b*2 - 1;
-                b.x /= ratio;
-                b = canvasSize*(b*0.5 + 0.5);
-
-                draw_line(canvas_a_pos, b);       
+                    draw_line(screenPos_a, screenPos_b, 1.0);     
+                }
             }
         }
     }
