@@ -133,7 +133,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 1105.0, 1938.0, 236.0, 22.0 ],
+                    "patching_rect": [ 1004.0, 1974.0, 236.0, 22.0 ],
                     "text": "jit.gl.shader @name drawLines @embed 1",
                     "textfile": {
                         "text": "<jittershader name=\"fill-flat-triangles\">\n\t<param name=\"posTex\" type=\"int\" default=\"0\" />\n    <param name=\"offset\" type=\"vec3\" state=\"POSITION\" />\n\t<param name=\"MVP\" type=\"mat4\" state=\"MODELVIEW_PROJECTION_MATRIX\" />\n    <param name=\"col\" type=\"vec4\" state=\"COLOR\" />\n    <param name=\"radius2\" type=\"float\" default=\"0.03\" />\n\t<language name=\"glsl\" version=\"1.5\">\n        <bind param=\"posTex\" program=\"vp\" />\n        <bind param=\"offset\" program=\"vp\" />\n        <bind param=\"MVP\" program=\"vp\" />\n        <bind param=\"col\" program=\"vp\" />\n        <bind param=\"radius2\" program=\"vp\" />\n\t\t<program name=\"vp\" type=\"vertex\">\n<![CDATA[\n#version 330 core\nin vec3 offset;\nin vec4 col;\nuniform mat4 MVP;\nuniform float radius2;\nuniform sampler2DRect posTex;\n\nout jit_PerVertex {\n\tflat vec4 color;\n} jit_out;\n\nivec2 to2DIndex(int i, int dim) {\n    int x = i % dim;\n    int y = i / dim;\n    return ivec2(x, 4000 - y - offset.y - 1);\n    //return ivec2(x, dim.y - 1 - y); // TODO: Remove this if you don't flip the data texture\n}\n\nvoid main() {\t\n    ivec2 p = to2DIndex(gl_InstanceID, 4000);\n    vec4 lookup = texelFetch(posTex, p);\n    vec3 pos = lookup.xyz;\n    float normDist = lookup.w / radius2;\n    gl_Position = MVP * vec4(pos, 1.0);\n    jit_out.color = col;\n    jit_out.color.a *= smoothstep(0., 0.5, 1.0 - normDist);\n}\n]]>\n\t\t</program>\n\t\t<program name=\"fp\" type=\"fragment\">\n<![CDATA[\n#version 330 core\n\nin jit_PerVertex {\n\tflat vec4 color;\n} jit_in;\n\nout vec4 color;\n\nvoid main() {\n\tcolor = jit_in.color;\n}\t\n]]>\n\t\t</program>\n\t</language>\n</jittershader>\n",
@@ -173,8 +173,8 @@
                     "numinlets": 9,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 1105.0, 1869.0, 582.0, 22.0 ],
-                    "text": "jit.gl.mesh @draw_mode lines @shader drawLines @blend_enable 1 @depth_enable 0 @gl_color 1 1 1 0.1"
+                    "patching_rect": [ 1105.0, 1869.0, 589.0, 22.0 ],
+                    "text": "jit.gl.mesh @draw_mode lines @shader drawLines @blend_enable 1 @depth_enable 0 @gl_color 1 1 1 0.03"
                 }
             },
             {
@@ -885,7 +885,7 @@
                                     "numinlets": 1,
                                     "numoutlets": 1,
                                     "outlettype": [ "" ],
-                                    "patching_rect": [ 129.0, 279.0, 61.0, 22.0 ],
+                                    "patching_rect": [ 392.0, 251.0, 61.0, 22.0 ],
                                     "text": "normalize"
                                 }
                             },
@@ -1208,6 +1208,18 @@
                     "patching_rect": [ 103.0, 214.0, 197.0, 22.0 ],
                     "text": "jit.world @floating 1 @size 960 540"
                 }
+            },
+            {
+                "box": {
+                    "attr": "gl_color",
+                    "id": "obj-41",
+                    "maxclass": "attrui",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "parameter_enable": 0,
+                    "patching_rect": [ 1246.0, 1839.0, 150.0, 22.0 ]
+                }
             }
         ],
         "lines": [
@@ -1509,6 +1521,12 @@
                     "destination": [ "obj-43", 0 ],
                     "order": 0,
                     "source": [ "obj-40", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-70", 0 ],
+                    "source": [ "obj-41", 0 ]
                 }
             },
             {
