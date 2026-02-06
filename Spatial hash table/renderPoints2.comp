@@ -1,0 +1,79 @@
+#version 460
+layout(local_size_x = 128) in;
+
+struct item{
+    vec3 pos;
+    uint start;
+    uint key;
+};
+
+layout(std430, binding = 0) buffer buff_points {
+    item point[];
+};
+
+layout(std430, binding = 1) buffer buff_counter {
+    uint globalCount;
+};
+
+layout(rgba32f, binding = 2) uniform writeonly image2D img_lines;
+
+layout(binding = 3) uniform buff_info {
+    uint buffer_length;
+    float radius;
+    float radius2;
+};
+
+shared uint localCount;
+shared vec3 shaPointsA[512];
+shared vec3 shaPointsB[512];
+
+void main() {
+
+    uint gid = gl_GlobalInvocationID.x;
+    if(gid >= buffer_length) return;
+
+    int imgWidth = imageSize(img_lines).x;
+
+    uint lid = gl_LocalInvocationIndex;
+
+    if(lid == 0){
+        localCount = 0u;
+    }
+    barrier();
+
+    vec3 a = point[gid].pos;
+    uvec3 cell_a = uvec3(floor(a/radius) + 1000);
+
+    for(int x = -1; x <= 1; x++){
+        for(int y = -1; y <= 1; y++){
+            for(int z = -1; z <= 1; z++){
+
+                uvec3 cell = uvec3(ivec3(cell_a) + ivec3(x,y,z));
+
+                uint key = (cell.x*2803u + cell.y*2971u + cell.z*2053u) % buffer_length;
+                uint first = point[key].start;
+
+                if(first == 0xFFFFFFFFu) continue; //there's nothing in this bucket
+
+                for(uint i = 0u; i < 1000; i++){
+
+                    uint id = first + i;
+                    if(id >= buffer_length) break;
+                    uint key_b = point[id].key;
+                    if(key != key_b) break;
+
+                    vec3 b = point[id].pos; 
+                    vec3 diff = b-a;
+                    float dist2 = dot(diff, diff);
+                    if(dist2 > radius2) continue;  
+
+                    uint globalOffset = atomicAdd(globalCount, 1u);
+                    ivec2 coord = ivec2(globalOffset % imgWidth, globalOffset / imgWidth);
+                    imageStore(img_lines, coord,                vec4(a, dist2));
+                    imageStore(img_lines, coord+ivec2(0,2000),  vec4(b, dist2));
+
+                }
+            }
+        }
+    }
+}

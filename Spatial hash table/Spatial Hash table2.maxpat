@@ -9,8 +9,196 @@
             "modernui": 1
         },
         "classnamespace": "box",
-        "rect": [ 34.0, 100.0, 1660.0, 893.0 ],
+        "rect": [ 34.0, 100.0, 1660.0, 896.0 ],
         "boxes": [
+            {
+                "box": {
+                    "id": "obj-15",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 989.0, 1955.0, 90.0, 22.0 ],
+                    "text": "prepend param"
+                }
+            },
+            {
+                "box": {
+                    "filename": "none",
+                    "id": "obj-46",
+                    "maxclass": "newobj",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 560.0, 1407.0, 365.0, 22.0 ],
+                    "text": "jit.gpu.compute @autoworkgroups img_lines @img_lines img_lines",
+                    "textfile": {
+                        "text": "// default compute shader\n#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\nlayout(rgba32f, binding = 0) uniform writeonly image2D img_lines;\nvoid main() {\n    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(img_lines);\n\n    if(gid.x >= size.x || gid.y >= size.y) return;\n    \n    imageStore(img_lines, gid, vec4(0.0));\n}",
+                        "filename": "none",
+                        "flags": 0,
+                        "embed": 1,
+                        "autowatch": 1
+                    }
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-71",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "jit_matrix", "" ],
+                    "patching_rect": [ 1105.0, 1676.0, 53.0, 22.0 ],
+                    "text": "jit.matrix"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-76",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "bang" ],
+                    "patching_rect": [ 737.0, 1768.0, 58.0, 22.0 ],
+                    "text": "loadbang"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-75",
+                    "maxclass": "message",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 737.0, 1801.0, 294.0, 22.0 ],
+                    "text": "setcell 0 val 0 0 0, setcell 1 val 2000 2000 2000, bang"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-33",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "jit_matrix", "" ],
+                    "patching_rect": [ 737.0, 1839.0, 113.0, 22.0 ],
+                    "text": "jit.matrix 3 float32 2"
+                }
+            },
+            {
+                "box": {
+                    "filename": "none",
+                    "id": "obj-74",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "", "" ],
+                    "patching_rect": [ 1105.0, 1938.0, 236.0, 22.0 ],
+                    "text": "jit.gl.shader @name drawLines @embed 1",
+                    "textfile": {
+                        "text": "<jittershader name=\"fill-flat-triangles\">\n\t<param name=\"posTex\" type=\"int\" default=\"0\" />\n    <param name=\"offset\" type=\"vec3\" state=\"POSITION\" />\n\t<param name=\"MVP\" type=\"mat4\" state=\"MODELVIEW_PROJECTION_MATRIX\" />\n    <param name=\"col\" type=\"vec4\" state=\"COLOR\" />\n    <param name=\"radius2\" type=\"float\" default=\"0.03\" />\n\t<language name=\"glsl\" version=\"1.5\">\n        <bind param=\"posTex\" program=\"vp\" />\n        <bind param=\"offset\" program=\"vp\" />\n        <bind param=\"MVP\" program=\"vp\" />\n        <bind param=\"col\" program=\"vp\" />\n        <bind param=\"radius2\" program=\"vp\" />\n\t\t<program name=\"vp\" type=\"vertex\">\n<![CDATA[\n#version 330 core\nin vec3 offset;\nin vec4 col;\nuniform mat4 MVP;\nuniform float radius2;\nuniform sampler2DRect posTex;\n\nout jit_PerVertex {\n\tflat vec4 color;\n} jit_out;\n\nivec2 to2DIndex(int i, int dim) {\n    int x = i % dim;\n    int y = i / dim;\n    return ivec2(x, 4000 - y - offset.y - 1);\n    //return ivec2(x, dim.y - 1 - y); // TODO: Remove this if you don't flip the data texture\n}\n\nvoid main() {\t\n    ivec2 p = to2DIndex(gl_InstanceID, 4000);\n    vec4 lookup = texelFetch(posTex, p);\n    vec3 pos = lookup.xyz;\n    float normDist = lookup.w / radius2;\n    gl_Position = MVP * vec4(pos, 1.0);\n    jit_out.color = col;\n    jit_out.color.a *= smoothstep(0., 0.5, 1.0 - normDist);\n}\n]]>\n\t\t</program>\n\t\t<program name=\"fp\" type=\"fragment\">\n<![CDATA[\n#version 330 core\n\nin jit_PerVertex {\n\tflat vec4 color;\n} jit_in;\n\nout vec4 color;\n\nvoid main() {\n\tcolor = jit_in.color;\n}\t\n]]>\n\t\t</program>\n\t</language>\n</jittershader>\n",
+                        "filename": "none",
+                        "flags": 0,
+                        "embed": 1,
+                        "autowatch": 1
+                    }
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-73",
+                    "maxclass": "newobj",
+                    "numinlets": 2,
+                    "numoutlets": 2,
+                    "outlettype": [ "", "" ],
+                    "patching_rect": [ 651.5, 1651.0, 171.0, 22.0 ],
+                    "text": "substitute jit_gl_texture texture"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-72",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 1105.0, 1811.0, 107.0, 22.0 ],
+                    "text": "prepend instances"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-70",
+                    "maxclass": "newobj",
+                    "numinlets": 9,
+                    "numoutlets": 2,
+                    "outlettype": [ "", "" ],
+                    "patching_rect": [ 1105.0, 1890.0, 582.0, 22.0 ],
+                    "text": "jit.gl.mesh @draw_mode lines @shader drawLines @blend_enable 1 @depth_enable 0 @gl_color 1 1 1 0.1"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-66",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "", "" ],
+                    "patching_rect": [ 1105.0, 1706.0, 41.0, 22.0 ],
+                    "text": "jit.spill"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-65",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "jit_matrix", "" ],
+                    "patching_rect": [ 1105.0, 1646.0, 93.0, 22.0 ],
+                    "text": "jit.coerce 1 long"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-64",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 2,
+                    "outlettype": [ "jit_matrix", "" ],
+                    "patching_rect": [ 1105.0, 1612.0, 53.0, 22.0 ],
+                    "text": "jit.matrix"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-62",
+                    "maxclass": "newobj",
+                    "numinlets": 2,
+                    "numoutlets": 3,
+                    "outlettype": [ "", "jit_matrix", "" ],
+                    "patching_rect": [ 1071.0, 1577.0, 87.0, 22.0 ],
+                    "text": "jit.gpu.tomatrix"
+                }
+            },
+            {
+                "box": {
+                    "filename": "resetCounter.comp",
+                    "id": "obj-29",
+                    "maxclass": "newobj",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 560.0, 1462.0, 506.0, 22.0 ],
+                    "text": "jit.gpu.compute @shader resetCounter.comp @workgroups 1 1 1 @buff_counter buff_counter",
+                    "textfile": {
+                        "filename": "resetCounter.comp",
+                        "flags": 0,
+                        "embed": 0,
+                        "autowatch": 1
+                    }
+                }
+            },
             {
                 "box": {
                     "id": "obj-61",
@@ -29,8 +217,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 1153.0, 551.0, 241.0, 22.0 ],
-                    "text": "jit.gpu.buffer @name counter @bytecount 4"
+                    "patching_rect": [ 1139.0, 1390.0, 267.0, 22.0 ],
+                    "text": "jit.gpu.buffer @name buff_counter @bytecount 4"
                 }
             },
             {
@@ -40,8 +228,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 1153.0, 521.0, 384.0, 22.0 ],
-                    "text": "jit.gpu.image @dim 4000 100 @format rgba32_float @name img_lines"
+                    "patching_rect": [ 660.5, 1577.0, 391.0, 22.0 ],
+                    "text": "jit.gpu.image @dim 4000 4000 @format rgba32_float @name img_lines"
                 }
             },
             {
@@ -64,39 +252,6 @@
                     "outlettype": [ "", "" ],
                     "patching_rect": [ 280.0, 246.0, 84.0, 22.0 ],
                     "text": "routepass dim"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-54",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 1,
-                    "outlettype": [ "" ],
-                    "patching_rect": [ 1369.0, 408.0, 108.0, 22.0 ],
-                    "text": "prepend bytecount"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-57",
-                    "maxclass": "newobj",
-                    "numinlets": 2,
-                    "numoutlets": 1,
-                    "outlettype": [ "int" ],
-                    "patching_rect": [ 1369.0, 376.0, 29.5, 22.0 ],
-                    "text": "* 8"
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-58",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "" ],
-                    "patching_rect": [ 1369.0, 438.0, 212.0, 22.0 ],
-                    "text": "jit.gpu.buffer @name buff_screen_pos"
                 }
             },
             {
@@ -134,36 +289,6 @@
             },
             {
                 "box": {
-                    "filename": "none",
-                    "id": "obj-41",
-                    "maxclass": "newobj",
-                    "numinlets": 4,
-                    "numoutlets": 1,
-                    "outlettype": [ "" ],
-                    "patching_rect": [ 560.0, 1425.0, 422.0, 22.0 ],
-                    "text": "jit.gpu.compute @buff_points buff_points @buff_screen_pos buff_screen_pos",
-                    "textfile": {
-                        "text": "//Transform position\n\n#version 460\n\nlayout(local_size_x = 128) in;\nstruct points{\n    vec3 pos;\n    uint start;\n    uint key;\n};\n\nlayout(std430, binding = 0) buffer buff_points {\n    points point[];\n};\n\nlayout(std430, binding = 1) buffer buff_screen_pos {\n    vec2 screenPos[];\n};\nlayout(binding = 2) uniform Config {\n    vec4 v0;\n    vec4 v1;\n    vec4 v2;\n    vec4 v3;\n    vec4 p0;\n    vec4 p1;\n    vec4 p2;\n    vec4 p3;\n    uint buffer_length;\n    vec2 canvas_size;\n};\n\nvoid main() {\n\n    uint gid = gl_GlobalInvocationID.x;\n\n    if(gid >= buffer_length) return;\n\n    vec3 pos = point[gid].pos;\n\n    mat4 V = mat4(v0, v1, v2, v3);\n    mat4 P = mat4(-p0, p1, -p2, p3);\n    vec4 vPos = V * vec4(pos, 1.0);\n    vec4 projPos = P * vPos;\n/*\n    bool outsideScreen =    screenPos.x < -1.0 || screenPos.x > 1.0 ||\n                            screenPos.y < -1.0 || screenPos.y > 1.0 ||\n                            vPos.z > 0.0;\n\n    if(outsideScreen) return;\n*/\n    screenPos[gid] = ((projPos.xy / projPos.w)*0.5 + 0.5) * canvas_size;\n\n}\n",
-                        "filename": "none",
-                        "flags": 0,
-                        "embed": 1,
-                        "autowatch": 1
-                    }
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-18",
-                    "maxclass": "newobj",
-                    "numinlets": 0,
-                    "numoutlets": 1,
-                    "outlettype": [ "" ],
-                    "patching_rect": [ 80.0, 952.0, 50.0, 22.0 ],
-                    "text": "r param"
-                }
-            },
-            {
-                "box": {
                     "id": "obj-5",
                     "maxclass": "newobj",
                     "numinlets": 1,
@@ -180,24 +305,6 @@
                     "numoutlets": 0,
                     "patching_rect": [ 280.0, 274.0, 52.0, 22.0 ],
                     "text": "s param"
-                }
-            },
-            {
-                "box": {
-                    "code": "//Break transformation matrices into vec4\r\nfunction view_matrix(){\r\n    let m = arrayfromargs(arguments);\r\n    for(let i = 0; i < 16; i+=4){\r\n        outlet(0, \"v\"+i/4, m.slice(i, i+4));\r\n    }\r\n}\r\n\r\nfunction proj_matrix(){\r\n    let m = arrayfromargs(arguments);\r\n    for(let i = 0; i < 16; i+=4){\r\n        outlet(0, \"p\"+i/4, m.slice(i, i+4));\r\n    }\r\n}\r\n\r\nfunction dim(){ \r\n    outlet(0,\"canvas_size\", arrayfromargs(arguments));\r\n}",
-                    "filename": "none",
-                    "fontface": 0,
-                    "fontname": "<Monospaced>",
-                    "fontsize": 12.0,
-                    "id": "obj-15",
-                    "maxclass": "v8.codebox",
-                    "numinlets": 1,
-                    "numoutlets": 1,
-                    "outlettype": [ "" ],
-                    "patching_rect": [ 80.0, 988.0, 458.0, 301.0 ],
-                    "saved_object_attributes": {
-                        "parameter_enable": 0
-                    }
                 }
             },
             {
@@ -369,43 +476,13 @@
             },
             {
                 "box": {
-                    "id": "obj-51",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "" ],
-                    "patching_rect": [ 653.0, 1538.0, 59.0, 22.0 ],
-                    "text": "jit.gl.layer"
-                }
-            },
-            {
-                "box": {
                     "id": "obj-47",
                     "maxclass": "newobj",
                     "numinlets": 2,
                     "numoutlets": 3,
                     "outlettype": [ "", "jit_gl_texture", "" ],
-                    "patching_rect": [ 560.0, 1501.0, 206.0, 22.0 ],
-                    "text": "jit.gpu.totexture @source img_render"
-                }
-            },
-            {
-                "box": {
-                    "filename": "none",
-                    "id": "obj-46",
-                    "maxclass": "newobj",
-                    "numinlets": 2,
-                    "numoutlets": 1,
-                    "outlettype": [ "" ],
-                    "patching_rect": [ 560.0, 1386.0, 395.0, 22.0 ],
-                    "text": "jit.gpu.compute @autoworkgroups img_render @img_render img_render",
-                    "textfile": {
-                        "text": "//clear the canvas\n#version 460\nlayout(local_size_x = 16, local_size_y = 16) in;\n\nlayout(rgba32f, binding = 0) uniform writeonly image2D img_render;\n\nvoid main() {\n    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);\n    ivec2 size = imageSize(img_render);\n\n    if(gid.x >= size.x || gid.y >= size.y) return;\n\n    imageStore(img_render, gid, vec4(0.0));\n}",
-                        "filename": "none",
-                        "flags": 0,
-                        "embed": 1,
-                        "autowatch": 1
-                    }
+                    "patching_rect": [ 560.0, 1579.0, 91.0, 22.0 ],
+                    "text": "jit.gpu.totexture"
                 }
             },
             {
@@ -432,31 +509,20 @@
             },
             {
                 "box": {
-                    "filename": "renderPoints.comp",
+                    "filename": "renderPoints2.comp",
                     "id": "obj-34",
                     "maxclass": "newobj",
                     "numinlets": 5,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 560.0, 1463.0, 718.0, 22.0 ],
-                    "text": "jit.gpu.compute @shader renderPoints.comp @img_render img_render @buff_points buff_points @buff_screen_pos buff_screen_pos",
+                    "patching_rect": [ 560.0, 1503.0, 661.0, 22.0 ],
+                    "text": "jit.gpu.compute @shader renderPoints2.comp @buff_points buff_points @buff_counter buff_counter @img_lines img_lines",
                     "textfile": {
-                        "filename": "renderPoints.comp",
+                        "filename": "renderPoints2.comp",
                         "flags": 0,
                         "embed": 0,
                         "autowatch": 1
                     }
-                }
-            },
-            {
-                "box": {
-                    "id": "obj-33",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "" ],
-                    "patching_rect": [ 1153.0, 488.0, 401.0, 22.0 ],
-                    "text": "jit.gpu.image @name img_render @dim 1920 1080 @format rgba32_float"
                 }
             },
             {
@@ -553,7 +619,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 590.0, 1573.0, 54.0, 22.0 ],
+                    "patching_rect": [ 590.0, 1651.0, 54.0, 22.0 ],
                     "text": "deferlow"
                 }
             },
@@ -583,7 +649,7 @@
                     "numinlets": 3,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 560.0, 1346.0, 229.0, 22.0 ],
+                    "patching_rect": [ 560.0, 1362.0, 229.0, 22.0 ],
                     "text": "jit.gpu.compute @buff_points buff_points",
                     "textfile": {
                         "text": "// default compute shader\n#version 460\nlayout(local_size_x = 128) in;\n\nstruct points{\n    vec3 pos;\n    uint start;\n    uint key;\n};\n\nlayout(std430, binding = 0) buffer buff_points {\n    points point[];\n};\n\nlayout(binding = 1) uniform buff_info {\n    uint buffer_length;\n};\n\nshared uint keys[128+1];\n\nvoid main() {\n    uint gid = gl_GlobalInvocationID.x;\n\n    if(gid >= buffer_length) return;\n\n    uint lid = gl_LocalInvocationIndex;\n    \n    keys[lid+1] = point[gid].key;\n    if(lid == 0){\n        keys[0] = point[max(0u, gid-1)].key;\n    }\n    barrier();\n    \n    uint thisKey = keys[lid+1];\n    uint prevKey = keys[lid];\n\n    if(thisKey != prevKey){\n        point[thisKey].start = gid;\n    }\n}",
@@ -620,7 +686,7 @@
                     "numinlets": 1,
                     "numoutlets": 3,
                     "outlettype": [ "", "", "" ],
-                    "patching_rect": [ 560.0, 1538.0, 79.0, 22.0 ],
+                    "patching_rect": [ 560.0, 1616.0, 79.0, 22.0 ],
                     "text": "jit.gpu.submit"
                 }
             },
@@ -768,7 +834,7 @@
                                     "numinlets": 1,
                                     "numoutlets": 1,
                                     "outlettype": [ "" ],
-                                    "patching_rect": [ 276.0, 336.0, 33.0, 22.0 ],
+                                    "patching_rect": [ 422.0, 336.0, 33.0, 22.0 ],
                                     "text": "* 0.5"
                                 }
                             },
@@ -779,7 +845,7 @@
                                     "numinlets": 1,
                                     "numoutlets": 1,
                                     "outlettype": [ "" ],
-                                    "patching_rect": [ 275.0, 311.0, 61.0, 22.0 ],
+                                    "patching_rect": [ 369.0, 289.0, 61.0, 22.0 ],
                                     "text": "normalize"
                                 }
                             },
@@ -924,7 +990,7 @@
                             },
                             {
                                 "patchline": {
-                                    "destination": [ "obj-13", 0 ],
+                                    "destination": [ "obj-11", 0 ],
                                     "source": [ "obj-10", 0 ]
                                 }
                             },
@@ -938,18 +1004,6 @@
                                 "patchline": {
                                     "destination": [ "obj-11", 1 ],
                                     "source": [ "obj-12", 0 ]
-                                }
-                            },
-                            {
-                                "patchline": {
-                                    "destination": [ "obj-14", 0 ],
-                                    "source": [ "obj-13", 0 ]
-                                }
-                            },
-                            {
-                                "patchline": {
-                                    "destination": [ "obj-11", 0 ],
-                                    "source": [ "obj-14", 0 ]
                                 }
                             },
                             {
@@ -1114,6 +1168,18 @@
                     "patching_rect": [ 103.0, 214.0, 197.0, 22.0 ],
                     "text": "jit.world @floating 1 @size 960 540"
                 }
+            },
+            {
+                "box": {
+                    "attr": "gl_color",
+                    "id": "obj-41",
+                    "maxclass": "attrui",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "parameter_enable": 0,
+                    "patching_rect": [ 1105.0, 1860.0, 150.0, 22.0 ]
+                }
             }
         ],
         "lines": [
@@ -1197,7 +1263,15 @@
             },
             {
                 "patchline": {
+                    "destination": [ "obj-15", 0 ],
+                    "order": 0,
+                    "source": [ "obj-12", 0 ]
+                }
+            },
+            {
+                "patchline": {
                     "destination": [ "obj-34", 0 ],
+                    "order": 1,
                     "source": [ "obj-12", 0 ]
                 }
             },
@@ -1209,7 +1283,7 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-41", 0 ],
+                    "destination": [ "obj-74", 0 ],
                     "source": [ "obj-15", 0 ]
                 }
             },
@@ -1227,8 +1301,16 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-15", 0 ],
-                    "source": [ "obj-18", 0 ]
+                    "destination": [ "obj-46", 1 ],
+                    "order": 0,
+                    "source": [ "obj-19", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-47", 1 ],
+                    "order": 1,
+                    "source": [ "obj-19", 0 ]
                 }
             },
             {
@@ -1251,6 +1333,20 @@
             },
             {
                 "patchline": {
+                    "destination": [ "obj-29", 1 ],
+                    "order": 1,
+                    "source": [ "obj-22", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-62", 1 ],
+                    "order": 0,
+                    "source": [ "obj-22", 0 ]
+                }
+            },
+            {
+                "patchline": {
                     "destination": [ "obj-46", 0 ],
                     "source": [ "obj-24", 0 ]
                 }
@@ -1265,6 +1361,12 @@
                 "patchline": {
                     "destination": [ "obj-4", 0 ],
                     "source": [ "obj-28", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-34", 0 ],
+                    "source": [ "obj-29", 0 ]
                 }
             },
             {
@@ -1287,20 +1389,28 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-47", 1 ],
+                    "destination": [ "obj-70", 0 ],
                     "source": [ "obj-33", 0 ]
                 }
             },
             {
                 "patchline": {
                     "destination": [ "obj-47", 0 ],
+                    "order": 1,
+                    "source": [ "obj-34", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-62", 0 ],
+                    "order": 0,
                     "source": [ "obj-34", 0 ]
                 }
             },
             {
                 "patchline": {
                     "destination": [ "obj-91", 1 ],
-                    "midpoints": [ 599.5, 1611.671875, 61.265625, 1611.671875, 61.265625, 164.3515625, 145.5, 164.3515625 ],
+                    "midpoints": [ 599.5, 1690.4609375, 61.265625, 1690.4609375, 61.265625, 164.3515625, 145.5, 164.3515625 ],
                     "source": [ "obj-35", 0 ]
                 }
             },
@@ -1343,34 +1453,27 @@
             {
                 "patchline": {
                     "destination": [ "obj-16", 0 ],
-                    "order": 2,
-                    "source": [ "obj-40", 0 ]
-                }
-            },
-            {
-                "patchline": {
-                    "destination": [ "obj-37", 0 ],
-                    "order": 3,
-                    "source": [ "obj-40", 0 ]
-                }
-            },
-            {
-                "patchline": {
-                    "destination": [ "obj-43", 0 ],
                     "order": 1,
                     "source": [ "obj-40", 0 ]
                 }
             },
             {
                 "patchline": {
-                    "destination": [ "obj-57", 0 ],
+                    "destination": [ "obj-37", 0 ],
+                    "order": 2,
+                    "source": [ "obj-40", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-43", 0 ],
                     "order": 0,
                     "source": [ "obj-40", 0 ]
                 }
             },
             {
                 "patchline": {
-                    "destination": [ "obj-34", 0 ],
+                    "destination": [ "obj-70", 0 ],
                     "source": [ "obj-41", 0 ]
                 }
             },
@@ -1399,7 +1502,7 @@
                 "patchline": {
                     "color": [ 0.09411764705882353, 0.5647058823529412, 0.6313725490196078, 1.0 ],
                     "destination": [ "obj-10", 0 ],
-                    "order": 5,
+                    "order": 4,
                     "source": [ "obj-43", 0 ]
                 }
             },
@@ -1415,7 +1518,7 @@
                 "patchline": {
                     "color": [ 0.09411764705882353, 0.5647058823529412, 0.6313725490196078, 1.0 ],
                     "destination": [ "obj-24", 0 ],
-                    "order": 3,
+                    "order": 2,
                     "source": [ "obj-43", 0 ]
                 }
             },
@@ -1430,16 +1533,8 @@
             {
                 "patchline": {
                     "color": [ 0.09411764705882353, 0.5647058823529412, 0.6313725490196078, 1.0 ],
-                    "destination": [ "obj-41", 0 ],
-                    "order": 2,
-                    "source": [ "obj-43", 0 ]
-                }
-            },
-            {
-                "patchline": {
-                    "color": [ 0.09411764705882353, 0.5647058823529412, 0.6313725490196078, 1.0 ],
                     "destination": [ "obj-48", 0 ],
-                    "order": 4,
+                    "order": 3,
                     "source": [ "obj-43", 0 ]
                 }
             },
@@ -1452,7 +1547,7 @@
             {
                 "patchline": {
                     "destination": [ "obj-24", 0 ],
-                    "order": 2,
+                    "order": 1,
                     "source": [ "obj-45", 0 ]
                 }
             },
@@ -1465,14 +1560,7 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-41", 0 ],
-                    "order": 1,
-                    "source": [ "obj-45", 0 ]
-                }
-            },
-            {
-                "patchline": {
-                    "destination": [ "obj-41", 0 ],
+                    "destination": [ "obj-29", 0 ],
                     "source": [ "obj-46", 0 ]
                 }
             },
@@ -1484,7 +1572,7 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-51", 0 ],
+                    "destination": [ "obj-73", 0 ],
                     "source": [ "obj-47", 1 ]
                 }
             },
@@ -1526,12 +1614,6 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-58", 0 ],
-                    "source": [ "obj-54", 0 ]
-                }
-            },
-            {
-                "patchline": {
                     "destination": [ "obj-95", 0 ],
                     "source": [ "obj-55", 0 ]
                 }
@@ -1540,12 +1622,6 @@
                 "patchline": {
                     "destination": [ "obj-50", 0 ],
                     "source": [ "obj-56", 0 ]
-                }
-            },
-            {
-                "patchline": {
-                    "destination": [ "obj-54", 0 ],
-                    "source": [ "obj-57", 0 ]
                 }
             },
             {
@@ -1617,8 +1693,32 @@
             },
             {
                 "patchline": {
+                    "destination": [ "obj-64", 0 ],
+                    "source": [ "obj-62", 1 ]
+                }
+            },
+            {
+                "patchline": {
                     "destination": [ "obj-14", 0 ],
                     "source": [ "obj-63", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-65", 0 ],
+                    "source": [ "obj-64", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-71", 0 ],
+                    "source": [ "obj-65", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-72", 0 ],
+                    "source": [ "obj-66", 0 ]
                 }
             },
             {
@@ -1640,6 +1740,36 @@
                     "destination": [ "obj-95", 0 ],
                     "order": 2,
                     "source": [ "obj-7", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-66", 0 ],
+                    "source": [ "obj-71", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-70", 0 ],
+                    "source": [ "obj-72", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-70", 0 ],
+                    "source": [ "obj-73", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-33", 0 ],
+                    "source": [ "obj-75", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-75", 0 ],
+                    "source": [ "obj-76", 0 ]
                 }
             },
             {
