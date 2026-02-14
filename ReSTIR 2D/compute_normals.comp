@@ -1,0 +1,44 @@
+// Compute normals
+
+#version 460
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(rgba32f, binding = 0) uniform image2D norHeightImg;
+
+const uvec2 sharedSize = gl_WorkGroupSize.xy + uvec2(2u);
+shared float shaH[sharedSize.x][sharedSize.y];
+
+void main()
+{
+    uvec2 lid  = gl_LocalInvocationID.xy;
+    ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(norHeightImg);
+
+    // Global top-left of this workgroup
+    ivec2 wgBase = ivec2(gl_WorkGroupID.xy * gl_WorkGroupSize.xy);
+
+    // Fill shared tile + halo
+    for (uint idx = lid.x; idx < sharedSize.x; idx += gl_WorkGroupSize.x) {
+        for (uint idy = lid.y; idy < sharedSize.y; idy += gl_WorkGroupSize.y) {
+
+            ivec2 coord = wgBase + ivec2(int(idx), int(idy)) - ivec2(1, 1);
+            coord = clamp(coord, ivec2(0), size - ivec2(1));
+
+            shaH[idx][idy] = imageLoad(norHeightImg, coord).a;
+        }
+    }
+
+    barrier();
+
+    if (gid.x >= size.x || gid.y >= size.y) return;
+
+    uvec2 ce = lid + uvec2(1);
+
+    float hx0 = shaH[ce.x - 1][ce.y];
+    float hx1 = shaH[ce.x + 1][ce.y];
+    float hy0 = shaH[ce.x][ce.y - 1];
+    float hy1 = shaH[ce.x][ce.y + 1];
+
+    vec3 N = normalize(vec3(hx1 - hx0, hy0 - hy1, 2.0));
+    imageStore(norHeightImg, gid, vec4(N, shaH[ce.x][ce.y]));
+}

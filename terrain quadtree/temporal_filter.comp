@@ -1,0 +1,105 @@
+#version 460
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(rgba32f, binding = 0) uniform readonly image2D img_raw_dir;
+layout(rgba32f, binding = 1) uniform image2D img_history;
+layout(rgba32f, binding = 2) uniform writeonly image2D img_dir;
+layout(         binding = 3) uniform cfg{ uint frame; int readOffset; int writeOffset; };
+
+shared ivec2 size;
+
+vec3 rgb2ycocg(in vec3 rgb)
+{
+    float co = rgb.r - rgb.b;
+    float t = rgb.b + co / 2.0;
+    float cg = rgb.g - t;
+    float y = t + cg / 2.0;
+    return vec3(y, co, cg);
+}
+
+
+vec3 ycocg2rgb(in vec3 ycocg)
+{
+    float t = ycocg.r - ycocg.b / 2.0;
+    float g = ycocg.b + t;
+    float b = t - ycocg.g / 2.0;
+    float r = ycocg.g + b;
+    return vec3(r, g, b);
+}
+
+
+vec3 clipToAABB(in vec3 cOld, in vec3 cNew, in vec3 centre, in vec3 halfSize)
+{
+    if (all(lessThanEqual(abs(cOld - centre), halfSize))) {
+        return cOld;
+    }
+    
+    vec3 dir = (cNew - cOld);
+    vec3 near = centre - sign(dir) * halfSize;
+    vec3 tAll = (near - cOld) / dir;
+    float t = 1e20;
+    for (int i = 0; i < 3; i++) {
+        if (tAll[i] >= 0.0 && tAll[i] < t) {
+            t = tAll[i];
+        }
+    }
+    
+    if (t >= 1e20) {
+		return cOld;
+    }
+    return cOld + dir * t;
+}
+
+void getImageSize(){
+    if(gl_LocalInvocationIndex == 0){
+        size = imageSize(img_raw_dir);
+    }
+    barrier();
+}
+
+
+void main()
+{
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+
+    getImageSize();
+
+    if(gid.x >= size.x || gid.y >= size.y) return;
+
+    vec4 val = imageLoad(img_raw_dir, gid);
+    
+    if (frame == 0 ) {
+        imageStore(img_dir, gid, val);
+        imageStore(img_history, gid + ivec2(writeOffset,0), val);
+        return;
+    }
+
+    vec3 colorOld = imageLoad(img_history, gid + ivec2(readOffset,0)).rgb;
+    
+    // Look up colours for the immediate neighbourhood of the pixel in
+    // this frame. Calculate the first two moments of their distribution
+    // (i.e. mean and standard deviation).
+ 	ivec2 fcOffsets[4];
+    fcOffsets[0] = ivec2(-1.0,  0.0);
+    fcOffsets[1] = ivec2( 1.0,  0.0);
+    fcOffsets[2] = ivec2( 0.0, -1.0);
+    fcOffsets[3] = ivec2( 0.0,  1.0);
+    
+    vec3 mean = rgb2ycocg(val.rgb);
+    vec3 stddev = mean * mean;
+    for (int i = 0; i < 4; i++) {
+        vec3 c = rgb2ycocg(imageLoad(img_raw_dir, gid + fcOffsets[i]).rgb);
+        mean += c;
+        stddev += c * c;
+    }
+    mean /= 5.0;
+    stddev = sqrt(stddev / 5.0 - mean * mean);
+
+    colorOld = ycocg2rgb(clipToAABB(rgb2ycocg(colorOld), rgb2ycocg(val.rgb), mean, stddev));
+    
+    vec3 res  = mix(colorOld, val.rgb, 0.1);
+
+    imageStore(img_history, gid + ivec2(writeOffset, 0), vec4(res, 1.0));
+    imageStore(img_dir, gid, vec4(res, 1.0));
+}

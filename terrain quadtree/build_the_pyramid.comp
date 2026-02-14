@@ -1,0 +1,51 @@
+// Build the pyramid
+#version 460
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(r32f, binding = 0) uniform image2D img_levels;
+
+struct Level {
+    ivec2 level_size;
+    ivec2 level_offset;
+};
+
+layout(std430, set = 0, binding = 1) buffer buff_levels_info {
+    uint num_levels;
+    Level levels[];
+};
+
+layout(binding = 2) uniform cfg{
+    uint level;
+};
+
+shared ivec2 level_size_curr;
+shared ivec2 level_size_prev;
+shared ivec2 level_offset_curr;
+shared ivec2 level_offset_prev;
+
+void main() {
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+
+    if(gl_LocalInvocationIndex == 0){
+        uint prevLevel = level - 1u;
+        level_size_curr = levels[level].level_size;
+        level_size_prev = levels[prevLevel].level_size;
+        level_offset_curr = levels[level].level_offset;
+        level_offset_prev = levels[prevLevel].level_offset;
+    }
+    barrier();
+
+    if(gid.x >= level_size_curr.x || gid.y >= level_size_curr.y) return;
+
+    ivec2 readCoord = gid*2;
+    ivec2 limit = level_size_prev - ivec2(1);
+
+    float h =  imageLoad(img_levels, min(readCoord + ivec2(0,0), limit) + level_offset_prev).x;
+    h = max(h, imageLoad(img_levels, min(readCoord + ivec2(1,0), limit) + level_offset_prev).x );
+    h = max(h, imageLoad(img_levels, min(readCoord + ivec2(0,1), limit) + level_offset_prev).x );
+    h = max(h, imageLoad(img_levels, min(readCoord + ivec2(1,1), limit) + level_offset_prev).x );
+
+    imageStore(img_levels, gid + level_offset_curr, vec4(h));
+}

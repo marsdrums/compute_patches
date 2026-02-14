@@ -1,0 +1,18 @@
+//Copy the hightfield into the first level of the pyramid
+#version 460
+
+layout(rgba32f, binding = 0) uniform readonly image2D img_norH;
+layout(r32f, binding = 1) uniform writeonly image2D img_levels;
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+void main() {
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(img_norH);
+    
+    if(gid.x >= size.x || gid.y >= size.y) return;
+
+    float h = imageLoad(img_norH, gid).x;
+    imageStore(img_levels, gid, vec4(h));
+}

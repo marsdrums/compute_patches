@@ -1,0 +1,71 @@
+// Compute normals
+
+#version 460
+#extension GL_GOOGLE_include_directive : require
+#include "c74.noise.funcs.glsl"
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(rgba32f, binding = 0) uniform image2D img_norH;
+layout(rgba32f, binding = 1) uniform writeonly image2D img_pos;
+layout(         binding = 2) uniform cfg{ uint frame; };
+
+const uvec2 sharedSize = gl_WorkGroupSize.xy + uvec2(2u);
+shared float shaH[sharedSize.x][sharedSize.y];
+shared ivec2 size;
+shared vec2 fsize;
+shared float ratio;
+
+uint getSeed(ivec2 gid){ return uint(gid.x + gid.y*size.x) + frame*uint(size.x*size.y) + 2999u; }
+
+void main()
+{
+    uvec2 lid  = gl_LocalInvocationID.xy;
+    ivec2 gid  = ivec2(gl_GlobalInvocationID.xy);
+
+    if(gl_LocalInvocationIndex == 0){
+        size = imageSize(img_norH);
+        fsize = vec2(size);
+        ratio = fsize.x / fsize.y;
+    }
+    barrier();
+
+    // Global top-left of this workgroup
+    ivec2 wgBase = ivec2(gl_WorkGroupID.xy * gl_WorkGroupSize.xy);
+
+    // Fill shared tile + halo
+    for (uint idx = lid.x; idx < sharedSize.x; idx += gl_WorkGroupSize.x) {
+        for (uint idy = lid.y; idy < sharedSize.y; idy += gl_WorkGroupSize.y) {
+
+            ivec2 coord = wgBase + ivec2(int(idx), int(idy)) - ivec2(1, 1);
+            coord = clamp(coord, ivec2(0), size - ivec2(1));
+
+            shaH[idx][idy] = imageLoad(img_norH, coord).a;
+        }
+    }
+
+    barrier();
+
+    if (gid.x >= size.x || gid.y >= size.y) return;
+
+    //Calc normals
+    uvec2 ce = lid + uvec2(1);
+
+    float hx0 = shaH[ce.x - 1][ce.y];
+    float hx1 = shaH[ce.x + 1][ce.y];
+    float hy0 = shaH[ce.x][ce.y - 1];
+    float hy1 = shaH[ce.x][ce.y + 1];
+
+    vec3 N = normalize(vec3(hx1 - hx0, hy0 - hy1, 2.0));
+    float h = shaH[ce.x][ce.y];
+    imageStore(img_norH, gid, vec4(N, h));
+
+    //calc position
+    uint seed = getSeed(gid);
+    vec3 pos;
+    pos.x = ratio*(2*float(gid.x) / fsize.x - 1);
+    pos.y = 2*float(gid.y) / fsize.y - 1;
+    pos.z = h / fsize.y;
+
+    imageStore(img_pos, gid, vec4(pos, h));
+}

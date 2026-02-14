@@ -1,0 +1,278 @@
+// default compute shader
+/*
+Compute surface position from pixel + height (img_norH.a) and normal from img_norH.rgb.
+
+Draw K random light indices.
+
+For each candidate light:
+
+    compute f(x,y)
+    compute RIS weight w = f/p
+    do reservoir update (stochastic replacement)
+
+Store reservoir.
+*/
+#version 460
+#extension GL_GOOGLE_include_directive : require
+#include "c74.noise.funcs.glsl"
+
+struct Light{
+    vec3 pos;   
+    vec3 col;  
+};
+
+struct Geom{
+    vec3 pos;
+    vec3 nor;
+    vec3 alb;
+};
+
+struct Reservoir{
+    uint Y; // index of most important light
+    float W_y; // light weight
+    float W_sum; // sum of all weights for all lights processed
+    float M; // number of lights processed for this reservoir
+};
+
+layout(local_size_x = 16, local_size_y = 16) in;
+layout(rgba32f, binding = 0) uniform readonly image2D img_norH;
+layout(rgba32f, binding = 1) uniform readonly image2D img_alb;
+layout(rgba32f, binding = 2) uniform readonly image2D img_pos;
+layout(rgba32f, binding = 3) uniform readonly image2D img_dir;
+layout(rgba32f, binding = 4) uniform image2D img_reservoir;
+layout(         binding = 5) uniform cfg{ uint frame; int readOffset; int writeOffset; };
+
+shared ivec2 size;
+shared vec2 fsize;
+shared float ratio;
+shared int numPixels;
+
+uint getSeed(ivec2 gid){ return uint(gid.x + gid.y*size.x) + frame*uint(size.x*size.y) + 999u; }
+
+void getImageSize(){
+    if(gl_LocalInvocationIndex == 0){
+        size = imageSize(img_norH);
+        fsize = vec2(size);
+        ratio = float(size.x) / float(size.y);
+        numPixels = size.x*size.y;
+    }
+    barrier();
+}
+
+Geom getGeom(ivec2 gid){
+
+    Geom g;
+    g.nor = imageLoad(img_norH, gid).xyz;
+    g.pos = imageLoad(img_pos, gid).xyz;
+    g.alb = imageLoad(img_alb, gid).rgb;
+    return g;
+}
+
+ 
+bool UpdateReservoir(inout Reservoir r, uint X, float w, float c, inout uint seed)
+{
+    r.W_sum += w;
+    r.M += c;
+ 
+    if ( RandomFloat01(seed) < w / r.W_sum  ){
+        r.Y = X;
+        return true;
+    }
+ 
+    return false;
+}
+
+bool IsReservoirValid(Reservoir r)
+{
+    return (r.M > 0.0) && (r.W_sum > 0.0);
+}
+
+Reservoir initReservoir() {
+    Reservoir r;
+    r.Y = 0u;
+    r.W_sum = 0.0;
+    r.M = 0.0;
+    return r;
+}
+
+Reservoir getPrevReservoir(ivec2 gid){
+    vec4 lookup = imageLoad(img_reservoir, gid + ivec2(readOffset, 0));
+    Reservoir r;
+    r.Y = floatBitsToUint(lookup.x);
+    r.W_y = lookup.y;
+    r.W_sum = lookup.z;
+    r.M = lookup.w;
+    return r;
+}
+
+void writeReservoir(Reservoir r, ivec2 gid){
+    imageStore(img_reservoir, gid + ivec2(writeOffset, 0), vec4(uintBitsToFloat(r.Y), r.W_y, r.W_sum, r.M));
+}
+
+
+float calcWeight(vec3 rad){
+    //return length(rad);
+    return max(dot(rad, vec3(0.2126,0.7152,0.0722)), 1e-8);
+}
+
+vec3 GetPointLightRadiance(Light l, Geom g, out float p_hat){
+    vec3 d = l.pos - g.pos;
+    float dist2 = max(dot(d, d), 1e-6);
+    vec3 wi = d * inversesqrt(dist2);
+
+    float ndotl = max(dot(g.nor, wi), 0.0);
+
+    // Point light falloff 
+    vec3 Li = l.col / dist2;
+
+    // Lambertian
+    vec3 brdf = g.alb / 3.14159265;
+
+    vec3 rad = brdf * Li * ndotl;
+    p_hat = calcWeight(rad);
+    return rad;
+}
+
+vec2 world2texel(vec2 p){
+    p.x /= ratio;
+    p = p*0.5 + 0.5;
+    p *= fsize;
+    return p;
+}
+
+float heightAtCell(ivec2 cell)
+{
+    return imageLoad(img_pos, cell).z;   // height in world units 
+}
+
+float visibilityCheap(vec3 P, vec3 L, inout uint seed)
+{
+    const float bias = 0.01;
+    vec3 d = L - P;
+    float dist = length(d);
+    if (dist <= 1e-5) return 1.0;
+
+    vec3 dir = d / dist;
+    vec3 O = P + dir * bias; // avoid self hit
+
+    vec2 g0 = world2texel(O.xy);
+    vec2 g1 = world2texel(L.xy);
+    vec2 dg = g1 - g0;
+
+    // Choose a small fixed sample count, optionally based on distance in grid cells.
+    float gridDist = length(dg);
+    int steps = int(clamp(gridDist * mix(0.5, 0.9, RandomFloat01(seed)), 6.0, 40.0)); // ~1 sample per 4 cells, 6..16 samples
+
+    // March in param t in (0,1), skipping endpoints
+    for (int i = 1; i <= steps; ++i)
+    {
+        float t = (float(i)+RandomFloat01(seed)-0.5) / float(steps + 1);
+
+        // point on segment in world space
+        float z = mix(O.z, L.z, t);
+
+        // sample terrain height at corresponding XY
+        vec2 g = g0 + dg * t;
+        ivec2 cell = ivec2(floor(g));
+
+        float h = heightAtCell(cell);
+
+        if (h > z + bias)
+            return 0.0;
+    }
+
+    return 1.0;
+}
+
+ivec2 id2coord(uint id){
+    int iid = int(id);
+    return ivec2(iid % size.x, iid / size.x);
+}
+
+Light getLight(id){
+    ivec2 iuv = id2coord(id);
+    Light l;
+    l.pos = imageLoad(img_pos, iuv).xyz;
+    l.col = imageLoad(img_dir, iuv).rgb; 
+    return l;
+}
+
+void main() {
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+
+    getImageSize();
+
+    if(gid.x >= size.x || gid.y >= size.y) return;
+
+    uint seed = getSeed(gid);
+    Geom g = getGeom(gid);
+    Reservoir r = initReservoir();
+    Light l;
+
+    float pdf = 1.0 / float(numPixels);
+    float p_hat = 0;
+    
+    //==== INITIAL SELECTION OF SAMPLES
+    //initial selection of 1 light of M
+    //for (uint i = 0; i < M; i++)
+    const uint M = 8u;
+    for (uint i = 0; i < M; i++)
+    {
+        uint lightIndex = uint(RandomFloat01(seed) * float(numPixels));
+        l = getLight(lightIndex);    
+        GetPointLightRadiance(l, g, p_hat);
+        float w = p_hat / pdf;
+         
+        UpdateReservoir(r, lightIndex, w, 1, seed);
+    }
+
+    //Verify visibility
+    l = getLight(r.Y); 
+    float visibility = visibilityCheap(g.pos, l.pos, seed);
+    if(visibility < 0.5){
+        //if the selected candidate isn't visible, re-init the reservoir
+        r = initReservoir();
+    }
+
+
+    //===== TEMPORAL REUSE 
+    Reservoir r_temp = initReservoir();
+    Reservoir r_prev = getPrevReservoir(gid);
+
+    // cap history influence (more typical)
+    r_prev.M = min(r_prev.M, 20.0);
+
+    // You need valid W_y for current r BEFORE using it
+    float p_hat_curr = 0.0;
+    l = getLight(r.Y);
+    GetPointLightRadiance(l, g, p_hat_curr);
+    r.W_y = (p_hat_curr > 0.0) ? (r.W_sum / p_hat_curr) / max(r.M, 1.0) : 0.0;
+
+    //*** maybe introduce here a normal divergence test
+
+    bool validHistory = IsReservoirValid(r_prev); // at least this
+
+    if (validHistory)
+    {
+        // add current selected sample as a candidate
+        UpdateReservoir(r_temp, r.Y, p_hat_curr * r.W_y * r.M, r.M, seed);
+
+        // add previous selected sample as a candidate
+        float p_hat_prev = 0.0;
+        l = getLight(r_prev.Y);
+        GetPointLightRadiance(l, g, p_hat_prev);
+        UpdateReservoir(r_temp, r_prev.Y, p_hat_prev * r_prev.W_y * r_prev.M, r_prev.M, seed);
+
+        // finalize W_y for merged reservoir
+        float p_hat_sel = 0.0;
+        l = getLight(r_temp.Y);
+        GetPointLightRadiance(l, g, p_hat_sel);
+        r_temp.W_y = (p_hat_sel > 0.0) ? (r_temp.W_sum / p_hat_sel) / max(r_temp.M, 1.0) : 0.0;
+
+        r = r_temp;
+    }
+
+    writeReservoir(r, gid);
+
+}

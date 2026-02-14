@@ -1,0 +1,235 @@
+#version 460
+#extension GL_GOOGLE_include_directive : require
+#include "c74.noise.funcs.glsl"
+
+struct Light{
+    vec3 pos;
+    vec3 col;
+};
+
+struct Geom{
+    vec3 pos;
+    vec3 nor;
+    vec3 alb;
+};
+
+struct Reservoir{
+    uint  Y;      // selected light index
+    float W_y;    // selected light weight factor
+    float W_sum;  // sum of RIS weights
+    float M;      // effective candidate count
+};
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(rgba32f, binding = 0) uniform readonly image2D img_norH;
+layout(rgba32f, binding = 1) uniform readonly image2D img_alb;
+layout(rgba32f, binding = 2) uniform readonly image2D img_pos;
+layout(rgba32f, binding = 3) uniform image2D img_reservoir;
+layout(rgba32f, binding = 4) uniform image2D img_dir;
+
+
+layout(binding = 5) uniform cfg{
+    uint frame;
+    int  readOffset;
+    int  writeOffset;
+
+    // spatial reuse knobs
+    int   spatialRadius;   // e.g. 6
+    int   spatialSamples;  // e.g. 8..16
+    float normalReject;    // e.g. 0.95 (cos threshold)
+};
+
+shared ivec2 size;
+shared vec2  fsize;
+shared float ratio;
+shared int numPixels;
+
+uint getSeed(ivec2 gid){ return uint(gid.x + gid.y*size.x) + frame*uint(size.x*size.y) + 777u; }
+
+void getImageSize(){
+    if(gl_LocalInvocationIndex == 0){
+        size = imageSize(img_norH);
+        fsize = vec2(size);
+        ratio = float(size.x) / float(size.y);
+        numPixels = size.x*size.y;
+    }
+    barrier();
+}
+
+Geom getGeom(ivec2 gid){
+    Geom g;
+    g.nor = imageLoad(img_norH, gid).xyz;
+    g.pos = imageLoad(img_pos, gid).xyz;
+    g.alb = imageLoad(img_alb, gid).rgb;
+    return g;
+}
+
+bool UpdateReservoir(inout Reservoir r, uint X, float w, float c, inout uint seed)
+{
+    r.W_sum += w;
+    r.M += c;
+
+    if (r.W_sum <= 0.0 || w <= 0.0) return false;
+
+    if (RandomFloat01(seed) < (w / r.W_sum)){
+        r.Y = X;
+        return true;
+    }
+    return false;
+}
+
+bool IsReservoirValid(Reservoir r)
+{
+    return (r.M > 0.0) && (r.W_sum > 0.0);
+}
+
+Reservoir initReservoir() {
+    Reservoir r;
+    r.Y = 0u;
+    r.W_y = 0.0;
+    r.W_sum = 0.0;
+    r.M = 0.0;
+    return r;
+}
+
+// Read from READ half
+Reservoir getPrevReservoir(ivec2 gid){
+    vec4 v = imageLoad(img_reservoir, gid + ivec2(readOffset, 0));
+    Reservoir r;
+    r.Y     = floatBitsToUint(v.x);
+    r.W_y   = v.y;
+    r.W_sum = v.z;
+    r.M     = v.w;
+    return r;
+}
+
+// Write to WRITE half
+void writeReservoir(Reservoir r, ivec2 gid){
+    imageStore(img_reservoir, gid + ivec2(writeOffset, 0),
+               vec4(uintBitsToFloat(r.Y), r.W_y, r.W_sum, r.M));
+}
+
+float calcWeight(vec3 rad){
+    // You can replace with luminance if you want:
+    // return max(dot(rad, vec3(0.2126,0.7152,0.0722)), 1e-8);
+    return length(rad);
+}
+
+vec3 GetPointLightRadiance(Light l, Geom g, out float p_hat){
+    vec3 d = l.pos - g.pos;
+    float dist2 = max(dot(d, d), 1e-6);
+    vec3 wi = d * inversesqrt(dist2);
+
+    float ndotl = max(dot(g.nor, wi), 0.0);
+
+    vec3 Li = l.col / dist2;
+    vec3 brdf = g.alb / 3.14159265;
+
+    vec3 rad = brdf * Li * ndotl;
+    p_hat = calcWeight(rad);
+    return rad;
+}
+
+void finalizeW_y(inout Reservoir r, Geom g)
+{
+    if (!IsReservoirValid(r)) { r.W_y = 0.0; return; }
+
+    float p = 0.0;
+    GetPointLightRadiance(lights[r.Y], g, p);
+    r.W_y = (p > 0.0) ? (r.W_sum / p) / max(r.M, 1.0) : 0.0;
+}
+
+// Optional normal rejection (cheap)
+bool acceptNeighbor(ivec2 q, vec3 nCenter)
+{
+    vec3 nN = imageLoad(img_norH, q).xyz;
+    // normalize if needed in your pipeline
+    float dp = dot(normalize(nN), normalize(nCenter));
+    return dp >= normalReject;
+}
+
+ivec2 id2coord(uint id){
+    int iid = int(id);
+    return ivec2(iid % size.x, iid / size.x);
+}
+
+Light getLight(id){
+    ivec2 iuv = id2coord(id);
+    Light l;
+    l.pos = imageLoad(img_pos, iuv).xyz;
+    l.col = imageLoad(img_dir, iuv).rgb; 
+    return l;
+}
+
+void main() {
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+
+    getImageSize();
+    if(gid.x >= size.x || gid.y >= size.y) return;
+
+    uint seed = getSeed(gid);
+    Geom g = getGeom(gid);
+    Light l;
+
+    // Current reservoir from previous stage/frame (READ half)
+    Reservoir r = getPrevReservoir(gid);
+
+    // Ensure current reservoir has a valid W_y before reuse
+    finalizeW_y(r, g);
+
+    // ----- SPATIAL REUSE -----
+    Reservoir r_spat = initReservoir();
+
+    // Always include current pixel's selected sample as a candidate source
+    if (IsReservoirValid(r)) {
+        float p_hat_curr = 0.0;
+        l = getLight(r.Y);
+        GetPointLightRadiance(l, g, p_hat_curr);
+        UpdateReservoir(r_spat, r.Y, p_hat_curr * r.W_y * r.M, r.M, seed);
+    }
+
+    int R = max(spatialRadius, 1);
+    int S = max(spatialSamples, 1);
+
+    for (int i = 0; i < S; ++i)
+    {
+
+        float angle = RandomFloat01(seed) * TWOPI;
+        float randRad = sqrt(RandomFloat01(seed));
+        // Random neighbor in [-R, R]
+        int ox = int(cos(angle)*randRad*float(R));//int(floor((RandomFloat01(seed) * 2.0 - 1.0) * float(R)));
+        int oy = int(sin(angle)*randRad*float(R));//int(floor((RandomFloat01(seed) * 2.0 - 1.0) * float(R)));
+
+        ivec2 q = clamp(gid + ivec2(ox, oy), ivec2(0), size - ivec2(1));
+        if (q == gid) continue;
+
+        // Optional normal divergence test (reduces leaks)
+        if (normalReject > -1.0 && !acceptNeighbor(q, g.nor))
+            continue;
+
+        Reservoir rn = getPrevReservoir(q);
+        if (!IsReservoirValid(rn)) continue;
+
+        uint y = rn.Y;
+
+        // Evaluate neighbor's chosen light at THIS pixel
+        float p_hat_n = 0.0;
+        l = getLight(y);
+        GetPointLightRadiance(l, g, p_hat_n);
+
+        // Merge weight like temporal: p_hat(x,y) * neighbor.W_y * neighbor.M
+        UpdateReservoir(r_spat, y, p_hat_n * rn.W_y * rn.M, rn.M, seed);
+    }
+
+    // Finalize W_y for the merged reservoir
+    finalizeW_y(r_spat, g);
+
+    // Use merged reservoir (fallback to original if merge failed)
+    if (IsReservoirValid(r_spat)) r = r_spat;
+
+    // Write final reservoir for next frame/pass (WRITE half)
+    writeReservoir(r, gid);
+
+    // (Optional) You can resolve here too, but you didn't include resolve in this snippet.
+}

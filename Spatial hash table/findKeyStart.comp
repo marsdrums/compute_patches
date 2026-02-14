@@ -1,0 +1,30 @@
+#version 460
+layout(local_size_x = 128) in;
+
+struct points{ vec3 pos; uint start; uint key; };
+
+layout(std430, binding = 0) buffer buff_points { points point[]; };
+layout(binding = 1) uniform buff_info { uint buffer_length; };
+
+shared uint keys[128+1];
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gid >= buffer_length) return;
+
+    uint lid = gl_LocalInvocationIndex;
+    
+    keys[lid+1] = point[gid].key;
+    if(lid == 0){
+        keys[0] = point[max(0u, gid-1)].key;
+    }
+    barrier();
+    
+    uint thisKey = keys[lid+1];
+    uint prevKey = keys[lid];
+
+    if(thisKey != prevKey){
+        point[thisKey].start = gid;
+    }
+}

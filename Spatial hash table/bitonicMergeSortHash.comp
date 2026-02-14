@@ -24,10 +24,6 @@ layout(binding = 1) uniform push_constants {
     uint numValues;    // Actual number of valid elements in val[].
 } pc;
 
-layout(binding = 2) uniform buff_info {
-    uint buffer_length;
-};
-
 void main() {
 
     // Global invocation index (the "thread id" across all workgroups).
@@ -54,7 +50,7 @@ void main() {
     // Bounds check for the upper index (common when numValues is not a power-of-two
     // but the algorithm dispatches as if it were padded to nextPow2).
     //if (indexHigh >= pc.numValues) return;
-    if (indexHigh >= buffer_length) return;
+    if (indexHigh >= pc.numValues) return;
 
     // Load both elements to be compared.
     item a = point[indexLow];

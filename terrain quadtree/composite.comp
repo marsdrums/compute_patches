@@ -1,0 +1,24 @@
+#version 460
+
+layout(local_size_x = 16, local_size_y = 16) in;
+layout(rgba32f, binding = 0) uniform readonly image2D img_dir;
+layout(rgba32f, binding = 1) uniform readonly image2D img_ind;
+layout(rgba32f, binding = 2) uniform writeonly image2D img_out;
+
+shared ivec2 size;
+
+void main() {
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+
+    if(gl_LocalInvocationIndex == 0){
+        size = imageSize(img_out);
+    }
+    barrier();
+
+    if(gid.x >= size.x || gid.y >= size.y) return;
+
+    vec4 dir = imageLoad(img_dir, gid);
+    vec4 ind = imageLoad(img_ind, gid);
+    imageStore(img_out, gid, dir + ind);
+}

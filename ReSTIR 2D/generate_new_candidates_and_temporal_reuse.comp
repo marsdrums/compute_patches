@@ -1,0 +1,454 @@
+#version 460
+#extension GL_GOOGLE_include_directive : require
+#include "c74.noise.funcs.glsl"
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+struct GISample {
+    vec3    X;    // secondary hit position (WORLD)
+    vec3    NX;   // secondary hit normal   (WORLD, normalized)
+    vec3    L;    // outgoing radiance at X (WORLD)
+    float   pdf;  // pdf of sampling wo at primary
+};
+
+struct Reservoir {
+    GISample y;
+    float    wSum;
+    float    W;
+    uint     M;
+};
+
+struct Geom   { vec3 N; vec3 P; vec3 alb; };
+struct Light  { vec3 pos; vec3 col; };
+
+layout(rgba32f, binding = 0) uniform readonly image2D norHeightImg;
+layout(rgba32f, binding = 1) uniform readonly image2D albHeightImg;
+layout(std430,  binding = 2) buffer buff_lights { uint light_count; Light lights[]; };
+layout(rgba32f, binding = 3) uniform writeonly image2D resImg;
+
+// Reservoir atlas: sized (2*size.x, size.y)
+layout(rgba32f, binding=4) uniform coherent image2D  res0Atlas; // vec4(X.xyz, pdf)
+layout(rgba32f, binding=5) uniform coherent image2D  res1Atlas; // vec4(NX.xyz, wSum)
+layout(rgba32f, binding=6) uniform coherent image2D  res2Atlas; // vec4(L.xyz, W)
+layout(r32ui,   binding=7) uniform coherent uimage2D resMAtlas; // M
+
+layout(binding = 8) uniform info
+{
+    uint  frame;
+    ivec2 size;
+    int   readOffset;    // 0 or size.x
+    int   writeOffset;   // 0 or size.x
+
+    float worldScale;    // e.g. 0.1
+
+    // --- CORRECTION (2): provide a non-zero miss contribution (sky/env) ---
+    // If you don't want env, set envRadiance = vec3(0).
+    vec3  envRadiance;
+};
+
+const float EPS = 1e-4;
+
+float Luminance(vec3 c) { return dot(c, vec3(0.2126,0.7152,0.0722)); }
+
+uint getSeed() {
+    return gl_GlobalInvocationID.x*4834u + gl_GlobalInvocationID.y*9977u + 4637u + frame*938u;
+}
+
+// --------------------
+// Heightfield sampling
+// --------------------
+ivec2 ClampTexel(vec2 texelXY)
+{
+    ivec2 p = ivec2(floor(texelXY));
+    return clamp(p, ivec2(0), size - ivec2(1));
+}
+
+// Height is stored in norHeightImg.w in "height units" (same unit system as pixel XY before scaling).
+float HeightAtTexel(vec2 texelXY) {
+    return imageLoad(norHeightImg, ClampTexel(texelXY)).w;
+}
+
+vec2 WorldToTexel(vec2 worldXY) { return worldXY / worldScale; }
+vec2 TexelToWorld(vec2 texelXY) { return texelXY * worldScale; }
+
+float HeightAtWorld(vec2 worldXY)
+{
+    float h = HeightAtTexel(WorldToTexel(worldXY));
+    return h * worldScale;
+}
+
+vec3 NormalAtWorld(vec2 worldXY)
+{
+    vec2 t = WorldToTexel(worldXY);
+
+    float hC = HeightAtTexel(t) * worldScale;
+    float hR = HeightAtTexel(t + vec2(1,0)) * worldScale;
+    float hU = HeightAtTexel(t + vec2(0,1)) * worldScale;
+
+    float dx = worldScale;
+    float dy = worldScale;
+
+    vec3 dX = vec3(dx, 0.0, hR - hC);
+    vec3 dY = vec3(0.0, dy, hU - hC);
+
+    vec3 N = normalize(cross(dX, dY));
+    if (N.z < 0.0) N = -N;
+    return N;
+}
+
+// --------------------
+// Geometry fetch
+// --------------------
+Geom getGeom(ivec2 gid)
+{
+    Geom g;
+    vec4 lookup = imageLoad(norHeightImg, gid);
+
+    vec2 worldXY = TexelToWorld(vec2(gid));
+    float worldZ = lookup.w * worldScale;
+
+    g.P = vec3(worldXY, worldZ);
+    g.N = NormalAtWorld(worldXY);
+
+    // TODO: sample albedo from albHeightImg
+    g.alb = vec3(0.5);
+    return g;
+}
+
+// --------------------
+// Reservoir ops
+// --------------------
+void ReservoirInit(out Reservoir r) {
+    r.wSum = 0.0;
+    r.W    = 0.0;
+    r.M    = 0u;
+
+    // CORRECTION (1): ensure deterministic "empty"
+    r.y.X   = vec3(0);
+    r.y.NX  = vec3(0);
+    r.y.L   = vec3(0);
+    r.y.pdf = 0.0;
+}
+
+bool IsValidSample(GISample s) { return !all(equal(s.NX, vec3(0))); }
+
+// CORRECTION (1): do NOT count misses / zero-weight candidates in M
+void ReservoirUpdate(inout Reservoir r, GISample x, float w, inout uint seed)
+{
+    if (w <= 0.0) return; // ignore empty candidates
+
+    r.M += 1u;
+    r.wSum += w;
+
+    if (RandomFloat01(seed) * r.wSum < w)
+        r.y = x;
+}
+
+Reservoir LoadReservoirSlot(ivec2 gid)
+{
+    Reservoir r;
+    ivec2 p = gid; p.x += readOffset;
+
+    vec4 a = imageLoad(res0Atlas, p);
+    vec4 b = imageLoad(res1Atlas, p);
+    vec4 c = imageLoad(res2Atlas, p);
+    uint m = imageLoad(resMAtlas, p).x;
+
+    r.y.X   = a.xyz;
+    r.y.pdf = a.w;
+    r.y.NX  = b.xyz;
+    r.wSum  = b.w;
+    r.y.L   = c.xyz;
+    r.W     = c.w;
+    r.M     = m;
+
+    return r;
+}
+
+void StoreReservoirSlot(ivec2 gid, Reservoir r)
+{
+    ivec2 p = gid; p.x += writeOffset;
+
+    imageStore(res0Atlas, p, vec4(r.y.X,  r.y.pdf));
+    imageStore(res1Atlas, p, vec4(r.y.NX, r.wSum));
+    imageStore(res2Atlas, p, vec4(r.y.L,  r.W));
+    imageStore(resMAtlas, p, uvec4(r.M,0,0,0));
+}
+
+// --------------------
+// Sampling
+// --------------------
+vec3 SampleCosHemisphere(vec3 N, inout uint seed, out float pdfOut)
+{
+    vec2  u = RandomVec201(seed);
+    float r = sqrt(u.x);
+    float phi = TWOPI * u.y;
+
+    float x = r * cos(phi);
+    float y = r * sin(phi);
+    float z = sqrt(max(0.0, 1.0 - u.x)); // local up
+
+    vec3 up = (abs(N.z) < 0.999) ? vec3(0,0,1) : vec3(0,1,0);
+    vec3 T  = normalize(cross(up, N));
+    vec3 B  = cross(N, T);
+
+    vec3 wo = normalize(T*x + B*y + N*z);
+    pdfOut = max(dot(N, wo), 0.0) / PI;
+    return wo;
+}
+
+// --------------------
+// Trace in WORLD space
+// --------------------
+bool TraceHeightfield(vec3 O, vec3 D, out float tHit, out vec3 Nhit, out vec3 Phit)
+{
+    float diag = length(vec2(size)) * worldScale;
+    float tMin = 0.0;
+    float tMax = diag * 2.0;
+
+    const int MAX_STEPS = 256;
+    const int REFINE_STEPS = 10;
+
+    float dt = (tMax - tMin) / float(MAX_STEPS);
+    float t  = tMin;
+
+    float fPrev = 0.0;
+    bool hasPrev = false;
+
+    for (int i=0; i<MAX_STEPS; i++)
+    {
+        vec3 P = O + D * t;
+
+        float h = HeightAtWorld(P.xy);
+        float f = P.z - h;
+
+        if (hasPrev && (fPrev * f <= 0.0))
+        {
+            float a = t - dt;
+            float b = t;
+
+            for (int j=0; j<REFINE_STEPS; j++)
+            {
+                float m = 0.5*(a+b);
+                vec3 Pm = O + D*m;
+                float fm = Pm.z - HeightAtWorld(Pm.xy);
+
+                vec3 Pa = O + D*a;
+                float fa = Pa.z - HeightAtWorld(Pa.xy);
+
+                if (fa * fm > 0.0) a = m; else b = m;
+            }
+
+            tHit = 0.5*(a+b);
+            if (tHit < EPS) return false;
+
+            Phit = O + D*tHit;
+            Nhit = NormalAtWorld(Phit.xy);
+            return true;
+        }
+
+        fPrev = f;
+        hasPrev = true;
+        t += dt;
+    }
+
+    return false;
+}
+
+// --------------------
+// Direct lighting as IRRADIANCE (no Lambert inside)
+// --------------------
+vec3 EvalDirectIrradiance(vec3 P, vec3 N)
+{
+    vec3 E = vec3(0);
+
+    for (uint i=0u; i<light_count; i++)
+    {
+        vec3 LposW = lights[i].pos * worldScale; // remove if already world-space
+        vec3 L = LposW - P;
+
+        float dist2 = max(dot(L,L), 1e-6);
+        vec3 wi = L * inversesqrt(dist2);
+
+        float NoL = max(dot(N, wi), 0.0);
+        E += (lights[i].col / dist2) * NoL;
+    }
+
+    return E;
+}
+
+// --------------------
+// GI candidate
+// --------------------
+GISample MakeGICandidate(Geom g, inout uint seed, out vec3 f_rgb)
+{
+    GISample s;
+
+    float pdfDir;
+    vec3 wo = SampleCosHemisphere(g.N, seed, pdfDir);
+    s.pdf = pdfDir;
+
+    vec3 O = g.P + g.N * 1e-3;
+
+    float tHit; vec3 NX; vec3 X;
+    if (!TraceHeightfield(O, wo, tHit, NX, X))
+    {
+        // CORRECTION (2): treat miss as environment lighting sample
+        // Store something "valid" so it can be selected in the reservoir.
+        // We use NX = g.N just as a validity flag; geometry term will still be computed to X.
+        // For environment, we set X far away and force G to 0? That would kill it.
+        // Instead, we interpret sample as "incoming radiance at P" via env; so we set:
+        // - X = P (so dist2=0-ish) is bad; instead we bypass geometry in EvalContributionFromSample (see below).
+        //
+        // To keep your structure, we encode env samples by NX = -g.N (a marker), X unused.
+        s.X  = vec3(0);
+        s.NX = -g.N;              // marker: env sample
+        s.L  = envRadiance;       // radiance arriving from env
+        f_rgb = g.alb * (1.0/PI) * envRadiance; // diffuse from env at P
+        return s;
+    }
+
+    s.X  = X;
+    s.NX = NX;
+
+    // One-bounce diffuse at X:
+    vec3 albedoX = vec3(0.5);
+    vec3 E = EvalDirectIrradiance(X, NX);
+    s.L = albedoX * (1.0/PI) * E;
+
+    // Contribution back to P (second diffuse bounce)
+    vec3 toX = X - g.P;
+    float dist2PX = max(dot(toX, toX), 1e-6);
+    vec3 wi = toX * inversesqrt(dist2PX);
+
+    float NoWi = max(dot(g.N, wi), 0.0);
+    float NXo  = max(dot(NX, -wi), 0.0);
+
+    float G = (NoWi * NXo) / dist2PX;
+
+    f_rgb = g.alb * (1.0/PI) * s.L * G;
+    return s;
+}
+
+// --------------------
+// Evaluate contribution from sample
+// --------------------
+bool IsEnvSample(GISample s, vec3 Np)
+{
+    // Our marker: NX == -Np (within float tolerance is tricky; use dot close to 1)
+    return dot(normalize(s.NX), normalize(-Np)) > 0.999;
+}
+
+vec3 EvalContributionFromSample(vec3 P, vec3 N, vec3 albedo, GISample s)
+{
+    // CORRECTION (2): environment sample contributes directly as diffuse(env)
+    if (IsEnvSample(s, N))
+        return albedo * (1.0/PI) * s.L;
+
+    vec3 toX = s.X - P;
+    float dist2PX = max(dot(toX, toX), 1e-6);
+    vec3 wi = toX * inversesqrt(dist2PX);
+
+    float NoWi = max(dot(N, wi), 0.0);
+    float NXo  = max(dot(s.NX, -wi), 0.0);
+
+    float G = (NoWi * NXo) / dist2PX;
+    return albedo * (1.0/PI) * s.L * G;
+}
+
+// --------------------
+// Build initial reservoir
+// --------------------
+void BuildInitialReservoir(Geom g, inout uint seed, out Reservoir r)
+{
+    ReservoirInit(r);
+
+    const int K = 4;
+    for (int i=0; i<K; i++)
+    {
+        vec3 f_rgb;
+        GISample s = MakeGICandidate(g, seed, f_rgb);
+
+        // CORRECTION (1): only admit positive-weight candidates (ReservoirUpdate enforces it)
+        float pdf = max(s.pdf, 1e-6);
+        float w = Luminance(f_rgb) / pdf;
+
+        ReservoirUpdate(r, s, w, seed);
+    }
+
+    r.W = (r.M > 0u) ? (r.wSum / float(r.M)) : 0.0;
+}
+
+// --------------------
+// Temporal reuse
+// --------------------
+void TemporalReuse(inout Reservoir rCur, Reservoir rPrev, Geom gCur, inout uint seed)
+{
+    if (rPrev.M == 0u) return;
+    if (rPrev.wSum <= 0.0) return;
+
+    // If previous selected sample is "empty" (NX==0), skip.
+    // (Env samples use NX=-N and are valid.)
+    if (all(equal(rPrev.y.NX, vec3(0)))) return;
+
+    vec3 f = EvalContributionFromSample(gCur.P, gCur.N, gCur.alb, rPrev.y);
+    float pStar = Luminance(f);
+    if (pStar <= 0.0) return;
+
+    // CORRECTION (3): use a consistent "bundle weight" for previous reservoir.
+    // wSum_prev is fine, but this makes the intent explicit and survives if you ever change storage.
+    float prevBundle = rPrev.W * float(rPrev.M); // equals wSum if W==wSum/M
+    float w = pStar * prevBundle;
+
+    ReservoirUpdate(rCur, rPrev.y, w, seed);
+}
+
+// --------------------
+// Resolve
+// --------------------
+vec3 ResolveGI(vec3 P, vec3 N, vec3 albedo, Reservoir r)
+{
+    // CORRECTION (1): if empty, return 0 to avoid using garbage
+    if (r.M == 0u || r.wSum <= 0.0) return vec3(0);
+
+    // Selected sample might still be "empty" if something went wrong; guard anyway
+    if (all(equal(r.y.NX, vec3(0)))) return vec3(0);
+
+    vec3 f = EvalContributionFromSample(P, N, albedo, r.y);
+    float lum = max(Luminance(f), 1e-6);
+    return f * (r.W / lum);
+}
+
+// --------------------
+// Main
+// --------------------
+void main()
+{
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    if (gid.x >= size.x || gid.y >= size.y) return;
+
+    uint seed = getSeed();
+    Geom g = getGeom(gid);
+
+    Reservoir rCur;
+    BuildInitialReservoir(g, seed, rCur);
+
+    if (frame > 0u)
+    {
+        Reservoir rPrev = LoadReservoirSlot(gid);
+        TemporalReuse(rCur, rPrev, g, seed);
+    }
+
+    rCur.W = (rCur.M > 0u) ? (rCur.wSum / float(rCur.M)) : 0.0;
+    StoreReservoirSlot(gid, rCur);
+
+    // Direct
+    vec3 di = g.alb * (1.0/PI) * EvalDirectIrradiance(g.P, g.N);
+
+    // GI
+    vec3 gi = ResolveGI(g.P, g.N, g.alb, rCur); 
+
+    vec3 res = pow(di + gi, vec3(0.45454545));
+
+    imageStore(resImg, gid, vec4(res, 1.0));
+}

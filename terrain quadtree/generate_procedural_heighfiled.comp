@@ -1,0 +1,52 @@
+//Generate procedural heigh field
+
+#version 460
+
+#extension GL_GOOGLE_include_directive : require
+#include "c74.noise.funcs.glsl"
+
+layout(rgba32f, binding = 0) uniform writeonly image2D img_norH;
+
+layout(binding = 1) uniform cfg{
+    vec2 scale;
+    vec2 offset;
+    float time;
+    float height_scale;
+    uint frame;
+};
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+shared ivec2 size;
+shared float ratio;
+
+uint getSeed(ivec2 gid){ return uint(gid.x + gid.y*size.x) + frame*uint(size.x*size.y) + 2999u; }
+
+
+void main() {
+
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    if(gl_LocalInvocationIndex == 0){
+        size = imageSize(img_norH);
+        ratio = float(size.x) / float(size.y);
+    }
+    barrier();
+
+    uint seed = getSeed(gid);
+    vec2 jitter = vec2(RandomFloat01(seed)) - 0.5;
+
+    vec2 pos = (vec2(gid)+0.5 + jitter) / vec2(size);
+ 
+	vec2 p2 = pos * scale + offset;
+    p2.x *= ratio;
+	vec3 p3 = vec3(p2.x, p2.y, time);
+	
+	float h = Normalize(fBmA(p3, 0.7, 2., 1, 18));
+    h = smoothstep(0., 1, h);
+    h = smoothstep(0., 1, h);
+    h = smoothstep(0., 1, h);
+    h *= height_scale;
+
+
+    imageStore(img_norH, gid, vec4(h,h,h,h));
+}

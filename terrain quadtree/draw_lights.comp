@@ -1,0 +1,51 @@
+// Draw lights
+
+#version 460
+
+layout(local_size_x = 16) in;
+
+struct Light{
+    vec3 pos;   
+    vec3 col;  
+};
+
+layout(rgba32f, binding = 0) uniform readonly image2D img_pos;
+layout(rgba32f, binding = 1) uniform writeonly image2D img_out;
+layout(std430,  binding = 2) buffer buff_lights { uint light_count; Light lights[]; };
+
+shared ivec2 size;
+shared float ratio;
+
+void main()
+{
+    uint gid  = gl_GlobalInvocationID.x;
+
+    if(gl_LocalInvocationIndex == 0){
+        size = imageSize(img_pos);
+        ratio = float(size.x) / float(size.y);
+    }
+    barrier();
+
+    if (gid >= light_count) return;
+
+    Light l = lights[gid];
+
+    l.pos.x /= ratio;
+    l.pos.xy = l.pos.xy*0.5 + 0.5;
+    l.pos.xy *= vec2(size);
+
+    ivec2 ipos = ivec2(l.pos.xy);
+    if(ipos.x < 0 || ipos.y < 0 || ipos.x >= size.x || ipos.y >= size.y) return;
+
+    float h = imageLoad(img_pos, ipos).z;
+    const int lightSize = 4;
+
+    if(h < l.pos.z){
+        for(int x = -lightSize; x <= lightSize; x++){
+            for(int y = -lightSize; y <= lightSize; y++){
+                ivec2 pos = ipos + ivec2(x,y);
+                imageStore(img_out, pos, vec4(l.col*10, 1.0));
+            }
+        }
+    }
+}
