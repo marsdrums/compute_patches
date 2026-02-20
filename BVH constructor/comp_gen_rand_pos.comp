@@ -1,0 +1,32 @@
+//Generate procedural heigh field
+#version 460
+
+#extension GL_GOOGLE_include_directive : require
+#include "c74.noise.funcs.glsl"
+
+layout(std430, binding = 0) buffer buff_part { vec4 pr[]; };
+
+layout(binding = 1) uniform cfg{
+    float scale;
+    float offset;
+    float time;
+    uint N;
+    float radius;
+};
+
+layout(local_size_x = 256) in;
+
+void main() {
+
+    uint gid = gl_GlobalInvocationID.x;
+    if(gid >= N) return;
+
+    float p = float(gid) * scale + offset;
+	
+    vec4 pos_radius;
+    pos_radius.x = Normalize(fBmA(vec3(p, 0, time), 0.7, 2., 1, 7));
+    pos_radius.y = Normalize(fBmA(vec3(p, 100, time), 0.7, 2., 1, 7));
+    pos_radius.z = Normalize(fBmA(vec3(p, 10000, time), 0.7, 2., 1, 7));
+    pos_radius.w = radius;
+    pr[gid] = pos_radius;
+}

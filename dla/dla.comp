@@ -1,0 +1,99 @@
+// default compute shader
+#version 460
+#extension GL_GOOGLE_include_directive : require
+#include "c74.noise.funcs.glsl"
+
+layout(local_size_x = 256) in;
+
+layout(r8ui,      binding = 0) uniform uimage3D img_grid;
+layout(std430,  binding = 1) buffer buff_particles { vec3 pos[];};
+layout(std430,  binding = 2) buffer buff_counter { uint stuck; };
+layout(rgba32f, binding = 3) uniform writeonly image2D img_out;
+layout(rgba32f, binding = 4) uniform readonly image3D img_force;
+layout(         binding = 5) uniform cfg{ uint particle_count; uint frame; };
+
+shared ivec2 out_size;
+shared vec3 gridCenter;
+shared vec3 gridSize;
+
+uint getSeed(uint gid){
+    return gid + frame*particle_count + 999u;
+}
+
+// u in [0,1)^3 assumed. (Supply with your RNG / hash.)
+// Returns a uniform random point on the SURFACE of the cube from (0,0,0) to (512,512,512).
+vec3 spawn(inout uint seed)
+{
+
+    vec3 u;
+    u.x = RandomFloat01(seed);
+    u.y = RandomFloat01(seed);
+    u.z = RandomFloat01(seed);
+    const float L = gridSize.z;
+
+    // Choose which face: 0..5
+    float r = u.z * 6.0;
+    int face = int(floor(r));
+    // Avoid any possible face==6 due to precision
+    face = clamp(face, 0, 5);
+
+    // Uniform coordinates on a face
+    float a = u.x * L;
+    float b = u.y * L;
+
+    // Map (a,b) to the selected face
+    if (face == 0) return vec3(0.0, a, b);   // x = 0
+    if (face == 1) return vec3(L,   a, b);   // x = L
+    if (face == 2) return vec3(a, 0.0, b);   // y = 0
+    if (face == 3) return vec3(a, L,   b);   // y = L
+    if (face == 4) return vec3(a, b, 0.0);   // z = 0
+    return              vec3(a, b, L);       // z = L
+}
+
+vec3 grid2pos(vec3 p){
+    p /= gridSize;
+    return p*2 - 1;
+}
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gl_LocalInvocationIndex == 0){
+        out_size = imageSize(img_out);
+        gridCenter = vec3(imageSize(img_grid))/2;
+        gridSize = vec3(imageSize(img_grid));
+    }
+    barrier();
+
+    if(gid >= particle_count) return;
+
+    uint seed = getSeed(gid);
+    vec3 p = pos[gid];
+    vec3 field = imageLoad(img_force, ivec3(p*0.5)).xyz;
+    //vec3 dir = normalize(randomUnitVector3(seed) + 0.1*normalize(gridCenter - p))*0. + field*1;
+    vec3 dir = normalize(randomUnitVector3(seed) + normalize(field));
+
+    vec3 new_p = p + dir;
+    new_p = mod(new_p + gridSize, gridSize);
+    new_p = floor(new_p + 0.5);
+/*    
+    vec3 diff = new_p - gridCenter;
+    float distFromCenter2 = dot(diff, diff);
+    const float maxRadius2 = 300*300;
+    if( distFromCenter2 > maxRadius2){
+        pos[gid] = spawn(seed);
+        return;
+    }
+*/
+    bool busy = imageLoad(img_grid, ivec3(new_p)).x > 0u;
+
+    if(busy){
+        uint prev_count = atomicAdd(stuck, 1u);
+        ivec2 iuv = ivec2(int(prev_count) % out_size.x, int(prev_count) / out_size.x);
+        imageStore(img_grid, ivec3(p), uvec4(1u));
+        imageStore(img_out, iuv, vec4(grid2pos(p), float(frame)));
+        pos[gid] = spawn(seed);
+    } else {
+        pos[gid] = new_p;
+    }
+}

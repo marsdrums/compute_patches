@@ -131,15 +131,6 @@ vec3 GetPointLightRadiance(Light l, Geom g, out float p_hat){
     return rad;
 }
 
-void finalizeW_y(inout Reservoir r, Geom g)
-{
-    if (!IsReservoirValid(r)) { r.W_y = 0.0; return; }
-
-    float p = 0.0;
-    GetPointLightRadiance(lights[r.Y], g, p);
-    r.W_y = (p > 0.0) ? (r.W_sum / p) / max(r.M, 1.0) : 0.0;
-}
-
 // Optional normal rejection (cheap)
 bool acceptNeighbor(ivec2 q, vec3 nCenter)
 {
@@ -154,7 +145,7 @@ ivec2 id2coord(uint id){
     return ivec2(iid % size.x, iid / size.x);
 }
 
-Light getLight(id){
+Light getLight(uint id){
     ivec2 iuv = id2coord(id);
     Light l;
     l.pos = imageLoad(img_pos, iuv).xyz;
@@ -171,12 +162,18 @@ void main() {
     uint seed = getSeed(gid);
     Geom g = getGeom(gid);
     Light l;
+    float p;
 
     // Current reservoir from previous stage/frame (READ half)
     Reservoir r = getPrevReservoir(gid);
 
     // Ensure current reservoir has a valid W_y before reuse
-    finalizeW_y(r, g);
+    if (!IsReservoirValid(r)) { r.W_y = 0.0; return; }
+
+    p = 0.0;
+    l = getLight(r.Y);
+    GetPointLightRadiance(l, g, p);
+    r.W_y = (p > 0.0) ? (r.W_sum / p) / max(r.M, 1.0) : 0.0;
 
     // ----- SPATIAL REUSE -----
     Reservoir r_spat = initReservoir();
@@ -223,7 +220,12 @@ void main() {
     }
 
     // Finalize W_y for the merged reservoir
-    finalizeW_y(r_spat, g);
+    if (!IsReservoirValid(r)) { r.W_y = 0.0; return; }
+
+    p = 0.0;
+    l = getLight(r_spat.Y);
+    GetPointLightRadiance(l, g, p);
+    r.W_y = (p > 0.0) ? (r.W_sum / p) / max(r.M, 1.0) : 0.0;
 
     // Use merged reservoir (fallback to original if merge failed)
     if (IsReservoirValid(r_spat)) r = r_spat;

@@ -1,0 +1,64 @@
+#version 460
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) readonly buffer buff_nodeChild { ivec2 nodeChild[]; };
+layout(std430, binding = 1) readonly buffer buff_nodeParent { int nodeParent[]; };
+layout(std430, binding = 2) buffer buff_nodeAabbMin { vec4 nodeAabbMin[]; };
+layout(std430, binding = 3) buffer buff_nodeAabbMax { vec4 nodeAabbMax[]; };
+layout(std430, binding = 4) buffer coherent buff_readyCount { uint readyCount[]; };
+layout(std430, binding = 5) buffer coherent buff_tmpMin { vec4 tmpMin[]; };
+layout(std430, binding = 6) buffer coherent buff_tmpMax { vec4 tmpMax[]; };
+
+layout(binding = 7) uniform cfg { uint N; };
+
+void main() {
+    uint leaf = gl_GlobalInvocationID.x;
+    if (leaf >= N) return;
+
+    vec4 curMin = nodeAabbMin[leaf];
+    vec4 curMax = nodeAabbMax[leaf];
+
+    int child = int(leaf);
+    int parent = nodeParent[child];
+
+    while (parent != -1) {
+        ivec2 ch = nodeChild[parent];
+        int slot = (ch.x == child) ? 0 : 1;
+
+        // parent è un nodo interno in [N .. 2N-2]
+        // internal è in [0 .. N-2]
+        int internal = parent - int(N);
+        int idx = internal * 2 + slot;
+
+        tmpMin[idx] = curMin;
+        tmpMax[idx] = curMax;
+
+        memoryBarrierBuffer();  // pubblica tmp prima del counter
+
+        uint old = atomicAdd(readyCount[parent], 1u);
+
+        if (old == 0u) {
+            // primo figlio arrivato: il secondo completerà il merge
+            break;
+        }
+
+        memoryBarrierBuffer();  // assicura visibilità dei due slot
+
+        int base = internal * 2;
+        vec4 aMin = tmpMin[base + 0];
+        vec4 aMax = tmpMax[base + 0];
+        vec4 bMin = tmpMin[base + 1];
+        vec4 bMax = tmpMax[base + 1];
+
+        curMin = vec4(min(aMin.xyz, bMin.xyz), 0.0);
+        curMax = vec4(max(aMax.xyz, bMax.xyz), 0.0);
+
+        nodeAabbMin[parent] = curMin;
+        nodeAabbMax[parent] = curMax;
+
+        memoryBarrierBuffer();  // opzionale ma utile su driver "sensibili"
+
+        child = parent;
+        parent = nodeParent[parent];
+    }
+}

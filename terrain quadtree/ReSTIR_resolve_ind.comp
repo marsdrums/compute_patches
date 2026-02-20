@@ -40,7 +40,7 @@ layout(rgba32f, binding = 1) uniform readonly image2D img_alb;
 layout(rgba32f, binding = 2) uniform readonly image2D img_pos;
 layout(rgba32f, binding = 3) uniform writeonly image2D img_raw_ind;
 layout(rgba32f, binding = 4) uniform image2D img_reservoir;
-layout(rgba32f, binding = 4) uniform readonly image2D img_dir;
+layout(rgba32f, binding = 5) uniform readonly image2D img_dir;
 layout(         binding = 6) uniform cfg{ uint frame; int readOffset; int writeOffset; };
 
 shared ivec2 size;
@@ -192,7 +192,7 @@ ivec2 id2coord(uint id){
     return ivec2(iid % size.x, iid / size.x);
 }
 
-Light getLight(id){
+Light getLight(uint id){
     ivec2 iuv = id2coord(id);
     Light l;
     l.pos = imageLoad(img_pos, iuv).xyz;
@@ -235,5 +235,5 @@ void main() {
         res += rad;
     }
 
-    imageStore(img_raw_dir, gid, vec4(res, 1.0));
+    imageStore(img_raw_ind, gid, vec4(res, 1.0));
 }

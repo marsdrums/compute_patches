@@ -1,0 +1,24 @@
+// default compute shader
+#version 460
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
+
+layout(r8ui ,binding = 0) uniform uimage3D img_grid;
+
+shared ivec3 gridSize;
+shared vec3 center;
+
+void main() {
+    ivec3 gid = ivec3(gl_GlobalInvocationID.xyz);
+
+    if(gl_LocalInvocationIndex == 0){
+        gridSize = imageSize(img_grid);
+        center = vec3(gridSize) / 2.0;
+    }
+    barrier();
+
+    if(gid.x >= gridSize.x || gid.y >= gridSize.y || gid.z >= gridSize.z) return;
+    
+        imageStore(img_grid, gid, length(vec3(gid) - center) < 2 ? uvec4(1u) : uvec4(0u));
+
+}

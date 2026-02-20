@@ -1,0 +1,9 @@
+// default compute shader
+#version 460
+
+layout(local_size_x = 1) in;
+layout(std430,  binding = 0) buffer buff_counter { uint stuck; };
+
+void main() {
+    stuck = 0u;
+}

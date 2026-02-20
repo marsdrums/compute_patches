@@ -189,7 +189,7 @@ ivec2 id2coord(uint id){
     return ivec2(iid % size.x, iid / size.x);
 }
 
-Light getLight(id){
+Light getLight(uint id){
     ivec2 iuv = id2coord(id);
     Light l;
     l.pos = imageLoad(img_pos, iuv).xyz;
@@ -210,16 +210,21 @@ void main() {
     Reservoir r = initReservoir();
     Light l;
 
-    float pdf = 1.0 / float(numPixels);
+    const float searchRadius = 300;
+    float pdf = 1.0 / float(searchRadius*searchRadius);
+    //float pdf = 1.0 / numPixels;
     float p_hat = 0;
     
     //==== INITIAL SELECTION OF SAMPLES
     //initial selection of 1 light of M
     //for (uint i = 0; i < M; i++)
-    const uint M = 8u;
+    const uint M = 4u;
     for (uint i = 0; i < M; i++)
     {
-        uint lightIndex = uint(RandomFloat01(seed) * float(numPixels));
+        ivec2 sampleCoord = gid + ivec2(searchRadius*(RandomVec201(seed)-0.5));
+        sampleCoord = clamp(sampleCoord, ivec2(0), size-1);
+        uint lightIndex = uint(sampleCoord.x + sampleCoord.y*size.x);
+        //uint lightIndex = uint(RandomFloat01(seed) * float(numPixels));
         l = getLight(lightIndex);    
         GetPointLightRadiance(l, g, p_hat);
         float w = p_hat / pdf;

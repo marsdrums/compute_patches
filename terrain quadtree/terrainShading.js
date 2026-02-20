@@ -102,25 +102,25 @@ comp_temp_filter.bind("img_dir", img_dir.name);
 comp_ReSTIR_coll_temp_ind.bind("img_norH", img_norH.name);
 comp_ReSTIR_coll_temp_ind.bind("img_alb", img_alb.name);
 comp_ReSTIR_coll_temp_ind.bind("img_pos", img_pos.name);
-comp_ReSTIR_coll_temp_ind.bind("img_dir", img_dir.name); 
+comp_ReSTIR_coll_temp_ind.bind("img_dir", img_raw_dir.name); //Set here img_dir when filtering is available*** 
 comp_ReSTIR_coll_temp_ind.bind("img_reservoir", img_reservoir_ind.name); 
 
 comp_ReSTIR_spat_ind.bind("img_norH", img_norH.name);
 comp_ReSTIR_spat_ind.bind("img_alb", img_alb.name);
 comp_ReSTIR_spat_ind.bind("img_pos", img_pos.name);
-comp_ReSTIR_spat_ind.bind("img_dir", img_dir.name); 
+comp_ReSTIR_spat_ind.bind("img_dir", img_raw_dir.name); //Set here img_dir when filtering is available*** 
 comp_ReSTIR_spat_ind.bind("img_reservoir", img_reservoir_ind.name); 
 
 comp_ReSTIR_resolve_ind.bind("img_norH", img_norH.name);
 comp_ReSTIR_resolve_ind.bind("img_alb", img_alb.name);
 comp_ReSTIR_resolve_ind.bind("img_pos", img_pos.name);
-comp_ReSTIR_resolve_ind.bind("img_dir", img_dir.name); 
+comp_ReSTIR_resolve_ind.bind("img_dir", img_raw_dir.name); //Set here img_dir when filtering is available*** 
 comp_ReSTIR_resolve_ind.bind("img_raw_ind", img_raw_ind.name);
 comp_ReSTIR_resolve_ind.bind("img_reservoir", img_reservoir_ind.name); 
 
-comp_composite.bind("img_dir", img_dir);
-comp_composite.bind("img_ind", img_raw_ind);
-comp_composite.bind("img_out", img_out);
+comp_composite.bind("img_dir", img_raw_dir.name); //Set here img_dir when filtering is available***
+comp_composite.bind("img_ind", img_raw_ind.name);
+comp_composite.bind("img_out", img_out.name);
 
 comp_bfg.autoworkgroups 					= "img_norH";
 comp_nor_pos.autoworkgroups 				= "img_norH";
@@ -163,9 +163,9 @@ function create_random_lights(N){
 		light.pos = [	(Math.random()-0.5)*2*ratio, 
 						(Math.random()-0.5)*2, 
 						Math.random()*0.5 + 0.1];
-		light.col = [	Math.random()*2 + 0.2, 
-						Math.random()*2 + 0.2, 
-						Math.random()*2 + 0.2];
+		light.col = [	Math.random()*0.1 + 0.1, 
+						Math.random()*0.1 + 0.1, 
+						Math.random()*0.1 + 0.1];
 		lights.push(light);
 	}
 	ob.lights = lights;
@@ -261,7 +261,7 @@ function bang(){
 	comp_ReSTIR_coll_temp_ind.param("writeOffset", readWrite_ind[1]);
 	comp_ReSTIR_coll_temp_ind.bang();
 	readWrite_ind = swap(readWrite_ind);
-
+/*
 	//perform spatial reuse
 	comp_ReSTIR_spat_ind.param("frame", frame);
 	comp_ReSTIR_spat_ind.param("readOffset", readWrite_ind[0]);
@@ -271,7 +271,7 @@ function bang(){
 	comp_ReSTIR_spat_ind.param("normalReject", 0.96);
 	comp_ReSTIR_spat_ind.bang();
 	readWrite_ind = swap(readWrite_ind);
-
+*/
 	//Resolve and display
 	comp_ReSTIR_resolve_ind.param("frame", frame);
 	comp_ReSTIR_resolve_ind.param("readOffset", readWrite_ind[0]);
@@ -284,7 +284,7 @@ function bang(){
 	//increment framecount
 	frame++;
 
-	outlet(0, "source", img_out.name);
+	outlet(0, "source", img_raw_dir.name);
 	outlet(0, "bang");
 
 }

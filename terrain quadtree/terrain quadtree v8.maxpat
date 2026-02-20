@@ -73,7 +73,7 @@
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
                     "patching_rect": [ 1232.0, 51.0, 111.0, 22.0 ],
-                    "text": "jit.time @speed 0.2"
+                    "text": "jit.time @speed 0.1"
                 }
             },
             {
@@ -266,6 +266,7 @@
                     "outlettype": [ "" ],
                     "patching_rect": [ 461.0, 152.0, 115.0, 22.0 ],
                     "saved_object_attributes": {
+                        "embed": 0,
                         "parameter_enable": 0
                     },
                     "text": "v8 terrainShading.js",
@@ -386,11 +387,12 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "jit_gl_texture" ],
-                    "patching_rect": [ 653.0, 272.0, 234.0, 22.0 ],
+                    "patching_rect": [ 673.0, 272.0, 214.0, 22.0 ],
                     "saved_object_attributes": {
+                        "embed": 0,
                         "parameter_enable": 0
                     },
-                    "text": "jit.fx.slide @slide_up 1.6 @slide_down 1.6",
+                    "text": "jit.fx.slide @slide_up 9 @slide_down 9",
                     "textfile": {
                         "filename": "jit.fx.slide.js",
                         "flags": 0,
