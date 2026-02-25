@@ -7,6 +7,7 @@ var camPos = [0,0,2];
 var camDir = [0,0,-1];
 var MAX_AABB_DEPTH_PASSES = 64; // safe upper bound for 32-bit morton + 32-bit tie-break
 
+var _debug = 0;
 
 var buff_part 			= new JitterObject("jit.gpu.buffer"); //the buffer containing the particles' position and radii
 var buff_minMax 		= new JitterObject("jit.gpu.buffer"); //the buffer containing the particles' position min and max
@@ -96,7 +97,9 @@ comp_raytrace.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
 comp_raytrace.bind("buff_nodePrim", buff_nodePrim.name);
 comp_raytrace.bind("img_res", img_res.name);
 
-init_particles(10000);
+init_particles(1000000);
+
+function check_build_speed(x){ _debug = x; }
 
 function set_camPos(){ 
 	camPos = [arguments[0], arguments[1], arguments[2]]; 
@@ -247,11 +250,13 @@ function bang(){
 	outlet(1, "bang");
 */
 
-    //trace rays
-    comp_raytrace.bang();
+	if(!_debug){
+	    //trace rays
+	    comp_raytrace.bang();
 
-    outlet(3, "source", img_res.name);
-	outlet(3, "bang");
+	    outlet(3, "source", img_res.name);
+		outlet(3, "bang");		
+	}
 
     outlet(0, "bang");
 }

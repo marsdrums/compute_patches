@@ -2,11 +2,17 @@ autowhatch = 1; outlets = 5;
 
 var N; //number of particles
 var time = 0; //running time variables for procedural noise
-var np2, numPairs, numStages; //sorting params
 var camPos = [0,0,2];
 var camDir = [0,0,-1];
 var MAX_AABB_DEPTH_PASSES = 64; // safe upper bound for 32-bit morton + 32-bit tie-break
 
+var _debug = 0;
+
+var RADIX_BITS      = 8;
+var RADIX_BINS      = 1 << RADIX_BITS;   // 256
+var RADIX_PASSES    = 4;                 // 32-bit morton
+var RADIX_WG_SIZE   = 128;               // matches shaders
+var numRadixGroups  = 0;
 
 var buff_part 			= new JitterObject("jit.gpu.buffer"); //the buffer containing the particles' position and radii
 var buff_minMax 		= new JitterObject("jit.gpu.buffer"); //the buffer containing the particles' position min and max
@@ -17,6 +23,14 @@ var buff_nodeAabbMin 	= new JitterObject("jit.gpu.buffer");
 var buff_nodeAabbMax	= new JitterObject("jit.gpu.buffer");
 var buff_nodePrim 		= new JitterObject("jit.gpu.buffer");
 var buff_internalDepth  = new JitterObject("jit.gpu.buffer"); // depth of internal nodes (N-1 uints)
+
+var buff_radixBins         = new JitterObject("jit.gpu.buffer"); // 256 uints (hist/scan/cursors)
+var buff_normPosTmp        = new JitterObject("jit.gpu.buffer"); // ping-pong
+var buff_radixGroupHists   = new JitterObject("jit.gpu.buffer"); // [numGroups * 256] uint
+var buff_radixGroupOffsets = new JitterObject("jit.gpu.buffer"); // [numGroups * 256] uint
+var buff_radixBinBase      = new JitterObject("jit.gpu.buffer"); // [256] uint
+
+
 var buff_test 			= new JitterObject("jit.gpu.buffer"); //temporary buffer for debugging
 
 var img_test = new JitterObject("jit.gpu.image");
@@ -41,9 +55,39 @@ comp_normalize_pos.bind("buff_part", buff_part.name);
 comp_normalize_pos.bind("buff_minMax", buff_minMax.name);
 comp_normalize_pos.bind("buff_normPos", buff_normPos.name);
 
-var comp_sort = new JitterObject("jit.gpu.compute"); //Sort the morton codes
-comp_sort.shader = "comp_sort.comp";
-comp_sort.bind("buff_normPos", buff_normPos.name);
+// --- Stable radix sort kernels ---
+
+var comp_radix_group_hist_A = new JitterObject("jit.gpu.compute");
+comp_radix_group_hist_A.shader = "comp_radix_group_hist.comp";
+comp_radix_group_hist_A.bind("buff_in", buff_normPos.name);
+comp_radix_group_hist_A.bind("buff_groupHists", buff_radixGroupHists.name);
+
+var comp_radix_group_hist_B = new JitterObject("jit.gpu.compute");
+comp_radix_group_hist_B.shader = "comp_radix_group_hist.comp";
+comp_radix_group_hist_B.bind("buff_in", buff_normPosTmp.name);
+comp_radix_group_hist_B.bind("buff_groupHists", buff_radixGroupHists.name);
+
+var comp_radix_scan_groups = new JitterObject("jit.gpu.compute");
+comp_radix_scan_groups.shader = "comp_radix_scan_groups.comp";
+comp_radix_scan_groups.bind("buff_groupHists", buff_radixGroupHists.name);
+comp_radix_scan_groups.bind("buff_groupOffsets", buff_radixGroupOffsets.name);
+comp_radix_scan_groups.bind("buff_binBase", buff_radixBinBase.name);
+
+var comp_radix_scatter_A2B = new JitterObject("jit.gpu.compute");
+comp_radix_scatter_A2B.shader = "comp_radix_scatter_stable.comp";
+comp_radix_scatter_A2B.bind("buff_in", buff_normPos.name);
+comp_radix_scatter_A2B.bind("buff_out", buff_normPosTmp.name);
+comp_radix_scatter_A2B.bind("buff_groupOffsets", buff_radixGroupOffsets.name);
+comp_radix_scatter_A2B.bind("buff_binBase", buff_radixBinBase.name);
+
+var comp_radix_scatter_B2A = new JitterObject("jit.gpu.compute");
+comp_radix_scatter_B2A.shader = "comp_radix_scatter_stable.comp";
+comp_radix_scatter_B2A.bind("buff_in", buff_normPosTmp.name);
+comp_radix_scatter_B2A.bind("buff_out", buff_normPos.name);
+comp_radix_scatter_B2A.bind("buff_groupOffsets", buff_radixGroupOffsets.name);
+comp_radix_scatter_B2A.bind("buff_binBase", buff_radixBinBase.name);
+
+// ------------------------------------------------
 
 var comp_init_nodes = new JitterObject("jit.gpu.compute"); //Init parent nodes as -1
 comp_init_nodes.shader = "comp_init_nodes.comp";
@@ -98,6 +142,8 @@ comp_raytrace.bind("img_res", img_res.name);
 
 init_particles(10000);
 
+function check_build_speed(x){ _debug = x; }
+
 function set_camPos(){ 
 	camPos = [arguments[0], arguments[1], arguments[2]]; 
 	comp_raytrace.param("cam.pos", camPos);
@@ -108,23 +154,13 @@ function set_camDir(){
 	comp_raytrace.param("cam.dir", camDir);
 }
 
-function nextPowerOfTwo(x){ //bit-twiddling
-    if (x <= 1){ return 1; }
-    x--;
-    x |= x >> 1; x |= x >> 2; x |= x >> 4; x |= x >> 8; x |= x >> 16;
-    return x + 1;
-}
-
 function init_particles(x){
 
 	N = x;
 
-	np2 = nextPowerOfTwo(x);
-    numPairs = np2 / 2;
-    numStages = Math.log2(np2);
-
     const numNodes = 2*N - 1;
     const numInternal = N - 1;
+    const numRadixGroups = Math.ceil(N / RADIX_WG_SIZE);
 
 	buff_part.bytecount 		= N * 16;
 	buff_normPos.bytecount 		= N * 32;
@@ -142,7 +178,6 @@ function init_particles(x){
 
 	comp_gen_rand_pos.workgroups 	= [Math.ceil(N / 256), 1, 1];
 	comp_normalize_pos.workgroups 	= [Math.ceil(N / 256), 1, 1];
-	comp_sort.workgroups 			= [Math.ceil(numPairs / 128), 1, 1];
 	comp_init_nodes.workgroups 		= [Math.ceil(numNodes/256), 1, 1];
 	comp_build_topology.workgroups 	= [Math.ceil((N - 1) / 256), 1, 1];
 	comp_init_leaves.workgroups 	= [Math.ceil(N / 256), 1, 1];
@@ -158,7 +193,6 @@ function init_particles(x){
 
 	comp_gen_rand_pos.param("N", N);
 	comp_normalize_pos.param("N", N);
-	comp_sort.param("pc.numValues", N);
 	comp_init_nodes.param("count", 2*N - 1);
     comp_build_topology.param("N", N);
     comp_init_leaves.param("N", N);
@@ -166,14 +200,31 @@ function init_particles(x){
 	comp_build_depth.param("N", N);
 	comp_build_aabb.param("N", N);
 
+	buff_normPosTmp.bytecount        = N * 32;
+	buff_radixGroupHists.bytecount   = numRadixGroups * RADIX_BINS * 4;
+	buff_radixGroupOffsets.bytecount = numRadixGroups * RADIX_BINS * 4;
+	buff_radixBinBase.bytecount      = RADIX_BINS * 4;
+
+	comp_radix_group_hist_A.workgroups = [numRadixGroups, 1, 1];
+	comp_radix_group_hist_B.workgroups = [numRadixGroups, 1, 1];
+	comp_radix_scan_groups.workgroups  = [1, 1, 1];
+	comp_radix_scatter_A2B.workgroups  = [numRadixGroups, 1, 1];
+	comp_radix_scatter_B2A.workgroups  = [numRadixGroups, 1, 1];
+
+	comp_radix_group_hist_A.param("N", N);
+	comp_radix_group_hist_B.param("N", N);
+
+	comp_radix_scan_groups.param("numGroups", numRadixGroups);
+
+	comp_radix_scatter_A2B.param("N", N);
+	comp_radix_scatter_B2A.param("N", N);
+
     comp_raytrace.param("N", N);
     comp_raytrace.param("size", 	[img_res.dim[0], img_res.dim[1]]);
     comp_raytrace.param("fsize", 	[img_res.dim[0], img_res.dim[1]]);
     comp_raytrace.param("invSize", 	[1/(img_res.dim[0]-1), 1/(img_res.dim[1]-1)]);
     comp_raytrace.param("invRatio", [img_res.dim[1]/img_res.dim[0]]);
 }
-
-//var skip = 0;
 
 function bang(){
 
@@ -184,9 +235,6 @@ function bang(){
 	comp_gen_rand_pos.param("scale", 0.001);
 	comp_gen_rand_pos.bang();
 	time += 0.0005;
-	//time += 0.000;
-	//time += skip % 10 == 0 ? 0.001 : 0.0;
-	//skip++;
 
 	//compute min and max position (for normalization);
 	let wg = N;
@@ -203,18 +251,31 @@ function bang(){
 	//Normalize positions
 	comp_normalize_pos.bang();
 
-	//Sort morton codes
-    for(let stageIndex = 0; stageIndex < numStages; stageIndex++){
-        for(let stepIndex = 0; stepIndex < stageIndex + 1; stepIndex++){
-            
-            let groupWidth = 1 << (stageIndex - stepIndex);
-            let groupHeight = 2 * groupWidth - 1;
-            comp_sort.param("pc.groupWidth", groupWidth);
-            comp_sort.param("pc.groupHeight", groupHeight);
-            comp_sort.param("pc.stepIndex", stepIndex);
-            comp_sort.bang();
-        }
-    }
+	// Stable radix sort (LSD, 4 passes on 32-bit Morton)
+	for (let pass = 0; pass < RADIX_PASSES; ++pass) {
+	    let shift = pass * RADIX_BITS;
+
+	    if ((pass & 1) === 0) {
+	        // A = buff_normPos  -> B = buff_normPosTmp
+	        comp_radix_group_hist_A.param("shift", shift);
+	        comp_radix_group_hist_A.bang();
+
+	        comp_radix_scan_groups.bang();
+
+	        comp_radix_scatter_A2B.param("shift", shift);
+	        comp_radix_scatter_A2B.bang();
+	    } else {
+	        // B = buff_normPosTmp -> A = buff_normPos
+	        comp_radix_group_hist_B.param("shift", shift);
+	        comp_radix_group_hist_B.bang();
+
+	        comp_radix_scan_groups.bang();
+
+	        comp_radix_scatter_B2A.param("shift", shift);
+	        comp_radix_scatter_B2A.bang();
+	    }
+	}
+
 
     //Init buff_nodeParent with the value -1
     comp_init_nodes.bang();
@@ -247,11 +308,13 @@ function bang(){
 	outlet(1, "bang");
 */
 
-    //trace rays
-    comp_raytrace.bang();
+	if(!_debug){
+	    //trace rays
+	    comp_raytrace.bang();
 
-    outlet(3, "source", img_res.name);
-	outlet(3, "bang");
+	    outlet(3, "source", img_res.name);
+		outlet(3, "bang");		
+	}
 
     outlet(0, "bang");
 }

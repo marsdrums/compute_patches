@@ -1,0 +1,47 @@
+#version 460
+layout(local_size_x = 128) in;
+
+struct Point{
+    vec4 pos;
+    uint morton;
+    uint primID;
+};
+
+layout(std430, binding = 0) readonly buffer buff_in {
+    Point point[];
+};
+
+layout(std430, binding = 1) writeonly buffer buff_groupHists {
+    uint groupHists[]; // [numGroups * 256]
+};
+
+layout(binding = 2) uniform cfg {
+    uint N;
+    uint shift; // 0,8,16,24
+};
+
+shared uint shist[256];
+
+void main() {
+    uint lid = gl_LocalInvocationID.x;
+    uint gid = gl_GlobalInvocationID.x;
+    uint wg  = gl_WorkGroupID.x;
+
+    // Clear shared histogram (256 bins)
+    for (uint i = lid; i < 256u; i += gl_WorkGroupSize.x) {
+        shist[i] = 0u;
+    }
+    barrier();
+
+    // Accumulate this workgroup's histogram
+    if (gid < N) {
+        uint bin = (point[gid].morton >> shift) & 0xFFu;
+        atomicAdd(shist[bin], 1u);
+    }
+    barrier();
+
+    // Write this workgroup's histogram to global buffer
+    for (uint i = lid; i < 256u; i += gl_WorkGroupSize.x) {
+        groupHists[wg * 256u + i] = shist[i];
+    }
+}
