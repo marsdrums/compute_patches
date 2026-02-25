@@ -1,0 +1,73 @@
+#version 460
+layout(local_size_x = 256) in;
+
+// Node topology
+layout(std430, binding = 0) readonly buffer buff_nodeParent {
+    int nodeParent[];
+};
+
+layout(std430, binding = 1) readonly buffer buff_nodeChild {
+    ivec2 nodeChild[];
+};
+
+// AABBs (shared across invocations)
+layout(std430, binding = 2) coherent buffer buff_nodeAabbMin {
+    vec4 nodeAabbMin[];
+};
+
+layout(std430, binding = 3) coherent buffer buff_nodeAabbMax {
+    vec4 nodeAabbMax[];
+};
+
+// One counter per internal node: index = (node - N), values go 0 -> 1 -> 2
+layout(std430, binding = 4) coherent buffer buff_nodeReady {
+    uint nodeReady[];
+};
+
+layout(binding = 5) uniform cfg {
+    uint N;
+};
+
+void main() {
+    uint leaf = gl_GlobalInvocationID.x;
+    if (leaf >= N) return;
+    if (N <= 1u) return; // no internals
+
+    int node   = int(leaf);          // current subtree root (starts as leaf)
+    int parent = nodeParent[node];   // internal node or -1
+
+    while (parent != -1) {
+
+        // If this invocation just wrote an internal AABB in the previous iteration,
+        // publish it before signaling the next parent.
+        memoryBarrierBuffer();
+
+        uint iid = uint(parent) - N;          // internal index [0 .. N-2]
+        uint old = atomicAdd(nodeReady[iid], 1u);
+
+        if (old == 0u) {
+            // First child to arrive: stop here.
+            return;
+        }
+
+        // Second child to arrive: both children are ready, so build parent AABB.
+        // (Barrier keeps our read after the atomic, and pairs with the other child's
+        // memoryBarrierBuffer() before it signaled this parent.)
+        memoryBarrierBuffer();
+
+        ivec2 ch = nodeChild[parent];
+        if (ch.x < 0 || ch.y < 0) return; // safety
+
+        vec4 aMin = nodeAabbMin[ch.x];
+        vec4 aMax = nodeAabbMax[ch.x];
+        vec4 bMin = nodeAabbMin[ch.y];
+        vec4 bMax = nodeAabbMax[ch.y];
+
+        nodeAabbMin[parent] = vec4(min(aMin.xyz, bMin.xyz), 0.0);
+        nodeAabbMax[parent] = vec4(max(aMax.xyz, bMax.xyz), 0.0);
+
+        // Continue climbing: this parent is now the subtree root produced by this thread.
+        node   = parent;
+        parent = nodeParent[node];
+    }
+}

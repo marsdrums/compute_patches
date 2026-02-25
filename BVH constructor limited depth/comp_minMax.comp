@@ -1,0 +1,53 @@
+//Find min nd max values
+#version 460
+
+layout(local_size_x = 256) in;
+
+struct minMax{
+    vec3 mm;
+    vec3 MM;
+};
+
+layout(std430, binding = 0) buffer buff_part { vec4 pr[]; };
+layout(std430, binding = 1) buffer buff_minMax { minMax mmMM[]; };
+layout(binding = 2) uniform cfg{
+    uint iteration;
+    uint N;
+};
+
+shared minMax shammMM[gl_WorkGroupSize.x];
+
+void main() {
+
+    uint gid = gl_GlobalInvocationID.x;
+    uint lid = gl_LocalInvocationIndex;
+    uint clampedGid = min(gid, N-1);
+
+    if(iteration == 0u){
+        vec4 pos_radius = pr[clampedGid];
+        shammMM[lid].mm = pos_radius.xyz - pos_radius.w;
+        shammMM[lid].MM = pos_radius.xyz + pos_radius.w;
+    } else {
+        shammMM[lid] = mmMM[clampedGid];        
+    }
+    barrier();
+
+    if(lid < 16){
+        uint base = lid * 16;
+        for(uint i = 1u; i < 16u; i++){
+            uint id = base + i;
+            shammMM[base].mm = min(shammMM[base].mm, shammMM[id].mm);
+            shammMM[base].MM = max(shammMM[base].MM, shammMM[id].MM);
+        }
+    }
+    barrier();
+
+    if(lid == 0){
+        for(uint i = 1u; i < 16u; i++){
+            uint id = i*16u;
+            shammMM[0].mm = min(shammMM[0].mm, shammMM[id].mm);
+            shammMM[0].MM = max(shammMM[0].MM, shammMM[id].MM);            
+        }
+        mmMM[gl_WorkGroupID.x] = shammMM[0];
+    }
+}

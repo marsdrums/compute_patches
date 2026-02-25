@@ -1,0 +1,16 @@
+#version 460
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) buffer buff_nodeReady {
+    uint nodeReady[];
+};
+
+layout(binding = 1) uniform cfg {
+    uint count; // N - 1
+};
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+    if (gid >= count) return;
+    nodeReady[gid] = 0u;
+}

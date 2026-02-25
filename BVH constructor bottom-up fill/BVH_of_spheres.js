@@ -5,8 +5,6 @@ var time = 0; //running time variables for procedural noise
 var np2, numPairs, numStages; //sorting params
 var camPos = [0,0,2];
 var camDir = [0,0,-1];
-var MAX_AABB_DEPTH_PASSES = 64; // safe upper bound for 32-bit morton + 32-bit tie-break
-
 
 var buff_part 			= new JitterObject("jit.gpu.buffer"); //the buffer containing the particles' position and radii
 var buff_minMax 		= new JitterObject("jit.gpu.buffer"); //the buffer containing the particles' position min and max
@@ -16,8 +14,9 @@ var buff_nodeParent 	= new JitterObject("jit.gpu.buffer");
 var buff_nodeAabbMin 	= new JitterObject("jit.gpu.buffer");
 var buff_nodeAabbMax	= new JitterObject("jit.gpu.buffer");
 var buff_nodePrim 		= new JitterObject("jit.gpu.buffer");
-var buff_internalDepth  = new JitterObject("jit.gpu.buffer"); // depth of internal nodes (N-1 uints)
 var buff_test 			= new JitterObject("jit.gpu.buffer"); //temporary buffer for debugging
+var buff_nodeReady      = new JitterObject("jit.gpu.buffer"); // atomic arrival counters for internals (N-1)
+
 
 var img_test = new JitterObject("jit.gpu.image");
 img_test.format = "rgba32_float";
@@ -68,17 +67,17 @@ comp_init_leaves.bind("buff_nodeAabbMin", buff_nodeAabbMin.name);
 comp_init_leaves.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
 comp_init_leaves.bind("buff_nodePrim", buff_nodePrim.name);
 
-var comp_build_depth = new JitterObject("jit.gpu.compute"); // compute internal-node depth from root
-comp_build_depth.shader = "comp_build_depth.comp";
-comp_build_depth.bind("buff_nodeParent", buff_nodeParent.name);
-comp_build_depth.bind("buff_internalDepth", buff_internalDepth.name);
+var comp_reset_nodeReady = new JitterObject("jit.gpu.compute");
+comp_reset_nodeReady.shader = "comp_reset_nodeReady.comp";
+comp_reset_nodeReady.bind("buff_nodeReady", buff_nodeReady.name);
 
-var comp_build_aabb = new JitterObject("jit.gpu.compute");
-comp_build_aabb.shader = "comp_build_aabb.comp";
-comp_build_aabb.bind("buff_nodeChild", buff_nodeChild.name);
-comp_build_aabb.bind("buff_internalDepth", buff_internalDepth.name);
-comp_build_aabb.bind("buff_nodeAabbMin", buff_nodeAabbMin.name);
-comp_build_aabb.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
+var comp_refit_bottomup = new JitterObject("jit.gpu.compute");
+comp_refit_bottomup.shader = "comp_refit_bottomup.comp";
+comp_refit_bottomup.bind("buff_nodeParent", buff_nodeParent.name);
+comp_refit_bottomup.bind("buff_nodeChild", buff_nodeChild.name);
+comp_refit_bottomup.bind("buff_nodeAabbMin", buff_nodeAabbMin.name);
+comp_refit_bottomup.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
+comp_refit_bottomup.bind("buff_nodeReady", buff_nodeReady.name);
 
 var comp_test = new JitterObject("jit.gpu.compute"); //Debug: copy bounding volumes and display
 comp_test.shader = "comp_test.comp";
@@ -136,7 +135,7 @@ function init_particles(x){
 	buff_nodeAabbMax.bytecount 	= numNodes * 16;
 	buff_nodePrim.bytecount 	= numNodes * 4;
 
-	buff_internalDepth.bytecount = numInternal * 4; // uint per internal node
+	buff_nodeReady.bytecount    = numInternal * 4; // uint per internal node
 
 	img_test.dim = [24, numNodes];
 
@@ -147,10 +146,9 @@ function init_particles(x){
 	comp_build_topology.workgroups 	= [Math.ceil((N - 1) / 256), 1, 1];
 	comp_init_leaves.workgroups 	= [Math.ceil(N / 256), 1, 1];
 
-	comp_build_depth.workgroups    = [Math.ceil(numInternal / 256), 1, 1];
-	comp_build_aabb.workgroups     = [Math.ceil(numInternal / 256), 1, 1];
+	comp_reset_nodeReady.workgroups = [Math.ceil(numInternal / 256), 1, 1];
+	comp_refit_bottomup.workgroups  = [Math.ceil(N / 256), 1, 1];
 
-	//comp_build_aabb.workgroups 		= [Math.ceil(N / 256), 1, 1];
 	comp_test.workgroups 			= [Math.ceil(numNodes / 256), 1, 1];
 
 	//*** use "autoworkgroups" for this
@@ -163,8 +161,8 @@ function init_particles(x){
     comp_build_topology.param("N", N);
     comp_init_leaves.param("N", N);
 
-	comp_build_depth.param("N", N);
-	comp_build_aabb.param("N", N);
+	comp_reset_nodeReady.param("count", numInternal);
+	comp_refit_bottomup.param("N", N);
 
     comp_raytrace.param("N", N);
     comp_raytrace.param("size", 	[img_res.dim[0], img_res.dim[1]]);
@@ -225,14 +223,10 @@ function bang(){
     //init leaves
     comp_init_leaves.bang();
 
-	// Compute internal-node depths (from root)
-	comp_build_depth.bang();
+	// Bottom-up BVH refit in one pass (+ tiny counter reset)
+	comp_reset_nodeReady.bang();
+	comp_refit_bottomup.bang();
 
-	// Build AABBs from deepest internal level up to the root
-	for (let d = MAX_AABB_DEPTH_PASSES - 1; d >= 0; --d) {
-	    comp_build_aabb.param("targetDepth", d);
-	    comp_build_aabb.bang();
-	}
 
 /*
     //display nodes

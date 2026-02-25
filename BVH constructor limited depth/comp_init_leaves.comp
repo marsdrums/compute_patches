@@ -1,0 +1,61 @@
+#version 460
+layout(local_size_x = 256) in;
+
+struct Point {
+    vec4 pos;
+    uint morton;
+    uint primID;
+    uint pad0;
+    uint pad1;
+};
+
+// Sfere originali (ordine originale)
+layout(std430, binding = 0) readonly buffer buff_part {
+    vec4 pr[];   // xyz center, w radius
+};
+
+// Point ordinati per Morton
+layout(std430, binding = 1) readonly buffer buff_normPos {
+    Point point[];
+};
+
+// Topologia (già allocata): scriviamo solo le foglie
+layout(std430, binding = 2) buffer buff_nodeChild {
+    ivec2 nodeChild[];
+};
+
+// Dati leaf/internal
+layout(std430, binding = 3) buffer buff_nodeAabbMin {
+    vec4 nodeAabbMin[];
+};
+
+layout(std430, binding = 4) buffer buff_nodeAabbMax {
+    vec4 nodeAabbMax[];
+};
+
+layout(std430, binding = 5) buffer buff_nodePrim {
+    int nodePrim[];
+};
+
+layout(binding = 6) uniform cfg {
+    uint N;
+};
+
+void main() {
+    uint i = gl_GlobalInvocationID.x;
+    if (i >= N) return;
+
+    uint prim = point[i].primID;   // indice sfera originale
+    vec4 c_r = pr[prim];           // xyz=center, w=radius
+
+    vec3 c = c_r.xyz;
+    float r = c_r.w;
+
+    // Leaf AABB
+    nodeAabbMin[i] = vec4(c - vec3(r), 0.0);
+    nodeAabbMax[i] = vec4(c + vec3(r), 0.0);
+
+    // Leaf metadata
+    nodePrim[i] = int(prim);
+    nodeChild[i] = ivec2(-1, -1);
+}
