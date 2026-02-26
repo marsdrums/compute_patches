@@ -12,7 +12,6 @@ var RADIX_BITS      = 8;
 var RADIX_BINS      = 1 << RADIX_BITS;   // 256
 var RADIX_PASSES    = 4;                 // 32-bit morton
 var RADIX_WG_SIZE   = 128;               // matches shaders
-var numRadixGroups  = 0;
 
 var buff_part 			= new JitterObject("jit.gpu.buffer"); //the buffer containing the particles' position and radii
 var buff_minMax 		= new JitterObject("jit.gpu.buffer"); //the buffer containing the particles' position min and max
@@ -24,7 +23,6 @@ var buff_nodeAabbMax	= new JitterObject("jit.gpu.buffer");
 var buff_nodePrim 		= new JitterObject("jit.gpu.buffer");
 var buff_internalDepth  = new JitterObject("jit.gpu.buffer"); // depth of internal nodes (N-1 uints)
 
-var buff_radixBins         = new JitterObject("jit.gpu.buffer"); // 256 uints (hist/scan/cursors)
 var buff_normPosTmp        = new JitterObject("jit.gpu.buffer"); // ping-pong
 var buff_radixGroupHists   = new JitterObject("jit.gpu.buffer"); // [numGroups * 256] uint
 var buff_radixGroupOffsets = new JitterObject("jit.gpu.buffer"); // [numGroups * 256] uint
