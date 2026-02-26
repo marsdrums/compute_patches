@@ -154,7 +154,7 @@ function init_particles(x){
 
 	N = x;
 
-	MAX_AABB_DEPTH_PASSES = Math.ceil(Math.log2(N)) + 8; //4 is a small margin
+	MAX_AABB_DEPTH_PASSES = Math.ceil(Math.log2(N)) + 8; //8 is a small margin
 
     const numNodes = 2*N - 1;
     const numInternal = N - 1;
