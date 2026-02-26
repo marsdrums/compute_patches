@@ -1,6 +1,4 @@
-//Find min nd max values
 #version 460
-
 layout(local_size_x = 256) in;
 
 struct minMax{
@@ -8,15 +6,14 @@ struct minMax{
     vec3 MM;
 };
 
-struct Point{
-    vec4 pos;
+struct Key{
     uint morton;
     uint primID;
 };
 
 layout(std430,  binding = 0) buffer buff_part { vec4 pr[]; };
 layout(std430,  binding = 1) buffer buff_minMax { minMax mmMM[]; };
-layout(std430,  binding = 2) buffer buff_normPos { Point point[]; };
+layout(std430,  binding = 2) buffer buff_normPos { Key key[]; };
 layout(         binding = 3) uniform cfg{ uint N; };
 
 shared minMax shammMM;
@@ -48,7 +45,6 @@ uint morton3D(vec3 v)
 }
 
 void main() {
-
     uint gid = gl_GlobalInvocationID.x;
 
     if(gl_LocalInvocationIndex == 0){
@@ -61,10 +57,8 @@ void main() {
     if(gid >= N) return;
 
     vec4 pos_radius = pr[gid];
-    vec4 norm_pos_radius;
-    norm_pos_radius.xyz = (pos_radius.xyz - shammMM.mm) * invDiff;
-    norm_pos_radius.w = pos_radius.w;
-    point[gid].pos = norm_pos_radius;
-    point[gid].morton = morton3D(norm_pos_radius.xyz);
-    point[gid].primID = gid;
+    vec3 norm = (pos_radius.xyz - shammMM.mm) * invDiff;
+
+    key[gid].morton = morton3D(norm);
+    key[gid].primID = gid;
 }

@@ -1,13 +1,12 @@
 #version 460
 layout(local_size_x = 256) in;
 
-struct Point {
-    vec4 pos;
+struct Key {
     uint morton;
     uint primID;
 };
 
-layout(std430, binding = 0) readonly buffer buff_normPos { Point point[]; };
+layout(std430, binding = 0) readonly buffer buff_normPos { Key key[]; };
 layout(std430, binding = 1) buffer buff_nodeChild { ivec2 nodeChild[]; };
 layout(std430, binding = 2) buffer buff_nodeParent { int nodeParent[]; };
 layout(        binding = 3) uniform cfg { uint N; };
@@ -20,12 +19,11 @@ int clz32(uint x) {
 int deltaIdx(int i, int j) {
     if (j < 0 || j >= int(N)) return -1;
 
-    uint a = point[i].morton;
-    uint b = point[j].morton;
+    uint a = key[i].morton;
+    uint b = key[j].morton;
 
     if (a != b) return clz32(a ^ b);
 
-    // tie-break con indice
     uint x = uint(i) ^ uint(j);
     return 32 + clz32(x);
 }
@@ -84,6 +82,11 @@ void main() {
     else                   rightChild = int(N) + split + 1; // internal
 
     int internal = int(N) + i;
+
+    if (i == 0) {
+        nodeParent[internal] = -1;  // set as root
+    }
+
     nodeChild[internal] = ivec2(leftChild, rightChild);
 
     nodeParent[leftChild]  = internal;

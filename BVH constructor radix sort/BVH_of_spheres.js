@@ -4,7 +4,7 @@ var N; //number of particles
 var time = 0; //running time variables for procedural noise
 var camPos = [0,0,2];
 var camDir = [0,0,-1];
-var MAX_AABB_DEPTH_PASSES = 64; // safe upper bound for 32-bit morton + 32-bit tie-break
+var MAX_AABB_DEPTH_PASSES; // safe upper bound for 32-bit morton + 32-bit tie-break
 
 var _debug = 0;
 
@@ -31,10 +31,10 @@ var buff_radixGroupOffsets = new JitterObject("jit.gpu.buffer"); // [numGroups *
 var buff_radixBinBase      = new JitterObject("jit.gpu.buffer"); // [256] uint
 
 
-var buff_test 			= new JitterObject("jit.gpu.buffer"); //temporary buffer for debugging
+//var buff_test 			= new JitterObject("jit.gpu.buffer"); //temporary buffer for debugging
 
-var img_test = new JitterObject("jit.gpu.image");
-img_test.format = "rgba32_float";
+//var img_test = new JitterObject("jit.gpu.image");
+//img_test.format = "rgba32_float";
 
 var img_res = new JitterObject("jit.gpu.image");
 img_res.format = "rgba32_float";
@@ -49,11 +49,13 @@ comp_minMax.shader = "comp_minMax.comp";
 comp_minMax.bind("buff_part", buff_part.name);
 comp_minMax.bind("buff_minMax", buff_minMax.name);
 
-var comp_normalize_pos = new JitterObject("jit.gpu.compute"); //Normalize positions and compute morton codes
-comp_normalize_pos.shader = "comp_normalize_pos.comp";
-comp_normalize_pos.bind("buff_part", buff_part.name);
-comp_normalize_pos.bind("buff_minMax", buff_minMax.name);
-comp_normalize_pos.bind("buff_normPos", buff_normPos.name);
+// NEW: normalize+morton + group hist for pass0
+var comp_gen_keys_hist0 = new JitterObject("jit.gpu.compute");
+comp_gen_keys_hist0.shader = "comp_gen_keys_hist0.comp";  // name it however you like
+comp_gen_keys_hist0.bind("buff_part",      buff_part.name);        // binding = 0
+comp_gen_keys_hist0.bind("buff_minMax",    buff_minMax.name);      // binding = 1
+comp_gen_keys_hist0.bind("buff_keys",      buff_normPos.name);     // binding = 2 (A)
+comp_gen_keys_hist0.bind("buff_groupHists",buff_radixGroupHists.name);  // binding = 3
 
 // --- Stable radix sort kernels ---
 
@@ -89,14 +91,6 @@ comp_radix_scatter_B2A.bind("buff_binBase", buff_radixBinBase.name);
 
 // ------------------------------------------------
 
-var comp_init_nodes = new JitterObject("jit.gpu.compute"); //Init parent nodes as -1
-comp_init_nodes.shader = "comp_init_nodes.comp";
-comp_init_nodes.bind("buff_nodeParent", buff_nodeParent.name);
-comp_init_nodes.bind("buff_nodeChild", buff_nodeChild.name);
-comp_init_nodes.bind("buff_nodePrim", buff_nodePrim.name);
-comp_init_nodes.bind("buff_nodeAabbMin", buff_nodeAabbMin.name);
-comp_init_nodes.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
-
 var comp_build_topology = new JitterObject("jit.gpu.compute"); //Build topology
 comp_build_topology.shader = "comp_build_topology.comp";
 comp_build_topology.bind("buff_normPos", buff_normPos.name);
@@ -124,12 +118,14 @@ comp_build_aabb.bind("buff_internalDepth", buff_internalDepth.name);
 comp_build_aabb.bind("buff_nodeAabbMin", buff_nodeAabbMin.name);
 comp_build_aabb.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
 
+/*
 var comp_test = new JitterObject("jit.gpu.compute"); //Debug: copy bounding volumes and display
 comp_test.shader = "comp_test.comp";
 comp_test.bind("buff_nodeAabbMin", buff_nodeAabbMin.name);
 comp_test.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
 comp_test.bind("buff_test", buff_test.name);
 comp_test.bind("img_test", img_test.name);
+*/
 
 var comp_raytrace = new JitterObject("jit.gpu.compute"); //Raytrace into the BVH and display intersections
 comp_raytrace.shader = "comp_raytrace.comp";
@@ -140,7 +136,7 @@ comp_raytrace.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
 comp_raytrace.bind("buff_nodePrim", buff_nodePrim.name);
 comp_raytrace.bind("img_res", img_res.name);
 
-init_particles(10000);
+init_particles(1000000);
 
 function check_build_speed(x){ _debug = x; }
 
@@ -158,14 +154,16 @@ function init_particles(x){
 
 	N = x;
 
+	MAX_AABB_DEPTH_PASSES = Math.ceil(Math.log2(N)) + 8; //4 is a small margin
+
     const numNodes = 2*N - 1;
     const numInternal = N - 1;
     const numRadixGroups = Math.ceil(N / RADIX_WG_SIZE);
 
 	buff_part.bytecount 		= N * 16;
-	buff_normPos.bytecount 		= N * 32;
+	buff_normPos.bytecount    	= N * 8;   // Key{morton, primID}
 	buff_minMax.bytecount 		= Math.ceil(N/256) * 32;
-	buff_test.bytecount 		= numNodes * 16;
+	//buff_test.bytecount 		= numNodes * 16;
 	buff_nodeChild.bytecount 	= numNodes * 8;
 	buff_nodeParent.bytecount 	= numNodes * 4;
 	buff_nodeAabbMin.bytecount 	= numNodes * 16;
@@ -174,11 +172,9 @@ function init_particles(x){
 
 	buff_internalDepth.bytecount = numInternal * 4; // uint per internal node
 
-	img_test.dim = [24, numNodes];
+	//img_test.dim = [24, numNodes];
 
 	comp_gen_rand_pos.workgroups 	= [Math.ceil(N / 256), 1, 1];
-	comp_normalize_pos.workgroups 	= [Math.ceil(N / 256), 1, 1];
-	comp_init_nodes.workgroups 		= [Math.ceil(numNodes/256), 1, 1];
 	comp_build_topology.workgroups 	= [Math.ceil((N - 1) / 256), 1, 1];
 	comp_init_leaves.workgroups 	= [Math.ceil(N / 256), 1, 1];
 
@@ -186,24 +182,25 @@ function init_particles(x){
 	comp_build_aabb.workgroups     = [Math.ceil(numInternal / 256), 1, 1];
 
 	//comp_build_aabb.workgroups 		= [Math.ceil(N / 256), 1, 1];
-	comp_test.workgroups 			= [Math.ceil(numNodes / 256), 1, 1];
+	//comp_test.workgroups 			= [Math.ceil(numNodes / 256), 1, 1];
 
 	//*** use "autoworkgroups" for this
 	comp_raytrace.workgroups = [Math.ceil(img_res.dim[0] / 16), Math.ceil(img_res.dim[1] / 16), 1];
 
 	comp_gen_rand_pos.param("N", N);
-	comp_normalize_pos.param("N", N);
-	comp_init_nodes.param("count", 2*N - 1);
     comp_build_topology.param("N", N);
     comp_init_leaves.param("N", N);
 
 	comp_build_depth.param("N", N);
 	comp_build_aabb.param("N", N);
 
-	buff_normPosTmp.bytecount        = N * 32;
+	buff_normPosTmp.bytecount        = N * 8;   // ping-pong
 	buff_radixGroupHists.bytecount   = numRadixGroups * RADIX_BINS * 4;
 	buff_radixGroupOffsets.bytecount = numRadixGroups * RADIX_BINS * 4;
 	buff_radixBinBase.bytecount      = RADIX_BINS * 4;
+
+	comp_gen_keys_hist0.param("N", N);
+	comp_gen_keys_hist0.workgroups = [numRadixGroups, 1, 1];      // MUST match RADIX_WG_SIZE(128)
 
 	comp_radix_group_hist_A.workgroups = [numRadixGroups, 1, 1];
 	comp_radix_group_hist_B.workgroups = [numRadixGroups, 1, 1];
@@ -228,13 +225,16 @@ function init_particles(x){
 
 function bang(){
 
-	//generate random positions
-	comp_gen_rand_pos.param("radius", 0.01);
-	comp_gen_rand_pos.param("time", time);
-	comp_gen_rand_pos.param("offset", 0.0);
-	comp_gen_rand_pos.param("scale", 0.001);
-	comp_gen_rand_pos.bang();
-	time += 0.0005;
+
+	if(!_debug){
+		//generate random positions
+		comp_gen_rand_pos.param("radius", 0.01);
+		comp_gen_rand_pos.param("time", time);
+		comp_gen_rand_pos.param("offset", 0.0);
+		comp_gen_rand_pos.param("scale", 0.001);
+		comp_gen_rand_pos.bang();
+		time += 0.0005;
+	}
 
 	//compute min and max position (for normalization);
 	let wg = N;
@@ -248,15 +248,20 @@ function bang(){
 		iteration++;
 	}
 
-	//Normalize positions
-	comp_normalize_pos.bang();
+	// PASS 0 fused: generate keys into A + compute group hist shift=0
+	comp_gen_keys_hist0.bang();
 
-	// Stable radix sort (LSD, 4 passes on 32-bit Morton)
-	for (let pass = 0; pass < RADIX_PASSES; ++pass) {
+	// scan + scatter for pass 0 (same as before)
+	comp_radix_scan_groups.bang();
+	comp_radix_scatter_A2B.param("shift", 0);
+	comp_radix_scatter_A2B.bang();
+
+	// remaining passes 1..3 unchanged
+	for (let pass = 1; pass < RADIX_PASSES; ++pass) {
 	    let shift = pass * RADIX_BITS;
 
 	    if ((pass & 1) === 0) {
-	        // A = buff_normPos  -> B = buff_normPosTmp
+	        // A -> B
 	        comp_radix_group_hist_A.param("shift", shift);
 	        comp_radix_group_hist_A.bang();
 
@@ -265,7 +270,7 @@ function bang(){
 	        comp_radix_scatter_A2B.param("shift", shift);
 	        comp_radix_scatter_A2B.bang();
 	    } else {
-	        // B = buff_normPosTmp -> A = buff_normPos
+	        // B -> A
 	        comp_radix_group_hist_B.param("shift", shift);
 	        comp_radix_group_hist_B.bang();
 
@@ -275,10 +280,6 @@ function bang(){
 	        comp_radix_scatter_B2A.bang();
 	    }
 	}
-
-
-    //Init buff_nodeParent with the value -1
-    comp_init_nodes.bang();
 
     //build topology
     comp_build_topology.bang();

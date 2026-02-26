@@ -1,0 +1,83 @@
+#version 460
+layout(local_size_x = 128) in;
+
+struct minMax{
+    vec3 mm;
+    vec3 MM;
+};
+
+struct Key{
+    uint morton;
+    uint primID;
+};
+
+layout(std430,  binding = 0) readonly buffer buff_part   { vec4  pr[];     };
+layout(std430,  binding = 1) readonly buffer buff_minMax { minMax mmMM[];  };
+layout(std430,  binding = 2) writeonly buffer buff_keys  { Key   key[];    };
+layout(std430,  binding = 3) writeonly buffer buff_groupHists {
+    uint groupHists[]; // [numGroups * 256]
+};
+
+layout(binding = 4) uniform cfg { uint N; };
+
+shared minMax shammMM;
+shared vec3 invDiff;
+shared uint shist[256];
+
+// Morton helpers (same as your normalize shader)
+uint expandBits(uint v)
+{
+    v = (v * 0x00010001u) & 0xFF0000FFu;
+    v = (v * 0x00000101u) & 0x0F00F00Fu;
+    v = (v * 0x00000011u) & 0xC30C30C3u;
+    v = (v * 0x00000005u) & 0x49249249u;
+    return v;
+}
+
+uint morton3D(vec3 x)
+{
+    x = clamp(x * 1024.0, 0.0, 1023.0);
+    uint xx = expandBits(uint(x.x));
+    uint yy = expandBits(uint(x.y));
+    uint zz = expandBits(uint(x.z));
+    return (xx << 2) + (yy << 1) + zz;
+}
+
+void main() {
+    uint lid = gl_LocalInvocationID.x;
+    uint gid = gl_GlobalInvocationID.x;
+    uint wg  = gl_WorkGroupID.x;
+
+    // Load min/max once per WG
+    if (lid == 0) {
+        shammMM = mmMM[0];
+        vec3 diff = shammMM.MM - shammMM.mm;
+        invDiff = vec3(1.0) / max(vec3(1e-6), diff);
+    }
+
+    // Clear shared hist (256 bins)
+    for (uint i = lid; i < 256u; i += gl_WorkGroupSize.x) shist[i] = 0u;
+
+    barrier();
+
+    // Generate key + accumulate hist for shift=0 (lowest 8 bits)
+    if (gid < N) {
+        vec4 pos_radius = pr[gid];
+        vec3 norm = (pos_radius.xyz - shammMM.mm) * invDiff;
+
+        uint m = morton3D(norm);
+
+        key[gid].morton = m;
+        key[gid].primID = gid;
+
+        uint bin = m & 0xFFu;          // shift == 0 baked in
+        atomicAdd(shist[bin], 1u);
+    }
+
+    barrier();
+
+    // Store WG histogram
+    for (uint i = lid; i < 256u; i += gl_WorkGroupSize.x) {
+        groupHists[wg * 256u + i] = shist[i];
+    }
+}

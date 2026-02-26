@@ -1,26 +1,25 @@
 #version 460
 layout(local_size_x = 128) in;
 
-struct Point{
-    vec4 pos;
+struct Key{
     uint morton;
     uint primID;
 };
 
 layout(std430, binding = 0) readonly buffer buff_in {
-    Point pointIn[];
+    Key keyIn[];
 };
 
 layout(std430, binding = 1) writeonly buffer buff_out {
-    Point pointOut[];
+    Key keyOut[];
 };
 
 layout(std430, binding = 2) readonly buffer buff_groupOffsets {
-    uint groupOffsets[]; // [numGroups * 256]
+    uint groupOffsets[];
 };
 
 layout(std430, binding = 3) readonly buffer buff_binBase {
-    uint binBase[]; // [256]
+    uint binBase[];
 };
 
 layout(binding = 4) uniform cfg {
@@ -28,7 +27,7 @@ layout(binding = 4) uniform cfg {
     uint shift;
 };
 
-shared uint sbin[128]; // local_size_x = 128
+shared uint sbin[128];
 
 void main() {
     uint lid = gl_LocalInvocationID.x;
@@ -37,26 +36,24 @@ void main() {
 
     bool isActive = (gid < N);
 
-    Point p;
+    Key k;
     uint myBin = 0xFFFFFFFFu;
 
     if (isActive) {
-        p = pointIn[gid];
-        myBin = (p.morton >> shift) & 0xFFu;
+        k = keyIn[gid];
+        myBin = (k.morton >> shift) & 0xFFu;
     }
 
-    // Publish each thread's bin (or invalid sentinel)
     sbin[lid] = myBin;
     barrier();
 
     if (!isActive) return;
 
-    // Stable local rank: count previous active lanes with same bin
     uint localRank = 0u;
     for (uint j = 0u; j < lid; ++j) {
         if (sbin[j] == myBin) localRank++;
     }
 
     uint dst = binBase[myBin] + groupOffsets[wg * 256u + myBin] + localRank;
-    pointOut[dst] = p;
+    keyOut[dst] = k;
 }
