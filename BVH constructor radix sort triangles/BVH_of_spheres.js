@@ -1,5 +1,28 @@
 autowhatch = 1; outlets = 5;
 
+/*===========
+Layout:
+const uint LEAF_BIT = 0x80000000u;
+
+// Leaf node:
+nodeAabbMin[node].w = uintBitsToFloat(LEAF_BIT | primID);
+nodeAabbMax[node].w = uintBitsToFloat(0u); // unused
+
+// Internal node:
+nodeAabbMin[node].w = uintBitsToFloat(uint(leftChildIndex));     // LEAF_BIT = 0
+nodeAabbMax[node].w = uintBitsToFloat(uint(rightChildIndex));
+
+Decode:
+uint meta = floatBitsToUint(nodeAabbMin[node].w);
+bool isLeaf = (meta & LEAF_BIT) != 0u;
+
+if (isLeaf) primID = int(meta & ~LEAF_BIT);
+else {
+  left  = int(meta);
+  right = int(floatBitsToUint(nodeAabbMax[node].w));
+}
+===============================*/
+
 var N; //number of particles
 var time = 0; //running time variables for procedural noise
 var camPos = [0,0,2];
@@ -17,7 +40,6 @@ var RADIX_WG_SIZE   = 128;               // matches shaders
 var buff_mesh 			= new JitterObject("jit.gpu.buffer");
 var buff_minMax 		= new JitterObject("jit.gpu.buffer"); //the buffer containing the particles' position min and max
 var buff_normPos 		= new JitterObject("jit.gpu.buffer"); //contains positions after normalization and morton codes
-var buff_nodeChild 		= new JitterObject("jit.gpu.buffer");
 var buff_nodeParent 	= new JitterObject("jit.gpu.buffer");
 var buff_nodeAabbMin 	= new JitterObject("jit.gpu.buffer");
 var buff_nodeAabbMax	= new JitterObject("jit.gpu.buffer");
@@ -89,14 +111,14 @@ comp_radix_scatter_B2A.bind("buff_binBase", buff_radixBinBase.name);
 var comp_build_topology = new JitterObject("jit.gpu.compute"); //Build topology
 comp_build_topology.shader = "comp_build_topology.comp";
 comp_build_topology.bind("buff_normPos", buff_normPos.name);
-comp_build_topology.bind("buff_nodeChild", buff_nodeChild.name);
 comp_build_topology.bind("buff_nodeParent", buff_nodeParent.name);
+comp_build_topology.bind("buff_nodeAabbMin", buff_nodeAabbMin.name);
+comp_build_topology.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
 
 var comp_init_leaves = new JitterObject("jit.gpu.compute"); //init leaves
 comp_init_leaves.shader = "comp_init_leaves.comp";
 comp_init_leaves.bind("buff_mesh", buff_mesh.name);
 comp_init_leaves.bind("buff_normPos", buff_normPos.name);
-comp_init_leaves.bind("buff_nodeChild", buff_nodeChild.name);
 comp_init_leaves.bind("buff_nodeAabbMin", buff_nodeAabbMin.name);
 comp_init_leaves.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
 
@@ -107,7 +129,6 @@ comp_build_depth.bind("buff_internalDepth", buff_internalDepth.name);
 
 var comp_build_aabb = new JitterObject("jit.gpu.compute");
 comp_build_aabb.shader = "comp_build_aabb.comp";
-comp_build_aabb.bind("buff_nodeChild", buff_nodeChild.name);
 comp_build_aabb.bind("buff_internalDepth", buff_internalDepth.name);
 comp_build_aabb.bind("buff_nodeAabbMin", buff_nodeAabbMin.name);
 comp_build_aabb.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
@@ -124,7 +145,6 @@ comp_test.bind("img_test", img_test.name);
 var comp_raytrace = new JitterObject("jit.gpu.compute"); //Raytrace into the BVH and display intersections
 comp_raytrace.shader = "comp_raytrace.comp";
 comp_raytrace.bind("buff_mesh", buff_mesh.name);
-comp_raytrace.bind("buff_nodeChild", buff_nodeChild.name);
 comp_raytrace.bind("buff_nodeAabbMin", buff_nodeAabbMin.name);
 comp_raytrace.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
 comp_raytrace.bind("img_res", img_res.name);
@@ -168,7 +188,6 @@ function init_particles(x){
 	buff_normPos.bytecount    	= N * 8;   // Key{morton, primID}
 	buff_minMax.bytecount 		= Math.ceil(N/256) * 32;
 	//buff_test.bytecount 		= numNodes * 16;
-	buff_nodeChild.bytecount 	= numNodes * 8;
 	buff_nodeParent.bytecount 	= numNodes * 4;
 	buff_nodeAabbMin.bytecount 	= numNodes * 16;
 	buff_nodeAabbMax.bytecount 	= numNodes * 16;

@@ -9,12 +9,13 @@ struct Tri {
     vec4 v2;
 };
 
-layout(std430, binding = 0) readonly buffer buff_mesh    { vec4 v[];     };
-layout(std430, binding = 1) readonly buffer buff_normPos { Key key[];     };
-layout(std430, binding = 2) buffer buff_nodeChild        { ivec2 nodeChild[]; };
-layout(std430, binding = 3) buffer buff_nodeAabbMin      { vec4 nodeAabbMin[]; };
-layout(std430, binding = 4) buffer buff_nodeAabbMax      { vec4 nodeAabbMax[]; };
-layout(binding = 5) uniform cfg { uint N; };
+layout(std430, binding = 0) readonly buffer buff_mesh    { vec4 v[]; };
+layout(std430, binding = 1) readonly buffer buff_normPos { Key key[]; };
+layout(std430, binding = 2) buffer buff_nodeAabbMin { vec4 nodeAabbMin[]; };
+layout(std430, binding = 3) buffer buff_nodeAabbMax { vec4 nodeAabbMax[]; };
+layout(        binding = 4) uniform cfg { uint N; };
+
+const uint LEAF_BIT = 0x80000000u;
 
 Tri readVertices(uint id){
     id *= 3u;
@@ -39,9 +40,8 @@ void main() {
     vec3 tmin = min(a, min(b, c));
     vec3 tmax = max(a, max(b, c));
 
-    nodeAabbMin[i] = vec4(tmin, 0.0);
-    nodeAabbMax[i] = vec4(tmax, 0.0);
+    uint meta = LEAF_BIT | prim;
 
-    // Leaf encoding: (primID, -1)
-    nodeChild[i] = ivec2(int(prim), -1);
+    nodeAabbMin[i] = vec4(tmin, uintBitsToFloat(meta));
+    nodeAabbMax[i] = vec4(tmax, uintBitsToFloat(0u));
 }

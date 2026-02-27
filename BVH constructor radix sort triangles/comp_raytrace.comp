@@ -10,17 +10,16 @@ struct Tri {
 };
 
 layout(std430, binding = 0) readonly buffer buff_mesh        { vec4   v[]; };
-layout(std430, binding = 1) readonly buffer buff_nodeChild   { ivec2 nodeChild[]; };
-layout(std430, binding = 2) readonly buffer buff_nodeAabbMin { vec4 nodeAabbMin[]; };
-layout(std430, binding = 3) readonly buffer buff_nodeAabbMax { vec4 nodeAabbMax[]; };
-layout(rgba32f, binding = 4) uniform writeonly image2D img_res;
+layout(std430, binding = 1) readonly buffer buff_nodeAabbMin { vec4 nodeAabbMin[]; };
+layout(std430, binding = 2) readonly buffer buff_nodeAabbMax { vec4 nodeAabbMax[]; };
+layout(rgba32f, binding = 3) uniform writeonly image2D img_res;
 
-layout(binding = 6) uniform camParams {
+layout(binding = 4) uniform camParams {
     vec3 pos;
     vec3 dir;
 } cam;
 
-layout(binding = 7) uniform cfg {
+layout(binding = 5) uniform cfg {
     uint N;
     vec2 fsize;
     ivec2 size;
@@ -46,6 +45,21 @@ Tri readVertices(uint id){
     t.v2 = v[id+2];
     return t;
 }
+
+const uint LEAF_BIT = 0x80000000u;
+
+void decodeNode(int node, out bool isLeaf, out int a, out int b) {
+    uint meta = floatBitsToUint(nodeAabbMin[node].w);
+    isLeaf = (meta & LEAF_BIT) != 0u;
+    if (isLeaf) {
+        a = int(meta & ~LEAF_BIT); // primID
+        b = -1;
+    } else {
+        a = int(meta); // left child
+        b = int(floatBitsToUint(nodeAabbMax[node].w)); // right child
+    }
+}
+
 
 bool intersectAABB_Ray(in ray r, vec3 bmin, vec3 bmax, float tMax, out float tNear) {
     vec3 t0 = (bmin - r.origin) * r.invDir;
@@ -108,23 +122,26 @@ float shadowRay(in ray r) {
             if (!intersectAABB_Ray(r, nodeAabbMin[node].xyz, nodeAabbMax[node].xyz, bestT, tNear))
                 break;
 
-            ivec2 ch = nodeChild[node];
-            bool isLeaf = (ch.y < 0);
+                bool isLeaf;
+                int a, b;
+                decodeNode(node, isLeaf, a, b);
 
-            if (isLeaf) {
-                int primID = ch.x;
-                if (primID >= 0 && primID < int(N)) {
-                    Tri t = readVertices(primID);
-                    float tt = bestT;
-                    vec3 tmpN;
-                    if (intersectTri(r, t.v0.xyz, t.v1.xyz, t.v2.xyz, tt, tmpN)) {
-                        return 0.0;
+                if (isLeaf) {
+                    int primID = a;
+                    if (primID >= 0 && primID < int(N)) {
+                        Tri t = readVertices(primID);
+                        float tt = bestT;
+                        vec3 n;
+                        if (intersectTri(r, t.v0.xyz, t.v1.xyz, t.v2.xyz, tt, n)) {
+                            return 0.0;
+                        }
                     }
+                    break;
                 }
-                break;
-            }
 
-            int c0 = ch.x, c1 = ch.y;
+                int c0 = a;
+                int c1 = b;
+
             float t0, t1;
             bool h0 = intersectAABB_Ray(r, nodeAabbMin[c0].xyz, nodeAabbMax[c0].xyz, bestT, t0);
             bool h1 = intersectAABB_Ray(r, nodeAabbMin[c1].xyz, nodeAabbMax[c1].xyz, bestT, t1);
@@ -174,11 +191,12 @@ void rayTrace(in ray r, out int bestPrim, out float bestT, out vec3 bestN) {
             if (!intersectAABB_Ray(r, nodeAabbMin[node].xyz, nodeAabbMax[node].xyz, bestT, tNear))
                 break;
 
-            ivec2 ch = nodeChild[node];
-            bool isLeaf = (ch.y < 0);
+            bool isLeaf;
+            int a, b;
+            decodeNode(node, isLeaf, a, b);
 
             if (isLeaf) {
-                int primID = ch.x;
+                int primID = a;
                 if (primID >= 0 && primID < int(N)) {
                     Tri t = readVertices(primID);
                     float tt = bestT;
@@ -192,7 +210,9 @@ void rayTrace(in ray r, out int bestPrim, out float bestT, out vec3 bestN) {
                 break;
             }
 
-            int c0 = ch.x, c1 = ch.y;
+            int c0 = a;
+            int c1 = b;
+
             float t0, t1;
             bool h0 = intersectAABB_Ray(r, nodeAabbMin[c0].xyz, nodeAabbMax[c0].xyz, bestT, t0);
             bool h1 = intersectAABB_Ray(r, nodeAabbMin[c1].xyz, nodeAabbMax[c1].xyz, bestT, t1);

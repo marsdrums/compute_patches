@@ -1,31 +1,41 @@
 #version 460
 layout(local_size_x = 256) in;
 
-layout(std430,  binding = 0) readonly buffer buff_nodeChild { ivec2 nodeChild[]; };
-layout(std430,  binding = 1) readonly buffer buff_internalDepth { uint internalDepth[]; }; // internal node depth from root
-layout(std430,  binding = 2) buffer buff_nodeAabbMin { vec4 nodeAabbMin[]; };
-layout(std430,  binding = 3) buffer buff_nodeAabbMax { vec4 nodeAabbMax[]; };
-layout(         binding = 4) uniform cfg {
+layout(std430,  binding = 0) readonly buffer buff_internalDepth { uint internalDepth[]; };
+layout(std430,  binding = 1) buffer  buff_nodeAabbMin { vec4 nodeAabbMin[]; };
+layout(std430,  binding = 2) buffer  buff_nodeAabbMax { vec4 nodeAabbMax[]; };
+
+layout(binding = 3) uniform cfg {
     uint N;
-    uint targetDepth;   // build only nodes at this depth
+    uint targetDepth;
 };
+
+const uint LEAF_BIT = 0x80000000u;
 
 void main() {
     uint iid = gl_GlobalInvocationID.x;   // internal index [0 .. N-2]
     if (iid >= (N - 1u)) return;
-
     if (internalDepth[iid] != targetDepth) return;
 
-    uint node = N + iid; // actual node index
+    uint node = N + iid; // global node index of this internal node
 
-    ivec2 ch = nodeChild[node];
-    if (ch.x < 0 || ch.y < 0) return; // safety
+    // Decode children from .w lanes
+    uint leftMeta = floatBitsToUint(nodeAabbMin[node].w);
+    uint rightU   = floatBitsToUint(nodeAabbMax[node].w);
 
-    vec4 aMin = nodeAabbMin[ch.x];
-    vec4 aMax = nodeAabbMax[ch.x];
-    vec4 bMin = nodeAabbMin[ch.y];
-    vec4 bMax = nodeAabbMax[ch.y];
+    // Internal nodes should not have LEAF_BIT set, but mask defensively
+    int left  = int(leftMeta & ~LEAF_BIT);
+    int right = int(rightU);
 
-    nodeAabbMin[node] = vec4(min(aMin.xyz, bMin.xyz), 0.0);
-    nodeAabbMax[node] = vec4(max(aMax.xyz, bMax.xyz), 0.0);
+    vec4 aMin = nodeAabbMin[left];
+    vec4 aMax = nodeAabbMax[left];
+    vec4 bMin = nodeAabbMin[right];
+    vec4 bMax = nodeAabbMax[right];
+
+    // Preserve existing .w (child pointers) while updating xyz
+    float wMin = nodeAabbMin[node].w;
+    float wMax = nodeAabbMax[node].w;
+
+    nodeAabbMin[node] = vec4(min(aMin.xyz, bMin.xyz), wMin);
+    nodeAabbMax[node] = vec4(max(aMax.xyz, bMax.xyz), wMax);
 }

@@ -402,7 +402,7 @@
                             }
                         ]
                     },
-                    "patching_rect": [ 144.0, 599.0, 72.0, 22.0 ],
+                    "patching_rect": [ 94.0, 575.0, 72.0, 22.0 ],
                     "text": "p fps_meter"
                 }
             },
@@ -416,7 +416,7 @@
                     "numoutlets": 2,
                     "outlettype": [ "", "bang" ],
                     "parameter_enable": 0,
-                    "patching_rect": [ 94.0, 752.0, 323.0, 73.0 ]
+                    "patching_rect": [ 94.0, 624.0, 323.0, 73.0 ]
                 }
             },
             {
@@ -555,19 +555,6 @@
             },
             {
                 "box": {
-                    "fontface": 0,
-                    "fontname": "Arial",
-                    "fontsize": 12.0,
-                    "id": "obj-22",
-                    "maxclass": "jit.fpsgui",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "" ],
-                    "patching_rect": [ 219.0, 533.0, 80.0, 35.0 ]
-                }
-            },
-            {
-                "box": {
                     "id": "obj-15",
                     "linecount": 2,
                     "maxclass": "newobj",
@@ -596,8 +583,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 298.0, 25.0, 47.0, 22.0 ],
-                    "text": "jit.bang"
+                    "patching_rect": [ 391.0, 25.0, 71.0, 22.0 ],
+                    "text": "jit.gpu.bang"
                 }
             },
             {
@@ -640,7 +627,7 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 298.0, 63.0, 135.0, 22.0 ],
+                    "patching_rect": [ 391.0, 63.0, 135.0, 22.0 ],
                     "text": "getposition, getdirection"
                 }
             },
@@ -1035,8 +1022,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 89.0, 63.0, 262.0, 22.0 ],
-                    "text": "jit.anim.drive @ui_listen 1 @ease 0. @speed 1."
+                    "patching_rect": [ 89.0, 63.0, 275.0, 22.0 ],
+                    "text": "jit.anim.drive @ui_listen 1 @ease 0.2 @speed 10."
                 }
             },
             {
@@ -1204,15 +1191,7 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-22", 0 ],
-                    "order": 0,
-                    "source": [ "obj-13", 1 ]
-                }
-            },
-            {
-                "patchline": {
                     "destination": [ "obj-81", 0 ],
-                    "order": 1,
                     "source": [ "obj-13", 1 ]
                 }
             },

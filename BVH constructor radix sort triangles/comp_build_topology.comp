@@ -6,10 +6,11 @@ struct Key {
     uint primID;
 };
 
-layout(std430, binding = 0) readonly buffer buff_normPos { Key key[]; };
-layout(std430, binding = 1) buffer buff_nodeChild { ivec2 nodeChild[]; };
-layout(std430, binding = 2) buffer buff_nodeParent { int nodeParent[]; };
-layout(        binding = 3) uniform cfg { uint N; };
+layout(std430, binding = 0) buffer readonly buff_normPos { Key key[]; };
+layout(std430, binding = 1) buffer writeonly buff_nodeParent { int nodeParent[]; };
+layout(std430, binding = 2) buffer writeonly buff_nodeAabbMin { vec4 nodeAabbMin[]; };
+layout(std430, binding = 3) buffer writeonly buff_nodeAabbMax { vec4 nodeAabbMax[]; };
+layout(        binding = 4) uniform cfg { uint N; };
 
 int clz32(uint x) {
     if (x == 0u) return 32;
@@ -81,15 +82,18 @@ void main() {
     if (split + 1 == last) rightChild = last;               // leaf
     else                   rightChild = int(N) + split + 1; // internal
 
-    int internal = int(N) + i;
+    int internalNode = int(N) + i;  // global node index
+    int internalID   = i;           // internal-only index [0..N-2]
 
     if (i == 0) {
-        nodeParent[internal] = -1;  // set as root
+        nodeParent[internalNode] = -1;  // set as root
     }
 
-    nodeChild[internal] = ivec2(leftChild, rightChild);
+    // Store children in the .w lanes (bitcast)
+    nodeAabbMin[internalNode] = vec4(0.0, 0.0, 0.0, uintBitsToFloat(uint(leftChild)));
+    nodeAabbMax[internalNode] = vec4(0.0, 0.0, 0.0, uintBitsToFloat(uint(rightChild)));
 
-    nodeParent[leftChild]  = internal;
-    nodeParent[rightChild] = internal;
+    nodeParent[leftChild]  = internalNode;
+    nodeParent[rightChild] = internalNode;
 
 }
