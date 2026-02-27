@@ -1,0 +1,95 @@
+#version 460
+layout(local_size_x = 256) in;
+
+struct Key {
+    uint morton;
+    uint primID;
+};
+
+layout(std430, binding = 0) readonly buffer buff_normPos { Key key[]; };
+layout(std430, binding = 1) buffer buff_nodeChild { ivec2 nodeChild[]; };
+layout(std430, binding = 2) buffer buff_nodeParent { int nodeParent[]; };
+layout(        binding = 3) uniform cfg { uint N; };
+
+int clz32(uint x) {
+    if (x == 0u) return 32;
+    return 31 - findMSB(x);
+}
+
+int deltaIdx(int i, int j) {
+    if (j < 0 || j >= int(N)) return -1;
+
+    uint a = key[i].morton;
+    uint b = key[j].morton;
+
+    if (a != b) return clz32(a ^ b);
+
+    uint x = uint(i) ^ uint(j);
+    return 32 + clz32(x);
+}
+
+void main() {
+    int i = int(gl_GlobalInvocationID.x);
+
+    if (i >= int(N) - 1) return; // N-1 nodi interni
+
+    // 1) Direzione
+    int d = (deltaIdx(i, i + 1) - deltaIdx(i, i - 1)) >= 0 ? 1 : -1;
+
+    // 2) Range length (exponential search + binary refine)
+    int deltaMin = deltaIdx(i, i - d);
+
+    int lmax = 2;
+    while (deltaIdx(i, i + lmax * d) > deltaMin) {
+        lmax <<= 1;
+    }
+
+    int l = 0;
+    for (int t = lmax >> 1; t >= 1; t >>= 1) {
+        if (deltaIdx(i, i + (l + t) * d) > deltaMin) {
+            l += t;
+        }
+    }
+
+    int j = i + l * d;
+
+    int first = min(i, j);
+    int last  = max(i, j);
+
+    // 3) Split
+    int deltaNode = deltaIdx(first, last);
+
+    int split = first;
+    int step = last - first;
+
+    do {
+        step = (step + 1) >> 1;
+        int newSplit = split + step;
+        if (newSplit < last) {
+            if (deltaIdx(first, newSplit) > deltaNode) {
+                split = newSplit;
+            }
+        }
+    } while (step > 1);
+
+    // 4) Children
+    int leftChild;
+    if (split == first) leftChild = first;             // leaf
+    else                leftChild = int(N) + split;    // internal (FIX)
+
+    int rightChild;
+    if (split + 1 == last) rightChild = last;               // leaf
+    else                   rightChild = int(N) + split + 1; // internal
+
+    int internal = int(N) + i;
+
+    if (i == 0) {
+        nodeParent[internal] = -1;  // set as root
+    }
+
+    nodeChild[internal] = ivec2(leftChild, rightChild);
+
+    nodeParent[leftChild]  = internal;
+    nodeParent[rightChild] = internal;
+
+}

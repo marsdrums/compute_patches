@@ -1,0 +1,280 @@
+// Ray trace triangles through the BVH
+#version 460
+#extension GL_GOOGLE_include_directive : require
+#include "c74.noise.funcs.glsl"
+
+struct Tri {
+    vec4 v0;
+    vec4 v1;
+    vec4 v2;
+};
+
+layout(std430, binding = 0) readonly buffer buff_part        { Tri   tri[]; };
+layout(std430, binding = 1) readonly buffer buff_nodeChild   { ivec2 nodeChild[]; };
+layout(std430, binding = 2) readonly buffer buff_nodeAabbMin { vec4 nodeAabbMin[]; };
+layout(std430, binding = 3) readonly buffer buff_nodeAabbMax { vec4 nodeAabbMax[]; };
+layout(std430, binding = 4) readonly buffer buff_nodePrim    { int  nodePrim[]; };
+layout(rgba32f, binding = 5) uniform writeonly image2D img_res;
+
+layout(binding = 6) uniform camParams {
+    vec3 pos;
+    vec3 dir;
+} cam;
+
+layout(binding = 7) uniform cfg {
+    uint N;
+    vec2 fsize;
+    ivec2 size;
+    vec2 invSize;
+    float invRatio;
+};
+
+shared mat3 cameraBasis;
+
+struct ray {
+    vec3 origin;
+    vec3 direction;
+    vec3 invDir;
+};
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+bool intersectAABB_Ray(in ray r, vec3 bmin, vec3 bmax, float tMax, out float tNear) {
+    vec3 t0 = (bmin - r.origin) * r.invDir;
+    vec3 t1 = (bmax - r.origin) * r.invDir;
+    vec3 tsm = min(t0, t1);
+    vec3 tbg = max(t0, t1);
+
+    float tn = max(max(tsm.x, tsm.y), tsm.z);
+    float tf = min(min(tbg.x, tbg.y), tbg.z);
+
+    tNear = tn;
+    return (tf >= max(tn, 0.0)) && (tn <= tMax);
+}
+
+// Möller–Trumbore, two-sided
+bool intersectTri(in ray r, vec3 v0, vec3 v1, vec3 v2, inout float bestT, out vec3 outN) {
+    const float EPS = 1e-7;
+    vec3 e1 = v1 - v0;
+    vec3 e2 = v2 - v0;
+
+    vec3 pvec = cross(r.direction, e2);
+    float det = dot(e1, pvec);
+    if (abs(det) < EPS) return false;
+
+    float invDet = 1.0 / det;
+    vec3 tvec = r.origin - v0;
+    float u = dot(tvec, pvec) * invDet;
+    if (u < 0.0 || u > 1.0) return false;
+
+    vec3 qvec = cross(tvec, e1);
+    float v = dot(r.direction, qvec) * invDet;
+    if (v < 0.0 || (u + v) > 1.0) return false;
+
+    float t = dot(e2, qvec) * invDet;
+    if (t <= 1e-5 || t >= bestT) return false;
+
+    bestT = t;
+
+    outN = normalize(cross(e1, e2));
+    if (dot(outN, r.direction) > 0.0) outN = -outN;
+    return true;
+}
+
+float shadowRay(in ray r) {
+    int root = int(N);
+
+    const int STACK_CAP = 32;
+    int stackNode[STACK_CAP];
+    float stackNear[STACK_CAP];
+    int sp = 0;
+
+    float bestT = 1e30;
+
+    int node = root;
+    float nodeNear = 0.0;
+
+    for (;;) {
+        for (;;) {
+            float tNear;
+            if (!intersectAABB_Ray(r, nodeAabbMin[node].xyz, nodeAabbMax[node].xyz, bestT, tNear))
+                break;
+
+            ivec2 ch = nodeChild[node];
+            bool isLeaf = (ch.x < 0 && ch.y < 0);
+
+            if (isLeaf) {
+                int primID = nodePrim[node];
+                if (primID >= 0) {
+                    Tri t = tri[primID];
+                    float tt = bestT;
+                    vec3 tmpN;
+                    if (intersectTri(r, t.v0.xyz, t.v1.xyz, t.v2.xyz, tt, tmpN)) {
+                        return 0.0;
+                    }
+                }
+                break;
+            }
+
+            int c0 = ch.x, c1 = ch.y;
+            float t0, t1;
+            bool h0 = intersectAABB_Ray(r, nodeAabbMin[c0].xyz, nodeAabbMax[c0].xyz, bestT, t0);
+            bool h1 = intersectAABB_Ray(r, nodeAabbMin[c1].xyz, nodeAabbMax[c1].xyz, bestT, t1);
+
+            if (h0 && h1) {
+                int nearNode, farNode; float nearT, farT;
+                if (t0 < t1) { nearNode = c0; nearT = t0; farNode = c1; farT = t1; }
+                else         { nearNode = c1; nearT = t1; farNode = c0; farT = t0; }
+
+                if (sp < STACK_CAP) { stackNode[sp] = farNode; stackNear[sp] = farT; sp++; }
+                node = nearNode; nodeNear = nearT;
+                continue;
+            }
+            if (h0) { node = c0; nodeNear = t0; continue; }
+            if (h1) { node = c1; nodeNear = t1; continue; }
+            break;
+        }
+
+        if (sp == 0) break;
+        sp--;
+        node = stackNode[sp];
+        nodeNear = stackNear[sp];
+    }
+    return 1.0;
+}
+
+void rayTrace(in ray r, out int bestPrim, out float bestT, out vec3 bestN) {
+    int root = int(N);
+
+    const int STACK_CAP = 32;
+    int stackNode[STACK_CAP];
+    float stackNear[STACK_CAP];
+    int sp = 0;
+
+    bestT = 1e30;
+    bestPrim = -1;
+    bestN = vec3(0, 1, 0);
+
+    int node = root;
+    float nodeNear = 0.0;
+
+    for (;;) {
+        for (;;) {
+            if (nodeNear > bestT) break;
+
+            float tNear;
+            if (!intersectAABB_Ray(r, nodeAabbMin[node].xyz, nodeAabbMax[node].xyz, bestT, tNear))
+                break;
+
+            ivec2 ch = nodeChild[node];
+            bool isLeaf = (ch.x < 0 && ch.y < 0);
+
+            if (isLeaf) {
+                int primID = nodePrim[node];
+                if (primID >= 0) {
+                    Tri t = tri[primID];
+                    float tt = bestT;
+                    vec3 n;
+                    if (intersectTri(r, t.v0.xyz, t.v1.xyz, t.v2.xyz, tt, n)) {
+                        bestT = tt;
+                        bestPrim = primID;
+                        bestN = n;
+                    }
+                }
+                break;
+            }
+
+            int c0 = ch.x, c1 = ch.y;
+            float t0, t1;
+            bool h0 = intersectAABB_Ray(r, nodeAabbMin[c0].xyz, nodeAabbMax[c0].xyz, bestT, t0);
+            bool h1 = intersectAABB_Ray(r, nodeAabbMin[c1].xyz, nodeAabbMax[c1].xyz, bestT, t1);
+
+            if (h0 && h1) {
+                int nearNode, farNode; float nearT, farT;
+                if (t0 < t1) { nearNode = c0; nearT = t0; farNode = c1; farT = t1; }
+                else         { nearNode = c1; nearT = t1; farNode = c0; farT = t0; }
+
+                if (sp < STACK_CAP) { stackNode[sp] = farNode; stackNear[sp] = farT; sp++; }
+                node = nearNode; nodeNear = nearT;
+                continue;
+            }
+            if (h0) { node = c0; nodeNear = t0; continue; }
+            if (h1) { node = c1; nodeNear = t1; continue; }
+            break;
+        }
+
+        if (sp == 0) break;
+        sp--;
+        node = stackNode[sp];
+        nodeNear = stackNear[sp];
+    }
+}
+
+uint getSeed() {
+    return gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * uint(size.x) + 999u;
+}
+
+void main() {
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    uint lid = gl_LocalInvocationIndex;
+
+    if (lid == 0u) {
+        vec3 fwd = normalize(cam.dir);
+        vec3 worldUp = (abs(fwd.y) > 0.99) ? vec3(1,0,0) : vec3(0,1,0);
+        vec3 right = normalize(cross(fwd, worldUp));
+        vec3 up    = normalize(cross(right, fwd));
+        cameraBasis = mat3(right, up, fwd);
+    }
+    barrier();
+
+    if (pixel.x >= size.x || pixel.y >= size.y) return;
+
+    vec2 ndc = 2.0 * vec2(pixel) * invSize - 1.0;
+    ndc.y *= invRatio;
+    ndc.y *= -1;
+
+    vec3 dirCam = normalize(vec3(ndc, 1.0));
+    vec3 dirWorld = dirCam.x * cameraBasis[0] + dirCam.y * cameraBasis[1] + dirCam.z * cameraBasis[2];
+
+    ray r;
+    r.origin = cam.pos;
+    r.direction = dirWorld;
+    vec3 sgn = sign(dirWorld);
+    vec3 a = max(abs(dirWorld), vec3(1e-8));
+    r.invDir = sgn / a;
+
+    int bestPrim;
+    float bestT;
+    vec3 bestN;
+    rayTrace(r, bestPrim, bestT, bestN);
+
+    if (bestPrim < 0) {
+        imageStore(img_res, pixel, vec4(1.0));
+        return;
+    }
+    float fBest = float(bestPrim);
+    vec3 res = cos(fBest*vec3(1,3,5))*0.5+0.5;
+
+
+    vec3 p = r.origin + r.direction * bestT;
+    vec3 Nn = bestN;
+
+    r.origin = p + Nn * 0.0001;
+
+    float ao = 0.0;
+    uint seed = getSeed();
+    for (int i = 0; i < 8; i++) {
+        vec3 rd = normalize(Nn + randomUnitVector3(seed));
+        r.direction = rd;
+        vec3 ss = sign(rd);
+        vec3 aa = max(abs(rd), vec3(1e-8));
+        r.invDir = ss / aa;
+        ao += shadowRay(r);
+    }
+    ao /= 8.0;
+
+    res *= ao;
+
+    imageStore(img_res, pixel, vec4(pow(res, vec3(0.45454545)), 1.0));
+
+}

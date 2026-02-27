@@ -1,0 +1,66 @@
+#version 460
+
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) buffer readonly buff_nodeAabbMin { vec4 nodeAabbMin[]; };
+layout(std430, binding = 1) buffer readonly buff_nodeAabbMax { vec4 nodeAabbMax[]; };
+layout(std430, binding = 2) buffer readonly buff_test { vec4 outPos[]; };
+layout(rgba32f,binding = 3) uniform writeonly image2D img_test;
+layout(        binding = 4) uniform cfg{ uint count; uint N; };
+
+void main() {
+
+    uint gid = gl_GlobalInvocationID.x;
+    if(gid >= count) return;
+
+    float col = gid < N ? 1.0 : 0.0;
+
+    vec3 mm = nodeAabbMin[gid].xyz;
+    vec3 MM = nodeAabbMax[gid].xyz;
+
+    // AABB invalido/non scritto
+    if (any(greaterThan(mm, MM))) {
+        // scrivi una linea degenerata o un marker evidente
+        for(int i = 0; i < 24; i++){
+            imageStore(img_test, ivec2(i, int(gid)), vec4(0,0,0,2.0)); // w=2 per debug
+        }
+        return;
+    }
+
+    vec3 p000 = vec3(mm.x, mm.y, mm.z);
+    vec3 p100 = vec3(MM.x, mm.y, mm.z);
+    vec3 p110 = vec3(MM.x, MM.y, mm.z);
+    vec3 p010 = vec3(mm.x, MM.y, mm.z);
+    vec3 p001 = vec3(mm.x, mm.y, MM.z);
+    vec3 p101 = vec3(MM.x, mm.y, MM.z);
+    vec3 p111 = vec3(MM.x, MM.y, MM.z);
+    vec3 p011 = vec3(mm.x, MM.y, MM.z);
+
+    int id = int(gid);
+    imageStore(img_test, ivec2(0, id), vec4(p000, col));
+    imageStore(img_test, ivec2(1, id), vec4(p100, col));
+    imageStore(img_test, ivec2(2, id), vec4(p100, col));
+    imageStore(img_test, ivec2(3, id), vec4(p110, col));
+    imageStore(img_test, ivec2(4, id), vec4(p110, col));
+    imageStore(img_test, ivec2(5, id), vec4(p010, col));
+    imageStore(img_test, ivec2(6, id), vec4(p010, col));
+    imageStore(img_test, ivec2(7, id), vec4(p000, col));
+
+    imageStore(img_test, ivec2(8,  id), vec4(p001, col));
+    imageStore(img_test, ivec2(9,  id), vec4(p101, col));
+    imageStore(img_test, ivec2(10, id), vec4(p101, col));
+    imageStore(img_test, ivec2(11, id), vec4(p111, col));
+    imageStore(img_test, ivec2(12, id), vec4(p111, col));
+    imageStore(img_test, ivec2(13, id), vec4(p011, col));
+    imageStore(img_test, ivec2(14, id), vec4(p011, col));
+    imageStore(img_test, ivec2(15, id), vec4(p001, col));
+
+    imageStore(img_test, ivec2(16, id), vec4(p000, col));
+    imageStore(img_test, ivec2(17, id), vec4(p001, col));
+    imageStore(img_test, ivec2(18, id), vec4(p100, col));
+    imageStore(img_test, ivec2(19, id), vec4(p101, col));
+    imageStore(img_test, ivec2(20, id), vec4(p110, col));
+    imageStore(img_test, ivec2(21, id), vec4(p111, col));
+    imageStore(img_test, ivec2(22, id), vec4(p010, col));
+    imageStore(img_test, ivec2(23, id), vec4(p011, col));
+}

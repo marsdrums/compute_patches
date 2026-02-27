@@ -1,0 +1,31 @@
+#version 460
+layout(local_size_x = 256) in;
+
+layout(std430,  binding = 0) readonly buffer buff_nodeChild { ivec2 nodeChild[]; };
+layout(std430,  binding = 1) readonly buffer buff_internalDepth { uint internalDepth[]; }; // internal node depth from root
+layout(std430,  binding = 2) buffer buff_nodeAabbMin { vec4 nodeAabbMin[]; };
+layout(std430,  binding = 3) buffer buff_nodeAabbMax { vec4 nodeAabbMax[]; };
+layout(         binding = 4) uniform cfg {
+    uint N;
+    uint targetDepth;   // build only nodes at this depth
+};
+
+void main() {
+    uint iid = gl_GlobalInvocationID.x;   // internal index [0 .. N-2]
+    if (iid >= (N - 1u)) return;
+
+    if (internalDepth[iid] != targetDepth) return;
+
+    uint node = N + iid; // actual node index
+
+    ivec2 ch = nodeChild[node];
+    if (ch.x < 0 || ch.y < 0) return; // safety
+
+    vec4 aMin = nodeAabbMin[ch.x];
+    vec4 aMax = nodeAabbMax[ch.x];
+    vec4 bMin = nodeAabbMin[ch.y];
+    vec4 bMax = nodeAabbMax[ch.y];
+
+    nodeAabbMin[node] = vec4(min(aMin.xyz, bMin.xyz), 0.0);
+    nodeAabbMax[node] = vec4(max(aMax.xyz, bMax.xyz), 0.0);
+}

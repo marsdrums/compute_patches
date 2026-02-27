@@ -1,0 +1,84 @@
+#version 460
+layout(local_size_x = 128) in;
+
+struct Key{
+    uint morton;
+    uint primID;
+};
+
+layout(std430, binding = 0) readonly buffer buff_in {
+    Key keyIn[];
+};
+
+layout(std430, binding = 1) writeonly buffer buff_out {
+    Key keyOut[];
+};
+
+layout(std430, binding = 2) readonly buffer buff_groupOffsets {
+    uint groupOffsets[]; // [numGroups * 256]
+};
+
+layout(std430, binding = 3) readonly buffer buff_binBase {
+    uint binBase[]; // [256]
+};
+
+layout(binding = 4) uniform cfg {
+    uint N;
+    uint shift;
+};
+
+// 256 bins * 4 words (each word is 32 lanes) = 1024 uints
+shared uint sMask[256u * 4u];
+
+void main() {
+    uint lid = gl_LocalInvocationID.x;
+    uint gid = gl_GlobalInvocationID.x;
+    uint wg  = gl_WorkGroupID.x;
+
+    bool isActive = (gid < N);
+
+    uint myBin = 0u;
+    Key k;
+
+    if (isActive) {
+        k = keyIn[gid];
+        myBin = (k.morton >> shift) & 0xFFu;
+    }
+
+    // Clear per-bin masks (all lanes participate)
+    // 1024 entries total, 128 lanes => 8 stores per lane
+    for (uint i = lid; i < 256u * 4u; i += gl_WorkGroupSize.x) {
+        sMask[i] = 0u;
+    }
+    barrier();
+
+    // Set my bit in my bin's mask
+    if (isActive) {
+        uint word = lid >> 5;          // 0..3
+        uint bit  = lid & 31u;         // 0..31
+        atomicOr(sMask[myBin * 4u + word], 1u << bit);
+    }
+    barrier();
+
+    if (!isActive) return;
+
+    // Stable local rank = number of set bits in my bin for lanes < lid
+    uint word = lid >> 5;
+    uint bit  = lid & 31u;
+
+    uint base = myBin * 4u;
+    uint localRank = 0u;
+
+    // full words before mine
+    for (uint w = 0u; w < word; ++w) {
+        localRank += bitCount(sMask[base + w]);
+    }
+
+    // partial word: bits below my bit
+    uint m = sMask[base + word];
+    uint lowerMask = (bit == 0u) ? 0u : ((1u << bit) - 1u);
+    localRank += bitCount(m & lowerMask);
+
+    uint dst = binBase[myBin] + groupOffsets[wg * 256u + myBin] + localRank;
+    keyOut[dst] = k;
+}

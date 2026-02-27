@@ -1,0 +1,41 @@
+#version 460
+layout(local_size_x = 128) in;
+
+struct Key{
+    uint morton;
+    uint primID;
+};
+
+layout(std430, binding = 0) readonly buffer buff_in {
+    Key key[];
+};
+
+layout(std430, binding = 1) writeonly buffer buff_groupHists {
+    uint groupHists[];
+};
+
+layout(binding = 2) uniform cfg {
+    uint N;
+    uint shift;
+};
+
+shared uint shist[256];
+
+void main() {
+    uint lid = gl_LocalInvocationID.x;
+    uint gid = gl_GlobalInvocationID.x;
+    uint wg  = gl_WorkGroupID.x;
+
+    for (uint i = lid; i < 256u; i += gl_WorkGroupSize.x) shist[i] = 0u;
+    barrier();
+
+    if (gid < N) {
+        uint bin = (key[gid].morton >> shift) & 0xFFu;
+        atomicAdd(shist[bin], 1u);
+    }
+    barrier();
+
+    for (uint i = lid; i < 256u; i += gl_WorkGroupSize.x) {
+        groupHists[wg * 256u + i] = shist[i];
+    }
+}

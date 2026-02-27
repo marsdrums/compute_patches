@@ -13,17 +13,6 @@
         "boxes": [
             {
                 "box": {
-                    "id": "obj-14",
-                    "maxclass": "number",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "bang" ],
-                    "parameter_enable": 0,
-                    "patching_rect": [ 1117.0, 44.83333158493042, 132.0, 22.0 ]
-                }
-            },
-            {
-                "box": {
                     "id": "obj-55",
                     "maxclass": "newobj",
                     "numinlets": 1,
@@ -3065,15 +3054,7 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-14", 0 ],
-                    "order": 0,
-                    "source": [ "obj-66", 0 ]
-                }
-            },
-            {
-                "patchline": {
                     "destination": [ "obj-72", 0 ],
-                    "order": 1,
                     "source": [ "obj-66", 0 ]
                 }
             },

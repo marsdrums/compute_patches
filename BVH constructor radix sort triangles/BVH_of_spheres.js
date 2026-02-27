@@ -5,6 +5,7 @@ var time = 0; //running time variables for procedural noise
 var camPos = [0,0,2];
 var camDir = [0,0,-1];
 var MAX_AABB_DEPTH_PASSES; // safe upper bound for 32-bit morton + 32-bit tie-break
+var inMat;
 
 var _debug = 0;
 
@@ -13,6 +14,7 @@ var RADIX_BINS      = 1 << RADIX_BITS;   // 256
 var RADIX_PASSES    = 4;                 // 32-bit morton
 var RADIX_WG_SIZE   = 128;               // matches shaders
 
+var buff_mesh 			= new JitterObject("jit.gpu.buffer");
 var buff_part 			= new JitterObject("jit.gpu.buffer"); //the buffer containing the particles' position and radii
 var buff_minMax 		= new JitterObject("jit.gpu.buffer"); //the buffer containing the particles' position min and max
 var buff_normPos 		= new JitterObject("jit.gpu.buffer"); //contains positions after normalization and morton codes
@@ -38,9 +40,10 @@ var img_res = new JitterObject("jit.gpu.image");
 img_res.format = "rgba32_float";
 img_res.dim = [960, 540];
 
-var comp_gen_rand_pos = new JitterObject("jit.gpu.compute"); //generate random positions and radii
-comp_gen_rand_pos.shader = "comp_gen_rand_pos.comp";
-comp_gen_rand_pos.bind("buff_part", buff_part.name);
+var comp_copy_vertices = new JitterObject("jit.gpu.compute");
+comp_copy_vertices.shader = "comp_copy_vertices.comp";
+comp_copy_vertices.bind("buff_part", buff_part.name);
+comp_copy_vertices.bind("buff_mesh", buff_mesh.name);
 
 var comp_minMax = new JitterObject("jit.gpu.compute"); //Find min and max in the buffer
 comp_minMax.shader = "comp_minMax.comp";
@@ -134,7 +137,14 @@ comp_raytrace.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
 comp_raytrace.bind("buff_nodePrim", buff_nodePrim.name);
 comp_raytrace.bind("img_res", img_res.name);
 
-init_particles(10000);
+
+function jit_matrix(inname){
+	inMat = new JitterMatrix(inname);
+	let numTri = inMat.dim / 3;
+	init_particles(numTri);
+	buff_mesh.jit_matrix(inname);
+	comp_copy_vertices.bang();
+}
 
 function check_build_speed(x){ _debug = x; }
 function lookAtCenter(x){
@@ -157,13 +167,13 @@ function init_particles(x){
 
 	N = x;
 
-	MAX_AABB_DEPTH_PASSES = Math.ceil(Math.log2(N)) + 8; //8 is a small margin
+	MAX_AABB_DEPTH_PASSES = Math.ceil(Math.log2(N)) + 16; //8 is a small margin
 
     const numNodes = 2*N - 1;
     const numInternal = N - 1;
-    const numRadixGroups = Math.ceil(N / RADIX_WG_SIZE);
+    const numRadixGroups = 64;//Math.ceil(N / RADIX_WG_SIZE);
 
-	buff_part.bytecount 		= N * 16;
+	buff_part.bytecount 		= N * 48;
 	buff_normPos.bytecount    	= N * 8;   // Key{morton, primID}
 	buff_minMax.bytecount 		= Math.ceil(N/256) * 32;
 	//buff_test.bytecount 		= numNodes * 16;
@@ -177,7 +187,7 @@ function init_particles(x){
 
 	//img_test.dim = [24, numNodes];
 
-	comp_gen_rand_pos.workgroups 	= [Math.ceil(N / 256), 1, 1];
+	comp_copy_vertices.workgroups 	= [Math.ceil(N / 256), 1, 1];
 	comp_build_topology.workgroups 	= [Math.ceil((N - 1) / 256), 1, 1];
 	comp_init_leaves.workgroups 	= [Math.ceil(N / 256), 1, 1];
 
@@ -190,7 +200,7 @@ function init_particles(x){
 	//*** use "autoworkgroups" for this
 	comp_raytrace.workgroups = [Math.ceil(img_res.dim[0] / 16), Math.ceil(img_res.dim[1] / 16), 1];
 
-	comp_gen_rand_pos.param("N", N);
+	comp_copy_vertices.param("N", N);
     comp_build_topology.param("N", N);
     comp_init_leaves.param("N", N);
 
@@ -227,17 +237,6 @@ function init_particles(x){
 }
 
 function bang(){
-
-
-	if(!_debug){
-		//generate random positions
-		comp_gen_rand_pos.param("radius", 0.01);
-		comp_gen_rand_pos.param("time", time);
-		comp_gen_rand_pos.param("offset", 0.0);
-		comp_gen_rand_pos.param("scale", 0.001);
-		comp_gen_rand_pos.bang();
-		time += 0.0005;
-	}
 
 	//compute min and max position (for normalization);
 	let wg = N;
