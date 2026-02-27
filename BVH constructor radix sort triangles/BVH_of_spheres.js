@@ -15,14 +15,12 @@ var RADIX_PASSES    = 4;                 // 32-bit morton
 var RADIX_WG_SIZE   = 128;               // matches shaders
 
 var buff_mesh 			= new JitterObject("jit.gpu.buffer");
-var buff_part 			= new JitterObject("jit.gpu.buffer"); //the buffer containing the particles' position and radii
 var buff_minMax 		= new JitterObject("jit.gpu.buffer"); //the buffer containing the particles' position min and max
 var buff_normPos 		= new JitterObject("jit.gpu.buffer"); //contains positions after normalization and morton codes
 var buff_nodeChild 		= new JitterObject("jit.gpu.buffer");
 var buff_nodeParent 	= new JitterObject("jit.gpu.buffer");
 var buff_nodeAabbMin 	= new JitterObject("jit.gpu.buffer");
 var buff_nodeAabbMax	= new JitterObject("jit.gpu.buffer");
-var buff_nodePrim 		= new JitterObject("jit.gpu.buffer");
 var buff_internalDepth  = new JitterObject("jit.gpu.buffer"); // depth of internal nodes (N-1 uints)
 
 var buff_normPosTmp        = new JitterObject("jit.gpu.buffer"); // ping-pong
@@ -40,20 +38,16 @@ var img_res = new JitterObject("jit.gpu.image");
 img_res.format = "rgba32_float";
 img_res.dim = [960, 540];
 
-var comp_copy_vertices = new JitterObject("jit.gpu.compute");
-comp_copy_vertices.shader = "comp_copy_vertices.comp";
-comp_copy_vertices.bind("buff_part", buff_part.name);
-comp_copy_vertices.bind("buff_mesh", buff_mesh.name);
 
 var comp_minMax = new JitterObject("jit.gpu.compute"); //Find min and max in the buffer
 comp_minMax.shader = "comp_minMax.comp";
-comp_minMax.bind("buff_part", buff_part.name);
+comp_minMax.bind("buff_mesh", buff_mesh.name);
 comp_minMax.bind("buff_minMax", buff_minMax.name);
 
 // NEW: normalize+morton + group hist for pass0
 var comp_gen_keys_hist0 = new JitterObject("jit.gpu.compute");
 comp_gen_keys_hist0.shader = "comp_gen_keys_hist0.comp";  // name it however you like
-comp_gen_keys_hist0.bind("buff_part",      buff_part.name);        // binding = 0
+comp_gen_keys_hist0.bind("buff_mesh",      buff_mesh.name);        // binding = 0
 comp_gen_keys_hist0.bind("buff_minMax",    buff_minMax.name);      // binding = 1
 comp_gen_keys_hist0.bind("buff_keys",      buff_normPos.name);     // binding = 2 (A)
 comp_gen_keys_hist0.bind("buff_groupHists",buff_radixGroupHists.name);  // binding = 3
@@ -100,12 +94,11 @@ comp_build_topology.bind("buff_nodeParent", buff_nodeParent.name);
 
 var comp_init_leaves = new JitterObject("jit.gpu.compute"); //init leaves
 comp_init_leaves.shader = "comp_init_leaves.comp";
-comp_init_leaves.bind("buff_part", buff_part.name);
+comp_init_leaves.bind("buff_mesh", buff_mesh.name);
 comp_init_leaves.bind("buff_normPos", buff_normPos.name);
 comp_init_leaves.bind("buff_nodeChild", buff_nodeChild.name);
 comp_init_leaves.bind("buff_nodeAabbMin", buff_nodeAabbMin.name);
 comp_init_leaves.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
-comp_init_leaves.bind("buff_nodePrim", buff_nodePrim.name);
 
 var comp_build_depth = new JitterObject("jit.gpu.compute"); // compute internal-node depth from root
 comp_build_depth.shader = "comp_build_depth.comp";
@@ -130,11 +123,10 @@ comp_test.bind("img_test", img_test.name);
 
 var comp_raytrace = new JitterObject("jit.gpu.compute"); //Raytrace into the BVH and display intersections
 comp_raytrace.shader = "comp_raytrace.comp";
-comp_raytrace.bind("buff_part", buff_part.name);
+comp_raytrace.bind("buff_mesh", buff_mesh.name);
 comp_raytrace.bind("buff_nodeChild", buff_nodeChild.name);
 comp_raytrace.bind("buff_nodeAabbMin", buff_nodeAabbMin.name);
 comp_raytrace.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
-comp_raytrace.bind("buff_nodePrim", buff_nodePrim.name);
 comp_raytrace.bind("img_res", img_res.name);
 
 
@@ -143,7 +135,7 @@ function jit_matrix(inname){
 	let numTri = inMat.dim / 3;
 	init_particles(numTri);
 	buff_mesh.jit_matrix(inname);
-	comp_copy_vertices.bang();
+	build_BVH();
 }
 
 function check_build_speed(x){ _debug = x; }
@@ -173,7 +165,6 @@ function init_particles(x){
     const numInternal = N - 1;
     const numRadixGroups = 64;//Math.ceil(N / RADIX_WG_SIZE);
 
-	buff_part.bytecount 		= N * 48;
 	buff_normPos.bytecount    	= N * 8;   // Key{morton, primID}
 	buff_minMax.bytecount 		= Math.ceil(N/256) * 32;
 	//buff_test.bytecount 		= numNodes * 16;
@@ -181,13 +172,11 @@ function init_particles(x){
 	buff_nodeParent.bytecount 	= numNodes * 4;
 	buff_nodeAabbMin.bytecount 	= numNodes * 16;
 	buff_nodeAabbMax.bytecount 	= numNodes * 16;
-	buff_nodePrim.bytecount 	= numNodes * 4;
 
 	buff_internalDepth.bytecount = numInternal * 4; // uint per internal node
 
 	//img_test.dim = [24, numNodes];
 
-	comp_copy_vertices.workgroups 	= [Math.ceil(N / 256), 1, 1];
 	comp_build_topology.workgroups 	= [Math.ceil((N - 1) / 256), 1, 1];
 	comp_init_leaves.workgroups 	= [Math.ceil(N / 256), 1, 1];
 
@@ -200,7 +189,6 @@ function init_particles(x){
 	//*** use "autoworkgroups" for this
 	comp_raytrace.workgroups = [Math.ceil(img_res.dim[0] / 16), Math.ceil(img_res.dim[1] / 16), 1];
 
-	comp_copy_vertices.param("N", N);
     comp_build_topology.param("N", N);
     comp_init_leaves.param("N", N);
 
@@ -236,7 +224,7 @@ function init_particles(x){
     comp_raytrace.param("invRatio", [img_res.dim[1]/img_res.dim[0]]);
 }
 
-function bang(){
+function build_BVH(){
 
 	//compute min and max position (for normalization);
 	let wg = N;
@@ -297,6 +285,9 @@ function bang(){
 	    comp_build_aabb.param("targetDepth", d);
 	    comp_build_aabb.bang();
 	}
+}
+
+function bang(){
 
 /*
     //display nodes

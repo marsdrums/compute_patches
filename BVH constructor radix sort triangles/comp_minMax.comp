@@ -13,7 +13,7 @@ struct Tri {
     vec4 v2;
 };
 
-layout(std430, binding = 0) buffer buff_part   { Tri   tri[];  };
+layout(std430, binding = 0) buffer buff_mesh   { vec4   v[];  };
 layout(std430, binding = 1) buffer buff_minMax { minMax mmMM[]; };
 
 layout(binding = 2) uniform cfg {
@@ -23,19 +23,24 @@ layout(binding = 2) uniform cfg {
 
 shared minMax shammMM[gl_WorkGroupSize.x];
 
+Tri readVertices(uint id){
+    id *= 3u;
+    Tri t;
+    t.v0 = v[id];
+    t.v1 = v[id+1];
+    t.v2 = v[id+2];
+    return t;
+}
+
 void main() {
     uint gid = gl_GlobalInvocationID.x;
     uint lid = gl_LocalInvocationIndex;
     uint clampedGid = min(gid, N - 1u);
 
     if (iteration == 0u) {
-        Tri t = tri[clampedGid];
-        vec3 a = t.v0.xyz;
-        vec3 b = t.v1.xyz;
-        vec3 c = t.v2.xyz;
-
-        vec3 tmin = min(a, min(b, c));
-        vec3 tmax = max(a, max(b, c));
+        Tri t = readVertices(clampedGid);
+        vec3 tmin = min(t.v0.xyz, min(t.v1.xyz, t.v2.xyz));
+        vec3 tmax = max(t.v0.xyz, max(t.v1.xyz, t.v2.xyz));
 
         shammMM[lid].mm = tmin;
         shammMM[lid].MM = tmax;

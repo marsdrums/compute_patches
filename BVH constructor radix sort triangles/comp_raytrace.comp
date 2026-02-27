@@ -9,12 +9,11 @@ struct Tri {
     vec4 v2;
 };
 
-layout(std430, binding = 0) readonly buffer buff_part        { Tri   tri[]; };
+layout(std430, binding = 0) readonly buffer buff_mesh        { vec4   v[]; };
 layout(std430, binding = 1) readonly buffer buff_nodeChild   { ivec2 nodeChild[]; };
 layout(std430, binding = 2) readonly buffer buff_nodeAabbMin { vec4 nodeAabbMin[]; };
 layout(std430, binding = 3) readonly buffer buff_nodeAabbMax { vec4 nodeAabbMax[]; };
-layout(std430, binding = 4) readonly buffer buff_nodePrim    { int  nodePrim[]; };
-layout(rgba32f, binding = 5) uniform writeonly image2D img_res;
+layout(rgba32f, binding = 4) uniform writeonly image2D img_res;
 
 layout(binding = 6) uniform camParams {
     vec3 pos;
@@ -38,6 +37,15 @@ struct ray {
 };
 
 layout(local_size_x = 16, local_size_y = 16) in;
+
+Tri readVertices(uint id){
+    id *= 3u;
+    Tri t;
+    t.v0 = v[id];
+    t.v1 = v[id+1];
+    t.v2 = v[id+2];
+    return t;
+}
 
 bool intersectAABB_Ray(in ray r, vec3 bmin, vec3 bmax, float tMax, out float tNear) {
     vec3 t0 = (bmin - r.origin) * r.invDir;
@@ -101,12 +109,12 @@ float shadowRay(in ray r) {
                 break;
 
             ivec2 ch = nodeChild[node];
-            bool isLeaf = (ch.x < 0 && ch.y < 0);
+            bool isLeaf = (ch.y < 0);
 
             if (isLeaf) {
-                int primID = nodePrim[node];
-                if (primID >= 0) {
-                    Tri t = tri[primID];
+                int primID = ch.x;
+                if (primID >= 0 && primID < int(N)) {
+                    Tri t = readVertices(primID);
                     float tt = bestT;
                     vec3 tmpN;
                     if (intersectTri(r, t.v0.xyz, t.v1.xyz, t.v2.xyz, tt, tmpN)) {
@@ -167,12 +175,12 @@ void rayTrace(in ray r, out int bestPrim, out float bestT, out vec3 bestN) {
                 break;
 
             ivec2 ch = nodeChild[node];
-            bool isLeaf = (ch.x < 0 && ch.y < 0);
+            bool isLeaf = (ch.y < 0);
 
             if (isLeaf) {
-                int primID = nodePrim[node];
-                if (primID >= 0) {
-                    Tri t = tri[primID];
+                int primID = ch.x;
+                if (primID >= 0 && primID < int(N)) {
+                    Tri t = readVertices(primID);
                     float tt = bestT;
                     vec3 n;
                     if (intersectTri(r, t.v0.xyz, t.v1.xyz, t.v2.xyz, tt, n)) {
@@ -255,7 +263,7 @@ void main() {
     float fBest = float(bestPrim);
     vec3 res = cos(fBest*vec3(1,3,5))*0.5+0.5;
 
-
+/*
     vec3 p = r.origin + r.direction * bestT;
     vec3 Nn = bestN;
 
@@ -274,7 +282,7 @@ void main() {
     ao /= 8.0;
 
     res *= ao;
-
+*/
     imageStore(img_res, pixel, vec4(pow(res, vec3(0.45454545)), 1.0));
 
 }

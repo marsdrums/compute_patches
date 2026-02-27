@@ -14,7 +14,7 @@ struct Tri {
     vec4 v2;
 };
 
-layout(std430, binding = 0) readonly buffer buff_part   { Tri   tri[];     };
+layout(std430, binding = 0) readonly buffer buff_mesh   { vec4   v[];     };
 layout(std430, binding = 1) readonly buffer buff_minMax { minMax mmMM[];   };
 layout(std430, binding = 2) writeonly buffer buff_keys  { Key   key[];     };
 layout(std430, binding = 3) writeonly buffer buff_groupHists { uint groupHists[]; };
@@ -24,6 +24,15 @@ layout(binding = 4) uniform cfg { uint N; };
 shared minMax shammMM;
 shared vec3  invDiff;
 shared uint  shist[256];
+
+Tri readVertices(uint id){
+    id *= 3u;
+    Tri t;
+    t.v0 = v[id];
+    t.v1 = v[id+1];
+    t.v2 = v[id+2];
+    return t;
+}
 
 uint expandBits(uint v) {
     v = (v * 0x00010001u) & 0xFF0000FFu;
@@ -56,7 +65,7 @@ void main() {
     barrier();
 
     if (gid < N) {
-        Tri t = tri[gid];
+        Tri t = readVertices(gid);
         vec3 c = (t.v0.xyz + t.v1.xyz + t.v2.xyz) * (1.0 / 3.0);
 
         vec3 norm = (c - shammMM.mm) * invDiff;
