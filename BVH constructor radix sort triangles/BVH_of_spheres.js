@@ -58,7 +58,7 @@ var buff_radixBinBase      = new JitterObject("jit.gpu.buffer"); // [256] uint
 
 var img_res = new JitterObject("jit.gpu.image");
 img_res.format = "rgba32_float";
-img_res.dim = [960, 540];
+img_res.dim = [1920, 1080];
 
 
 var comp_minMax = new JitterObject("jit.gpu.compute"); //Find min and max in the buffer
