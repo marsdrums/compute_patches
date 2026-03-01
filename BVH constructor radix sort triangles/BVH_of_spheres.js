@@ -50,7 +50,6 @@ var buff_radixGroupHists   = new JitterObject("jit.gpu.buffer"); // [numGroups *
 var buff_radixGroupOffsets = new JitterObject("jit.gpu.buffer"); // [numGroups * 256] uint
 var buff_radixBinBase      = new JitterObject("jit.gpu.buffer"); // [256] uint
 
-
 //var buff_test 			= new JitterObject("jit.gpu.buffer"); //temporary buffer for debugging
 
 //var img_test = new JitterObject("jit.gpu.image");
@@ -58,8 +57,7 @@ var buff_radixBinBase      = new JitterObject("jit.gpu.buffer"); // [256] uint
 
 var img_res = new JitterObject("jit.gpu.image");
 img_res.format = "rgba32_float";
-img_res.dim = [1920, 1080];
-
+img_res.dim = [960, 540];
 
 var comp_minMax = new JitterObject("jit.gpu.compute"); //Find min and max in the buffer
 comp_minMax.shader = "comp_minMax.comp";
@@ -167,23 +165,23 @@ function lookAtCenter(x){
 function set_camPos(){ 
 	camPos = [arguments[0], arguments[1], arguments[2]]; 
 	comp_raytrace.param("cam.pos", camPos);
-	comp_raytrace.param("cam.dir", lookAtCenter(camPos));
+	//comp_raytrace.param("cam.dir", lookAtCenter(camPos));
 }
 
 function set_camDir(){ 
 	camDir = [arguments[0], arguments[1], arguments[2]]; 
-	//comp_raytrace.param("cam.dir", camDir);
+	comp_raytrace.param("cam.dir", camDir);
 }
 
 function init_particles(x){
 
 	N = x;
 
-	MAX_AABB_DEPTH_PASSES = Math.ceil(Math.log2(N)) + 16; //8 is a small margin
+	MAX_AABB_DEPTH_PASSES = Math.ceil(Math.log2(N)) + 32; //8 is a small margin
 
     const numNodes = 2*N - 1;
     const numInternal = N - 1;
-    const numRadixGroups = 64;//Math.ceil(N / RADIX_WG_SIZE);
+    const numRadixGroups = Math.ceil(N / RADIX_WG_SIZE);
 
 	buff_normPos.bytecount    	= N * 8;   // Key{morton, primID}
 	buff_minMax.bytecount 		= Math.ceil(N/256) * 32;
