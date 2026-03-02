@@ -9,17 +9,23 @@ struct Tri {
     vec4 v2;
 };
 
-layout(std430, binding = 0) readonly buffer buff_mesh        { vec4   v[]; };
-layout(std430, binding = 1) readonly buffer buff_nodeAabbMin { vec4 nodeAabbMin[]; };
-layout(std430, binding = 2) readonly buffer buff_nodeAabbMax { vec4 nodeAabbMax[]; };
-layout(rgba32f, binding = 3) uniform writeonly image2D img_res;
+struct Node {
+    vec3 mm;        // AABB min
+    uint leftChild; // internal: left child node index; leaf: LEAF_BIT|primID
+    vec3 MM;        // AABB max
+    uint rightChild;// internal: right child node index; leaf: unused
+};
 
-layout(binding = 4) uniform camParams {
+layout(std430, binding = 0) readonly buffer buff_mesh  { vec4 v[]; };
+layout(std430, binding = 1) readonly buffer buff_nodes { Node nodes[]; };
+layout(rgba32f, binding = 2) uniform writeonly image2D img_res;
+
+layout(binding = 3) uniform camParams {
     vec3 pos;
     vec3 dir;
 } cam;
 
-layout(binding = 5) uniform cfg {
+layout(binding = 4) uniform cfg {
     uint N;
     vec2 fsize;
     ivec2 size;
@@ -40,28 +46,30 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const uint LEAF_BIT = 0x80000000u;
 
 void decodeNode(int node, out bool isLeaf, out int a, out int b) {
-    uint meta = floatBitsToUint(nodeAabbMin[node].w);
+    uint meta = nodes[node].leftChild;
     isLeaf = (meta & LEAF_BIT) != 0u;
     if (isLeaf) {
         a = int(meta & ~LEAF_BIT); // primID
         b = -1;
     } else {
-        a = int(meta); // left child
-        b = int(floatBitsToUint(nodeAabbMax[node].w)); // right child
+        a = int(meta);                   // left child
+        b = int(nodes[node].rightChild); // right child
     }
 }
-
 
 bool intersectAABB_Ray(in ray r, vec3 bmin, vec3 bmax, float tMax, out float tNear) {
     vec3 t0 = (bmin - r.origin) * r.invDir;
     vec3 t1 = (bmax - r.origin) * r.invDir;
+
     vec3 tsm = min(t0, t1);
     vec3 tbg = max(t0, t1);
 
     float tn = max(max(tsm.x, tsm.y), tsm.z);
     float tf = min(min(tbg.x, tbg.y), tbg.z);
 
-    tNear = tn;
+    // stable "entry" distance for ordering (handles origin inside box)
+    tNear = max(tn, 0.0);
+
     return (tf >= max(tn, 0.0)) && (tn <= tMax);
 }
 
@@ -81,40 +89,37 @@ bool intersectTri(in ray r, vec3 v0, vec3 v1, vec3 v2, inout float bestT) {
     if (u < 0.0 || u > 1.0) return false;
 
     vec3 qvec = cross(tvec, e1);
-    float v = dot(r.direction, qvec) * invDet;
-    if (v < 0.0 || (u + v) > 1.0) return false;
+    float vv = dot(r.direction, qvec) * invDet;
+    if (vv < 0.0 || (u + vv) > 1.0) return false;
 
     float t = dot(e2, qvec) * invDet;
     if (t <= 1e-5 || t >= bestT) return false;
 
     bestT = t;
-
     return true;
 }
-
 float shadowRay(in ray r) {
-    const int STACK_CAP = 32;
-    int   stackNode[STACK_CAP];
+    const int STACK_CAP = 64;
+    uint  stackNode[STACK_CAP];
     float stackNear[STACK_CAP];
     int sp = 0;
 
     float tMax = 1e30;
-    int root = int(N);
 
+    uint node = uint(N); // root is at index N (internal root)
     float nodeNear;
-    if (!intersectAABB_Ray(r, nodeAabbMin[root].xyz, nodeAabbMax[root].xyz, tMax, nodeNear))
+
+    if (!intersectAABB_Ray(r, nodes[node].mm, nodes[node].MM, tMax, nodeNear))
         return 1.0;
 
-    int node = root;
-
     for (;;) {
-        bool isLeaf;
-        int a, b;
-        decodeNode(node, isLeaf, a, b);
+        uint meta = nodes[node].leftChild;
 
-        if (isLeaf) {
-            int primID = a;
-            uint firstVertID = uint(primID) * 3u;
+        // leaf?
+        if ((meta & LEAF_BIT) != 0u) {
+            uint primID = meta & ~LEAF_BIT;
+            uint firstVertID = primID * 3u;
+
             float tt = tMax;
             if (intersectTri(r,
                              v[firstVertID].xyz,
@@ -122,20 +127,22 @@ float shadowRay(in ray r) {
                              v[firstVertID + 2u].xyz,
                              tt))
             {
-                return 0.0; // occluded
+                return 0.0; // any hit blocks the light
             }
         } else {
-            int c0 = a;
-            int c1 = b;
+            // internal
+            uint c0 = meta;
+            uint c1 = nodes[node].rightChild;
 
             float t0, t1;
-            bool h0 = intersectAABB_Ray(r, nodeAabbMin[c0].xyz, nodeAabbMax[c0].xyz, tMax, t0);
-            bool h1 = intersectAABB_Ray(r, nodeAabbMin[c1].xyz, nodeAabbMax[c1].xyz, tMax, t1);
+            bool h0 = intersectAABB_Ray(r, nodes[c0].mm, nodes[c0].MM, tMax, t0);
+            bool h1 = intersectAABB_Ray(r, nodes[c1].mm, nodes[c1].MM, tMax, t1);
 
             if (h0 && h1) {
-                int nearNode, farNode; float nearT, farT;
-                if (t0 < t1) { nearNode = c0; nearT = t0; farNode = c1; farT = t1; }
-                else         { nearNode = c1; nearT = t1; farNode = c0; farT = t0; }
+                uint nearNode = (t0 <= t1) ? c0 : c1;
+                uint farNode  = (t0 <= t1) ? c1 : c0;
+                float nearT   = (t0 <= t1) ? t0 : t1;
+                float farT    = (t0 <= t1) ? t1 : t0;
 
                 if (sp < STACK_CAP) { stackNode[sp] = farNode; stackNear[sp] = farT; sp++; }
                 node = nearNode;
@@ -146,7 +153,7 @@ float shadowRay(in ray r) {
             if (h1) { node = c1; nodeNear = t1; continue; }
         }
 
-        // pop
+        // pop next
         if (sp == 0) break;
         sp--;
         node = stackNode[sp];
@@ -155,39 +162,30 @@ float shadowRay(in ray r) {
 
     return 1.0;
 }
-
 void rayTrace(in ray r, out int bestPrim, out float bestT) {
-    const int STACK_CAP = 32;
-    int   stackNode[STACK_CAP];
+    const int STACK_CAP = 64;
+    uint  stackNode[STACK_CAP];
     float stackNear[STACK_CAP];
     int sp = 0;
 
-    bestT = 1e30;
     bestPrim = -1;
+    bestT = 1e30;
 
-    int root = int(N);
-
-    // Root must be tested once (no parent to provide tNear)
+    uint node = uint(N); // root index
     float nodeNear;
-    if (!intersectAABB_Ray(r, nodeAabbMin[root].xyz, nodeAabbMax[root].xyz, bestT, nodeNear))
+
+    if (!intersectAABB_Ray(r, nodes[node].mm, nodes[node].MM, bestT, nodeNear))
         return;
 
-    int node = root;
-
     for (;;) {
-        // We enter here with (node, nodeNear) already known to be a hit.
-        // Prune if current best got closer.
-        if (nodeNear > bestT) {
-            // pop
-        } else {
-            bool isLeaf;
-            int a, b;
-            decodeNode(node, isLeaf, a, b);
+        // If this subtree cannot beat current bestT, skip it
+        if (nodeNear <= bestT) {
+            uint meta = nodes[node].leftChild;
 
-            if (isLeaf) {
-                int primID = a;
-                // If your BVH build is correct, you can remove bounds checks for speed.
-                uint firstVertID = uint(primID) * 3u;
+            if ((meta & LEAF_BIT) != 0u) {
+                // leaf
+                uint primID = meta & ~LEAF_BIT;
+                uint firstVertID = primID * 3u;
 
                 float tt = bestT;
                 if (intersectTri(r,
@@ -197,22 +195,26 @@ void rayTrace(in ray r, out int bestPrim, out float bestT) {
                                  tt))
                 {
                     bestT = tt;
-                    bestPrim = primID;
+                    bestPrim = int(primID);
                 }
             } else {
-                int c0 = a;
-                int c1 = b;
+                // internal
+                uint c0 = meta;
+                uint c1 = nodes[node].rightChild;
 
                 float t0, t1;
-                bool h0 = intersectAABB_Ray(r, nodeAabbMin[c0].xyz, nodeAabbMax[c0].xyz, bestT, t0);
-                bool h1 = intersectAABB_Ray(r, nodeAabbMin[c1].xyz, nodeAabbMax[c1].xyz, bestT, t1);
+                bool h0 = intersectAABB_Ray(r, nodes[c0].mm, nodes[c0].MM, bestT, t0);
+                bool h1 = intersectAABB_Ray(r, nodes[c1].mm, nodes[c1].MM, bestT, t1);
 
                 if (h0 && h1) {
-                    int nearNode, farNode; float nearT, farT;
-                    if (t0 < t1) { nearNode = c0; nearT = t0; farNode = c1; farT = t1; }
-                    else         { nearNode = c1; nearT = t1; farNode = c0; farT = t0; }
+                    uint nearNode = (t0 <= t1) ? c0 : c1;
+                    uint farNode  = (t0 <= t1) ? c1 : c0;
+                    float nearT   = (t0 <= t1) ? t0 : t1;
+                    float farT    = (t0 <= t1) ? t1 : t0;
 
+                    // far child might still be worth visiting later
                     if (sp < STACK_CAP) { stackNode[sp] = farNode; stackNear[sp] = farT; sp++; }
+
                     node = nearNode;
                     nodeNear = nearT;
                     continue;
@@ -222,7 +224,7 @@ void rayTrace(in ray r, out int bestPrim, out float bestT) {
             }
         }
 
-        // Pop next candidate (and prune by bestT while popping)
+        // pop next candidate that can still beat bestT
         for (;;) {
             if (sp == 0) return;
             sp--;
@@ -283,10 +285,9 @@ void main() {
     vec3 e2 = v2 - v0;
     vec3 N = normalize(cross(e1, e2));
     if (dot(N, r.direction) > 0.0) N = -N;
-    vec3 res = N*0.5 + 0.5;
+
     float fBest = float(bestPrim);
-    res = cos(fBest*vec3(1,3,5))*0.5+0.5;
-/*
+    vec3 res = cos(fBest*vec3(1,3,5))*0.5+0.5;
 
     vec3 p = r.origin + r.direction * bestT;
 
@@ -294,7 +295,7 @@ void main() {
 
     float ao = 0.0;
     uint seed = getSeed();
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 8; i++) {
         vec3 rd = normalize(N + randomUnitVector3(seed));
         r.direction = rd;
         vec3 ss = sign(rd);
@@ -302,11 +303,10 @@ void main() {
         r.invDir = ss / aa;
         ao += shadowRay(r);
     }
-    ao /= 1.0;
+    ao /= 8.0;
 
-    //res *= ao;
-    res = vec3(ao);
-*/
+    res *= ao;
+    //res = vec3(ao);
+
     imageStore(img_res, pixel, vec4(pow(res, vec3(0.45454545)), 1.0));
-
 }

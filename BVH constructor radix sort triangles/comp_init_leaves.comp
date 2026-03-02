@@ -9,11 +9,17 @@ struct Tri {
     vec4 v2;
 };
 
+struct Node {
+    vec3 mm;        // AABB min
+    uint leftChild; // LEAF_BIT | primID
+    vec3 MM;        // AABB max
+    uint rightChild;// unused for leaf
+};
+
 layout(std430, binding = 0) readonly buffer buff_mesh    { vec4 v[]; };
-layout(std430, binding = 1) readonly buffer buff_normPos { Key key[]; };
-layout(std430, binding = 2) buffer buff_nodeAabbMin { vec4 nodeAabbMin[]; };
-layout(std430, binding = 3) buffer buff_nodeAabbMax { vec4 nodeAabbMax[]; };
-layout(        binding = 4) uniform cfg { uint N; };
+layout(std430, binding = 1) readonly buffer buff_normPos { Key  key[]; };
+layout(std430, binding = 2) buffer  buff_nodes           { Node nodes[]; };
+layout(        binding = 3) uniform cfg { uint N; };
 
 const uint LEAF_BIT = 0x80000000u;
 
@@ -40,8 +46,8 @@ void main() {
     vec3 tmin = min(a, min(b, c));
     vec3 tmax = max(a, max(b, c));
 
-    uint meta = LEAF_BIT | prim;
-
-    nodeAabbMin[i] = vec4(tmin, uintBitsToFloat(meta));
-    nodeAabbMax[i] = vec4(tmax, uintBitsToFloat(0u));
+    nodes[i].mm         = tmin;
+    nodes[i].leftChild  = (LEAF_BIT | prim);
+    nodes[i].MM         = tmax;
+    nodes[i].rightChild = 0u;
 }

@@ -1,11 +1,17 @@
 #version 460
 layout(local_size_x = 256) in;
 
-layout(std430,  binding = 0) readonly buffer buff_internalDepth { uint internalDepth[]; };
-layout(std430,  binding = 1) buffer  buff_nodeAabbMin { vec4 nodeAabbMin[]; };
-layout(std430,  binding = 2) buffer  buff_nodeAabbMax { vec4 nodeAabbMax[]; };
+struct Node {
+    vec3 mm;        // AABB min
+    uint leftChild; // internal: left child node index
+    vec3 MM;        // AABB max
+    uint rightChild;// internal: right child node index
+};
 
-layout(binding = 3) uniform cfg {
+layout(std430, binding = 0) readonly buffer buff_internalDepth { uint internalDepth[]; };
+layout(std430, binding = 1) buffer  buff_nodes { Node nodes[]; };
+
+layout(binding = 2) uniform cfg {
     uint N;
     uint targetDepth;
 };
@@ -19,23 +25,19 @@ void main() {
 
     uint node = N + iid; // global node index of this internal node
 
-    // Decode children from .w lanes
-    uint leftMeta = floatBitsToUint(nodeAabbMin[node].w);
-    uint rightU   = floatBitsToUint(nodeAabbMax[node].w);
+    // Child indices
+    uint leftMeta = nodes[node].leftChild;
+    uint rightU   = nodes[node].rightChild;
 
     // Internal nodes should not have LEAF_BIT set, but mask defensively
     int left  = int(leftMeta & ~LEAF_BIT);
     int right = int(rightU);
 
-    vec4 aMin = nodeAabbMin[left];
-    vec4 aMax = nodeAabbMax[left];
-    vec4 bMin = nodeAabbMin[right];
-    vec4 bMax = nodeAabbMax[right];
+    vec3 aMin = nodes[left].mm;
+    vec3 aMax = nodes[left].MM;
+    vec3 bMin = nodes[right].mm;
+    vec3 bMax = nodes[right].MM;
 
-    // Preserve existing .w (child pointers) while updating xyz
-    float wMin = nodeAabbMin[node].w;
-    float wMax = nodeAabbMax[node].w;
-
-    nodeAabbMin[node] = vec4(min(aMin.xyz, bMin.xyz), wMin);
-    nodeAabbMax[node] = vec4(max(aMax.xyz, bMax.xyz), wMax);
+    nodes[node].mm = min(aMin, bMin);
+    nodes[node].MM = max(aMax, bMax);
 }
