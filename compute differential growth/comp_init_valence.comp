@@ -1,0 +1,11 @@
+#version 460
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) buffer buff_valence { uint valence[]; };
+layout(std430, binding = 1) buffer readonly buff_vertices_size { uint vs; };
+
+void main(){
+    uint gid = gl_GlobalInvocationID.x;
+    if(gid >= vs) return;
+    valence[gid] = 0u;
+}

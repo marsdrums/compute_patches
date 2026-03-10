@@ -1,0 +1,30 @@
+#version 460
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) readonly buffer buff_nodeParent {
+    int nodeParent[];
+};
+
+layout(std430, binding = 1) writeonly buffer buff_internalDepth {
+    uint internalDepth[];   // one entry per internal node: index = internalID - N
+};
+
+layout(binding = 2) uniform cfg {
+    uint N;
+};
+
+void main() {
+    uint iid = gl_GlobalInvocationID.x;   // internal index in [0 .. N-2]
+    if (iid >= (N - 1u)) return;
+
+    int node = int(N + iid); // actual node index in [N .. 2N-2]
+
+    uint d = 0u;
+    int p = nodeParent[node];
+    while (p != -1) {
+        d++;
+        p = nodeParent[p];
+    }
+
+    internalDepth[iid] = d; // root internal gets 0
+}

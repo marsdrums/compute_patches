@@ -1,0 +1,33 @@
+// Compute hash key
+#version 460
+
+layout(local_size_x = 256) in;
+
+struct Vertex {vec3 point; };
+struct Key { uint hash; uint vertex; uint start; };
+
+layout(std430, binding = 0) buffer readonly  buff_vertices { Vertex vertices[]; };
+layout(std430, binding = 1) buffer writeonly buff_keys { Key keys[]; };
+layout(std430, binding = 2) buffer readonly buff_vertices_size  { uint vs; };
+layout(        binding = 3) uniform cfg{
+    float radius;
+    uint MAX_VERTEX_COUNT;
+};
+
+void main() {
+
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gid >= vs){
+        keys[gid].hash = 0xFFFFFFFFu;
+        keys[gid].vertex = 0xFFFFFFFFu;
+        keys[gid].start = 0xFFFFFFFFu;
+        return;
+    }
+
+    uvec3 cell = uvec3(floor(vertices[gid].point/radius) + 1000);
+
+    keys[gid].hash = (cell.x*2803u + cell.y*2971u + cell.z*2053u) % MAX_VERTEX_COUNT;
+    keys[gid].vertex = gid;
+    keys[gid].start = 0xFFFFFFFFu;
+}

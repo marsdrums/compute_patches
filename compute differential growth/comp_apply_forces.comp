@@ -1,0 +1,22 @@
+// Apply repulsive force
+#version 460
+
+layout(local_size_x = 256) in;
+
+struct Vertex   { vec3  point; };
+
+layout(std430, binding = 0) buffer buff_vertices  { Vertex vertices[];    };
+layout(std430, binding = 1) buffer readonly buff_forces { vec3 forces[]; };
+layout(std430, binding = 2) buffer readonly buff_vertices_size  { uint vs; };
+layout(        binding = 3) uniform cfg{
+    float force_strength;
+};
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gid >= vs) return;
+
+    vertices[gid].point += forces[gid] * force_strength;
+
+}

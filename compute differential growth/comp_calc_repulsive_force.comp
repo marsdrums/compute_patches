@@ -1,0 +1,64 @@
+// Compute repulsive force
+#version 460
+
+layout(local_size_x = 256) in;
+
+struct Vertex   { vec3  point; };
+struct Key { uint hash; uint vertex; uint start; };
+
+layout(std430, binding = 0) buffer readonly  buff_vertices  { Vertex vertices[];    };
+layout(std430, binding = 1) buffer readonly  buff_keys { Key keys[]; };
+layout(std430, binding = 2) buffer buff_forces { vec3 forces[]; };
+layout(std430, binding = 3) buffer readonly buff_vertices_size  { uint vs; };
+layout(        binding = 4) uniform cfg{
+    float radius;
+    float radius2;
+    uint MAX_VERTEX_COUNT;
+    float force_strength;
+};
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gid >= vs) return;
+
+    vec3 thisP = vertices[gid].point;
+    vec3 forwardPos = thisP + forces[gid]*force_strength;
+
+    uvec3 cell = uvec3(floor(forwardPos/radius) + 1000);
+
+    vec3 forceToApply = vec3(0.0);
+
+    for(int x = -1; x <= 1; x++){
+        for(int y = -1; y <= 1; y++){
+            for(int z = -1; z <= 1; z++){
+
+                uvec3 testCell = uvec3(ivec3(cell) + ivec3(x, y, z));
+                uint testHash = (testCell.x*2803u + testCell.y*2971u + testCell.z*2053u) % MAX_VERTEX_COUNT;
+                uint start = keys[testHash].start;
+
+                if(start == 0xFFFFFFFFu) continue; //there's nothing in this bucket
+
+                for(uint i = 0u; i < 1000u; i++){
+
+                    uint keyID = start + i;
+                    if(keyID >= vs || keys[keyID].hash != testHash) break;
+
+                    uint testVertID = keys[keyID].vertex;
+                    vec3 testP = vertices[testVertID].point;
+
+                    vec3 diff = testP - thisP;
+                    float dist2 = dot(diff, diff);
+                    if(dist2 > radius2) continue;
+
+                    float dist = sqrt(dist2);
+                    vec3 forceDir = -diff / max(0.0000001, dist);
+                    vec3 force = forceDir / max(0.001, dist2);
+                    forceToApply += force;
+                }
+            }        
+        }        
+    }
+
+    forces[gid] = forceToApply / radius;
+}

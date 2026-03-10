@@ -1,0 +1,105 @@
+<jittershader name="draw lines">
+	<param name="posTexCurr" type="int" default="0" />
+    <param name="posTexPrev" type="int" default="1" />
+    <param name="idTex" type="int" default="2" />
+    <param name="texDim" type="vec2" state="TEXDIM0" />
+    <param name="rand" type="vec4" state="POSITION" /> 
+    <param name="randDisk" type="vec2" state="TEXCOORD" />
+    <param name="col" type="vec4" state="COLOR" />
+    <param name="MV" type="mat4" state="MODELVIEW_MATRIX" />
+	<param name="P" type="mat4" state="PROJECTION_MATRIX" />
+    <param name="MVP" type="mat4" state="MODELVIEW_PROJECTION_MATRIX" />
+    <param name="prevMVP" type="mat4" state="PREV_MODELVIEW_PROJECTION_MATRIX" />
+    <param name="focalDist" type="float" default="1.0" />
+    <param name="aperture" type="float" default="0.01" />
+    <param name="radius" type="float" default="0.03" />
+    <param name="viewPort" type="vec2" state="VIEWPORT" />
+	<language name="glsl" version="1.5">
+        <bind param="posTexCurr" program="vp" />
+        <bind param="posTexPrev" program="vp" />
+        <bind param="idTex" program="vp" />
+        <bind param="texDim" program="vp" />
+        <bind param="rand" program="vp" />
+        <bind param="randDisk" program="vp" />
+        <bind param="col" program="vp" />
+        <bind param="MV" program="vp" />
+        <bind param="P" program="vp" />
+        <bind param="MVP" program="vp" />
+        <bind param="prevMVP" program="vp" />
+        <bind param="focalDist" program="vp" />
+        <bind param="aperture" program="vp" />
+        <bind param="col" program="vp" />
+        <bind param="radius" program="vp" />
+        <bind param="viewPort" program="vp" />
+		<program name="vp" type="vertex">
+<![CDATA[
+#version 330 core
+
+in vec4 rand;
+in vec2 randDisk;
+in vec4 col;
+uniform mat4 MV, P, MVP, prevMVP;
+uniform vec2 texDim, viewPort;
+uniform float radius, focalDist, aperture;
+uniform sampler2DRect posTexCurr, posTexPrev, idTex;
+
+out jit_PerVertex {
+	smooth vec4 color;   
+} jit_out;
+
+ivec2 to2DIndex(int i, int dim, int offset) {
+    int x = i % dim;   // column
+    int y = i / dim;   // row
+    return ivec2(x, 4000 - y - offset - 1);
+}
+
+void main() {	
+
+    ivec2 idA = to2DIndex(gl_InstanceID, 4000, 0);
+    ivec2 idB = to2DIndex(gl_InstanceID, 4000, 2000);
+
+    ivec2 uvA = ivec2(texelFetch(idTex, idA).xy);
+    ivec2 uvB = ivec2(texelFetch(idTex, idB).xy);
+    uvA.y = int(texDim.y) - uvA.y - 1;
+    uvB.y = int(texDim.y) - uvB.y - 1;
+
+    vec4 currA = MVP * vec4(texelFetch(posTexCurr, uvA).xyz, 1.0);
+    vec4 currB = MVP * vec4(texelFetch(posTexCurr, uvB).xyz, 1.0);
+    vec4 prevA = prevMVP * vec4(texelFetch(posTexPrev, uvA).xyz, 1.0);
+    vec4 prevB = prevMVP * vec4(texelFetch(posTexPrev, uvB).xyz, 1.0);
+
+    vec4 curr = mix(currA, currB, rand.x);
+    vec4 prev = mix(prevA, prevB, rand.x);
+    vec4 pos = mix(curr, prev, rand.y);
+
+    float ratio = viewPort.x / viewPort.y;
+    float dist = pos.z;
+    float dof = abs(dist - focalDist);
+    vec2 blur = vec2(1.0, ratio) * dof * randDisk * aperture;
+    pos.xy += blur;
+
+    gl_Position = pos;
+    jit_out.color = vec4(col.x * (0.9*fract(rand.xyz*999.276283762)+0.1), 1.0);
+}
+]]>
+		</program>
+		<program name="fp" type="fragment">
+<![CDATA[
+#version 330 core
+
+// Interpolated data from vertex shader 
+in jit_PerVertex {
+	smooth vec4 color;
+} jit_in;
+
+// Final fragment color 
+out vec4 color;
+
+void main() {
+
+	color = jit_in.color;
+}	
+]]>
+		</program>
+	</language>
+</jittershader>

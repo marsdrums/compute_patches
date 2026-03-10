@@ -1,0 +1,28 @@
+// Apply smoothing
+#version 460
+
+layout(local_size_x = 256) in;
+
+struct Vertex   { vec3  point; };
+
+layout(std430, binding = 0) buffer buff_vertices  { Vertex vertices[];    };
+layout(std430, binding = 1) buffer buff_neighbors { uint neighbors[]; };
+layout(std430, binding = 2) buffer buff_forces { vec3 forces[]; };
+layout(std430, binding = 3) buffer readonly buff_vertices_size  { uint vs; };
+layout(        binding = 4) uniform cfg{
+    float smoothing_strength;
+};
+
+void main() {
+
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gid >= vs) return;
+
+    uint n = neighbors[gid];
+    if(n == 0u) return;
+
+    vec3 meanPos = forces[gid] / float(n);
+
+    vertices[gid].point = mix(vertices[gid].point, meanPos, smoothing_strength);
+}

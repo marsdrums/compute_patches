@@ -1,0 +1,50 @@
+// Compute spring force
+#version 460
+
+#extension GL_EXT_shader_atomic_float : enable
+
+layout(local_size_x = 256) in;
+
+struct Vertex   { vec3  point; };
+
+struct Halfedge {
+    uint    to;    
+    uint    from; 
+    uint    next;
+    uint    prev;
+    uint    opposite;
+    uint    face;
+    vec2    tex;  
+};
+
+layout(std430, binding = 0) buffer readonly  buff_vertices  { Vertex vertices[];    };
+layout(std430, binding = 1) buffer readonly  buff_halfedges { Halfedge halfedges[]; };
+layout(std430, binding = 2) buffer buff_forces { vec3 forces[]; };
+layout(std430, binding = 3) buffer readonly buff_halfedges_size  { uint hs; };
+layout(        binding = 4) uniform cfg{
+    float target_length;
+};
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gid >= hs) return;
+
+    Halfedge he = halfedges[gid];
+
+    vec3 p0 = vertices[he.from].point;
+    vec3 p1 = vertices[he.to].point;
+
+    vec3 diff = p1 - p0;
+    float dist2 = dot(diff, diff);
+    float dist = sqrt(dist2);
+    vec3 forceDir = diff / max(0.01, dist);
+    vec3 force = forceDir / max(0.01, dist2);
+    force *= dist < target_length ? 1.0 : -1.0;
+
+    atomicAdd(forces[gid].x, force.x);
+    atomicAdd(forces[gid].y, force.y);
+    atomicAdd(forces[gid].z, force.z);
+
+    //forces[gid] += force;
+}

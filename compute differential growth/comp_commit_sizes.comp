@@ -1,0 +1,28 @@
+// Commit append counters into the main size counters (run after comp_split_edges)
+#version 460
+layout(local_size_x = 1) in;
+
+layout(std430, binding = 0) buffer buff_vertices_size  { uint vs; };
+layout(std430, binding = 1) buffer buff_faces_size     { uint fs; };
+layout(std430, binding = 2) buffer buff_halfedges_size { uint hs; };
+layout(std430, binding = 3) buffer buff_edges_size     { uint es; };
+
+layout(std430, binding = 4) buffer buff_add_counts {
+    uint add_vs;
+    uint add_fs;
+    uint add_hs;
+    uint add_es;
+};
+
+void main(){
+    vs += add_vs;
+    fs += add_fs;
+    hs += add_hs;
+    es += add_es;
+
+    // reset for next iteration
+    add_vs = 0u;
+    add_fs = 0u;
+    add_hs = 0u;
+    add_es = 0u;
+}

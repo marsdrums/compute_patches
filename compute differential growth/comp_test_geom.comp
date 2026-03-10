@@ -1,0 +1,42 @@
+#version 460
+
+layout(local_size_x = 256) in;
+
+struct Halfedge {
+    uint    to;    
+    uint    from; 
+    uint    next;
+    uint    prev;
+    uint    opposite;
+    uint    face;
+    vec2    tex;  
+};
+
+struct Edge     { uvec2 halfedges;  };
+struct Face     { uint  halfedge;   };
+struct Vertex   { vec3  point;      };
+
+layout(std430, binding = 0) buffer readonly  buff_halfedges { Halfedge halfedges[]; };
+layout(std430, binding = 1) buffer readonly  buff_edges     { Edge edges[];         };
+layout(std430, binding = 2) buffer readonly  buff_faces     { Face faces[];         };
+layout(std430, binding = 3) buffer readonly  buff_vertices  { Vertex vertices[];    };
+layout(std430, binding = 4) buffer writeonly buff_out       { vec4 v[];             };
+layout(        binding = 5) uniform cfg{
+    uint vertices_size;
+    uint faces_size;
+    uint halfedges_size;
+    uint edges_size;
+    uint closed;
+};
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gid >= edges_size) return;
+
+    uint he0 = edges[gid].halfedges.x;
+    uint v0 = halfedges[he0].from;
+    uint v1 = halfedges[he0].to;
+    v[gid*2u + 0u] = vec4(vertices[v0].point, 1.0);
+    v[gid*2u + 1u] = vec4(vertices[v1].point, 1.0);
+}

@@ -1,0 +1,39 @@
+// Init neighbors count
+#version 460
+#extension GL_EXT_shader_atomic_float : enable
+
+layout(local_size_x = 256) in;
+
+struct Vertex   { vec3  point; };
+
+struct Halfedge {
+    uint    to;    
+    uint    from; 
+    uint    next;
+    uint    prev;
+    uint    opposite;
+    uint    face;
+    vec2    tex;  
+};
+
+layout(std430, binding = 0) buffer readonly  buff_vertices  { Vertex vertices[];    };
+layout(std430, binding = 1) buffer readonly  buff_halfedges { Halfedge halfedges[]; };
+layout(std430, binding = 2) buffer buff_neighbors { uint neighbors[]; };
+layout(std430, binding = 3) buffer buff_forces { vec3 forces[]; };
+layout(std430, binding = 4) buffer readonly buff_halfedges_size  { uint hs; };
+
+void main() {
+
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gid >= hs) return;
+
+    Halfedge he = halfedges[gid];
+
+    vec3 p0 = vertices[he.from].point;
+
+    atomicAdd(forces[he.to].x, p0.x);
+    atomicAdd(forces[he.to].y, p0.y);
+    atomicAdd(forces[he.to].z, p0.z);
+    atomicAdd(neighbors[he.to], 1u);
+}

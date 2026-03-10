@@ -1,0 +1,27 @@
+#version 460
+layout(local_size_x = 256) in;
+
+struct Halfedge {
+    uint to;
+    uint from;
+    uint next;
+    uint prev;
+    uint opposite;
+    uint face;
+    vec2 tex;
+};
+
+layout(std430, binding = 0) buffer readonly buff_halfedges { Halfedge halfedges[]; };
+layout(std430, binding = 1) buffer buff_valence { uint valence[]; };
+layout(std430, binding = 2) buffer readonly buff_halfedges_size { uint hs; };
+layout(std430, binding = 3) buffer readonly buff_vertices_size { uint vs; };
+
+void main(){
+    uint gid = gl_GlobalInvocationID.x;
+    if(gid >= hs) return;
+
+    uint v = halfedges[gid].from;
+    if(v >= vs) return;
+
+    atomicAdd(valence[v], 1u);
+}

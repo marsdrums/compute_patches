@@ -1,0 +1,63 @@
+<jittershader name="fill-flat-triangles">
+	<description>Default Shader </description>
+	<param name="position" type="vec3" state="POSITION" />
+	<param name="modelViewProjectionMatrix" type="mat4" state="MODELVIEW_PROJECTION_MATRIX" />
+	<param name="color" type="vec4" state="COLOR" />
+    <param name="posTex" type="int" default="0" />
+    <param name="norTex" type="int" default="1" />
+    <param name="texDim" type="vec2" state="TEXDIM0" />
+	<language name="glsl" version="1.5">
+		<bind param="position" program="vp" />
+		<bind param="modelViewProjectionMatrix" program="vp" />
+		<bind param="color" program="vp" />
+        <bind param="posTex" program="vp" />
+        <bind param="norTex" program="vp" />
+        <bind param="texDim" program="vp" />
+		<program name="vp" type="vertex">
+<![CDATA[
+#version 330 core
+uniform mat4 modelViewProjectionMatrix;
+uniform vec2 texDim;
+uniform sampler2DRect posTex, norTex;
+in vec3 position;
+in vec4 color;
+
+out jit_PerVertex {
+	flat vec4 color;	
+} jit_out;
+
+ivec2 to2DIndex(int i, ivec2 size) {
+
+    int x = i % size.x;   // column
+    int y = i / size.x;   // row
+    return ivec2(x, size.y - y - 1);
+}
+
+void main() {	
+    int offset = int(position.x);
+    ivec2 iuv = to2DIndex(gl_InstanceID*3 + offset, ivec2(texDim));
+    vec3 pos = texelFetch(posTex, iuv).xyz;
+    vec3 N = texelFetch(norTex, iuv).xyz;
+	gl_Position = modelViewProjectionMatrix * vec4(pos, 1.);	
+	jit_out.color = vec4(N*0.5 + 0.5, 1.0);
+	jit_out.color.rgb = pow(jit_out.color.rgb, vec3(0.4545454545));
+}
+]]>
+		</program>
+		<program name="fp" type="fragment">
+<![CDATA[
+#version 330 core
+
+in jit_PerVertex {
+	flat vec4 color;
+} jit_in;
+
+out vec4 color;
+
+void main() {
+	color = jit_in.color;
+}	
+]]>
+		</program>
+	</language>
+</jittershader>

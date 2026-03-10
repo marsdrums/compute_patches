@@ -1,0 +1,22 @@
+// Init the counters
+#version 460
+
+layout(local_size_x = 1) in;
+
+layout(std430, binding = 0) buffer writeonly buff_halfedges_size { uint hs; };
+layout(std430, binding = 1) buffer writeonly buff_edges_size     { uint es; };
+layout(std430, binding = 2) buffer writeonly buff_faces_size     { uint fs; };
+layout(std430, binding = 3) buffer writeonly buff_vertices_size  { uint vs; };
+layout(        binding = 4) uniform cfg{
+    uint vertices_size;
+    uint faces_size;
+    uint halfedges_size;
+    uint edges_size;
+};
+
+void main() {
+    hs = halfedges_size;
+    es = edges_size;
+    fs = faces_size;
+    vs = vertices_size;
+}

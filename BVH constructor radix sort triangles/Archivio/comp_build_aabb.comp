@@ -1,0 +1,43 @@
+#version 460
+layout(local_size_x = 256) in;
+
+struct Node {
+    vec3 mm;        // AABB min
+    uint leftChild; // internal: left child node index
+    vec3 MM;        // AABB max
+    uint rightChild;// internal: right child node index
+};
+
+layout(std430, binding = 0) readonly buffer buff_internalDepth { uint internalDepth[]; };
+layout(std430, binding = 1) buffer  buff_nodes { Node nodes[]; };
+
+layout(binding = 2) uniform cfg {
+    uint N;
+    uint targetDepth;
+};
+
+const uint LEAF_BIT = 0x80000000u;
+
+void main() {
+    uint iid = gl_GlobalInvocationID.x;   // internal index [0 .. N-2]
+    if (iid >= (N - 1u)) return;
+    if (internalDepth[iid] != targetDepth) return;
+
+    uint node = N + iid; // global node index of this internal node
+
+    // Child indices
+    uint leftMeta = nodes[node].leftChild;
+    uint rightU   = nodes[node].rightChild;
+
+    // Internal nodes should not have LEAF_BIT set, but mask defensively
+    int left  = int(leftMeta & ~LEAF_BIT);
+    int right = int(rightU);
+
+    vec3 aMin = nodes[left].mm;
+    vec3 aMax = nodes[left].MM;
+    vec3 bMin = nodes[right].mm;
+    vec3 bMax = nodes[right].MM;
+
+    nodes[node].mm = min(aMin, bMin);
+    nodes[node].MM = max(aMax, bMax);
+}

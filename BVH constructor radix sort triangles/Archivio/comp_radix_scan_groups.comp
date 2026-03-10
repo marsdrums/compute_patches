@@ -1,0 +1,46 @@
+#version 460
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) readonly buffer buff_groupHists {
+    uint groupHists[]; // [numGroups * 256]
+};
+
+layout(std430, binding = 1) writeonly buffer buff_groupOffsets {
+    uint groupOffsets[]; // [numGroups * 256]
+};
+
+layout(std430, binding = 2) writeonly buffer buff_binBase {
+    uint binBase[]; // [256]
+};
+
+layout(binding = 3) uniform cfg {
+    uint numGroups;
+};
+
+shared uint binTotals[256];
+
+void main() {
+    uint bin = gl_LocalInvocationID.x; // one thread per bin [0..255]
+
+    // Prefix across workgroups for this bin
+    uint run = 0u;
+    for (uint g = 0u; g < numGroups; ++g) {
+        uint idx = g * 256u + bin;
+        groupOffsets[idx] = run;
+        run += groupHists[idx];
+    }
+
+    // Total count for this bin
+    binTotals[bin] = run;
+    barrier();
+
+    // One thread computes exclusive prefix over bins (small: 256 bins)
+    if (bin == 0u) {
+        uint acc = 0u;
+        for (uint b = 0u; b < 256u; ++b) {
+            uint t = binTotals[b];
+            binBase[b] = acc;
+            acc += t;
+        }
+    }
+}

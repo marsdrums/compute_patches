@@ -1,3 +1,4 @@
+// comp_init_leaves.comp
 #version 460
 layout(local_size_x = 256) in;
 
@@ -11,43 +12,64 @@ struct Tri {
 
 struct Node {
     vec3 mm;        // AABB min
-    uint leftChild; // LEAF_BIT | primID
+    uint leftChild; // leaf: LEAF_BIT | startIndexInSortedKeys
     vec3 MM;        // AABB max
-    uint rightChild;// unused for leaf
+    uint rightChild;// leaf: count (1..8), internal: right child index
 };
 
 layout(std430, binding = 0) readonly buffer buff_mesh    { vec4 v[]; };
-layout(std430, binding = 1) readonly buffer buff_normPos { Key  key[]; };
+layout(std430, binding = 1) readonly buffer buff_normPos { Key  key[]; };   // sorted primitive keys
 layout(std430, binding = 2) buffer  buff_nodes           { Node nodes[]; };
-layout(        binding = 3) uniform cfg { uint N; };
+
+layout(binding = 3) uniform cfg {
+    uint NLeaves;
+    uint NPrims;
+    uint leafSize; // 2..8
+};
 
 const uint LEAF_BIT = 0x80000000u;
+const uint MAX_LEAF = 8u;
 
-Tri readVertices(uint id){
-    id *= 3u;
+Tri readTri(uint primID){
+    uint id = primID * 3u;
     Tri t;
     t.v0 = v[id];
-    t.v1 = v[id+1];
-    t.v2 = v[id+2];
+    t.v1 = v[id + 1u];
+    t.v2 = v[id + 2u];
     return t;
 }
 
 void main() {
-    uint i = gl_GlobalInvocationID.x;
-    if (i >= N) return;
+    uint leaf = gl_GlobalInvocationID.x;
+    if (leaf >= NLeaves) return;
 
-    uint prim = key[i].primID;
-    Tri t = readVertices(prim);
+    uint start = leaf * leafSize;
+    uint count = min(leafSize, NPrims - start);
 
-    vec3 a = t.v0.xyz;
-    vec3 b = t.v1.xyz;
-    vec3 c = t.v2.xyz;
+    // Init to opposite infinities
+    vec3 bmin = vec3( 1e30);
+    vec3 bmax = vec3(-1e30);
 
-    vec3 tmin = min(a, min(b, c));
-    vec3 tmax = max(a, max(b, c));
+    // Small bounded loop (<= 8)
+    for (uint k = 0u; k < MAX_LEAF; ++k) {
+        if (k >= count) break;
 
-    nodes[i].mm         = tmin;
-    nodes[i].leftChild  = (LEAF_BIT | prim);
-    nodes[i].MM         = tmax;
-    nodes[i].rightChild = 0u;
+        uint prim = key[start + k].primID;
+        Tri t = readTri(prim);
+
+        vec3 a = t.v0.xyz;
+        vec3 b = t.v1.xyz;
+        vec3 c = t.v2.xyz;
+
+        vec3 tmin = min(a, min(b, c));
+        vec3 tmax = max(a, max(b, c));
+
+        bmin = min(bmin, tmin);
+        bmax = max(bmax, tmax);
+    }
+
+    nodes[leaf].mm         = bmin;
+    nodes[leaf].MM         = bmax;
+    nodes[leaf].leftChild  = (LEAF_BIT | start);
+    nodes[leaf].rightChild = count;
 }

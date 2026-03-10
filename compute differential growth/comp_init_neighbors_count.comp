@@ -1,0 +1,18 @@
+// Init neighbors count and forces (use forces[] to compute the mean position)
+#version 460
+
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) buffer writeonly buff_neighbors { uint neighbors[]; };
+layout(std430, binding = 1) buffer writeonly buff_forces { vec3 forces[]; };
+layout(std430, binding = 2) buffer readonly buff_vertices_size  { uint vs; };
+
+void main() {
+
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gid >= vs) return;
+
+    forces[gid] = vec3(0.0);
+    neighbors[gid] = 0u;
+}

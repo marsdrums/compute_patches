@@ -1,0 +1,17 @@
+// Reset append counters (run once per iteration)
+#version 460
+layout(local_size_x = 1) in;
+
+layout(std430, binding = 0) buffer buff_add_counts {
+    uint add_vs;
+    uint add_fs;
+    uint add_hs;
+    uint add_es;
+};
+
+void main(){
+    add_vs = 0u;
+    add_fs = 0u;
+    add_hs = 0u;
+    add_es = 0u;
+}

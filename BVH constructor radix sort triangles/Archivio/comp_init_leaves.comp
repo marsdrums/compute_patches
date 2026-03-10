@@ -1,0 +1,53 @@
+#version 460
+layout(local_size_x = 256) in;
+
+struct Key { uint morton; uint primID; };
+
+struct Tri {
+    vec4 v0;
+    vec4 v1;
+    vec4 v2;
+};
+
+struct Node {
+    vec3 mm;        // AABB min
+    uint leftChild; // LEAF_BIT | primID
+    vec3 MM;        // AABB max
+    uint rightChild;// unused for leaf
+};
+
+layout(std430, binding = 0) readonly buffer buff_mesh    { vec4 v[]; };
+layout(std430, binding = 1) readonly buffer buff_normPos { Key  key[]; };
+layout(std430, binding = 2) buffer  buff_nodes           { Node nodes[]; };
+layout(        binding = 3) uniform cfg { uint N; };
+
+const uint LEAF_BIT = 0x80000000u;
+
+Tri readVertices(uint id){
+    id *= 3u;
+    Tri t;
+    t.v0 = v[id];
+    t.v1 = v[id+1];
+    t.v2 = v[id+2];
+    return t;
+}
+
+void main() {
+    uint i = gl_GlobalInvocationID.x;
+    if (i >= N) return;
+
+    uint prim = key[i].primID;
+    Tri t = readVertices(prim);
+
+    vec3 a = t.v0.xyz;
+    vec3 b = t.v1.xyz;
+    vec3 c = t.v2.xyz;
+
+    vec3 tmin = min(a, min(b, c));
+    vec3 tmax = max(a, max(b, c));
+
+    nodes[i].mm         = tmin;
+    nodes[i].leftChild  = (LEAF_BIT | prim);
+    nodes[i].MM         = tmax;
+    nodes[i].rightChild = 0u;
+}

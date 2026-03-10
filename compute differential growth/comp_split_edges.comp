@@ -1,0 +1,243 @@
+// Split long edges (triangle mesh) by inserting one vertex in the middle.
+// Parallel version: per-face spin-lock + append counters (no in-dispatch size mutation).
+#version 460
+
+layout(local_size_x = 256) in;
+
+const uint INVALID = 0xFFFFFFFFu;
+
+struct Halfedge {
+    uint    to;
+    uint    from;
+    uint    next;
+    uint    prev;
+    uint    opposite;
+    uint    face;
+    vec2    tex;
+};
+
+struct Edge   { uvec2 halfedges; };
+struct Face   { uint  halfedge;  };
+struct Vertex { vec3  point;     };
+
+layout(std430, binding = 0) buffer buff_vertices  { Vertex   vertices[];  };
+layout(std430, binding = 1) buffer buff_halfedges { Halfedge halfedges[]; };
+layout(std430, binding = 2) buffer buff_edges     { Edge     edges[];     };
+layout(std430, binding = 3) buffer buff_faces     { Face     faces[];     };
+
+// Base sizes for this iteration (DO NOT mutate in this shader).
+layout(std430, binding = 4) buffer readonly buff_vertices_size  { uint vs; };
+layout(std430, binding = 5) buffer readonly buff_faces_size     { uint fs; };
+layout(std430, binding = 6) buffer readonly buff_halfedges_size { uint hs; };
+layout(std430, binding = 7) buffer readonly buff_edges_size     { uint es; };
+
+// Append counters (reset to 0 before dispatch).
+layout(std430, binding = 8) buffer buff_add_counts { uint add_vs; uint add_fs; uint add_hs; uint add_es; };
+
+// One uint per face: 0=free, 1=locked.
+layout(std430, binding = 9) buffer buff_face_locks { uint faceLocks[]; };
+
+layout(binding = 10) uniform cfg{
+    float split_length;
+    uint  max_vertices;
+    uint  max_faces;
+    uint  max_halfedges;
+    uint  max_edges;
+};
+
+bool try_lock2(uint f0, uint f1, out uint a, out uint b){
+    a = min(f0, f1);
+    b = max(f0, f1);
+
+    if(atomicCompSwap(faceLocks[a], 0u, 1u) != 0u) return false;
+    if(atomicCompSwap(faceLocks[b], 0u, 1u) != 0u){
+        atomicExchange(faceLocks[a], 0u);
+        return false;
+    }
+    return true;
+}
+
+void unlock2(uint a, uint b){
+    atomicExchange(faceLocks[a], 0u);
+    atomicExchange(faceLocks[b], 0u);
+}
+
+void main(){
+    uint eid = gl_GlobalInvocationID.x;
+
+    // Use *base* edge count only (es is not mutated in this shader).
+    uint base_es = es;
+    if(eid >= base_es) return;
+
+    if(split_length <= 0.0) return;
+    float split_len2 = split_length * split_length;
+
+    Edge e0 = edges[eid];
+    uint h0 = e0.halfedges.x;
+    uint h3 = e0.halfedges.y;
+/*
+    if(h0 == INVALID || h3 == INVALID) return;
+    if(h0 >= hs || h3 >= hs) return;
+*/
+    // Quick length check (no locks yet).
+    Halfedge he0 = halfedges[h0];
+    Halfedge he3 = halfedges[h3];
+/*
+    // Only split manifold pairs that still look like opposites.
+    if(he0.opposite != h3 || he3.opposite != h0) return;
+*/
+    uint v0 = he0.from;
+    uint v1 = he3.from;
+    if(v0 >= vs || v1 >= vs) return;
+
+    vec3 p0 = vertices[v0].point;
+    vec3 p1 = vertices[v1].point;
+    vec3 d01 = p1 - p0;
+    float len2 = dot(d01, d01);
+    if(len2 <= split_len2) return;
+
+    uint f0 = he0.face;
+    uint f1 = he3.face;
+/*
+    if(f0 == INVALID || f1 == INVALID) return;
+    if(f0 >= fs || f1 >= fs) return;
+*/
+    if(f0 == f1) return;
+
+    // Lock the two adjacent faces (prevents splitting two edges of same triangle pair).
+    uint la, lb;
+    if(!try_lock2(f0, f1, la, lb)) return;
+
+    // Re-read after locking to ensure the edge is still in these faces.
+    he0 = halfedges[h0];
+    he3 = halfedges[h3];
+    if(he0.face != f0 || he3.face != f1 || he0.opposite != h3 || he3.opposite != h0){
+        unlock2(la, lb);
+        return;
+    }
+
+    // Triangle neighborhood (assumes triangulated mesh).
+    uint h1 = he0.next;
+    if(h1 == INVALID || h1 >= hs){ unlock2(la, lb); return; }
+    uint h2 = halfedges[h1].next;
+    if(h2 == INVALID || h2 >= hs){ unlock2(la, lb); return; }
+
+    uint h4 = he3.next;
+    if(h4 == INVALID || h4 >= hs){ unlock2(la, lb); return; }
+    uint h5 = halfedges[h4].next;
+    if(h5 == INVALID || h5 >= hs){ unlock2(la, lb); return; }
+
+    // Optional triangle consistency checks.
+    if(halfedges[h2].next != h0){ unlock2(la, lb); return; }
+    if(halfedges[h5].next != h3){ unlock2(la, lb); return; }
+
+    uint v2 = halfedges[h2].from;
+    uint v3 = halfedges[h5].from;
+    if(v2 >= vs || v3 >= vs){ unlock2(la, lb); return; }
+
+    // Allocate new elements (append-only).
+    uint base_vs = vs;
+    uint base_fs = fs;
+    uint base_hs = hs;
+
+    uint offV = atomicAdd(add_vs, 1u);
+    uint offF = atomicAdd(add_fs, 2u);
+    uint offH = atomicAdd(add_hs, 6u);
+    uint offE = atomicAdd(add_es, 3u);
+
+    uint vm = base_vs + offV;
+    uint f2 = base_fs + offF;
+    uint f3 = f2 + 1u;
+
+    uint h6  = base_hs + offH;
+    uint h7  = h6 + 1u;
+    uint h8  = h6 + 2u;
+    uint h9  = h6 + 3u;
+    uint h10 = h6 + 4u;
+    uint h11 = h6 + 5u;
+
+    uint e1 = base_es + offE;
+    uint e2 = e1 + 1u;
+    uint e3 = e1 + 2u;
+
+    // Best-effort capacity checks.
+    if(vm >= max_vertices || f3 >= max_faces || h11 >= max_halfedges || e3 >= max_edges){
+        unlock2(la, lb);
+        return;
+    }
+
+    // New vertex at midpoint.
+    vertices[vm].point = (p0 + p1) * 0.5;
+
+    // New faces (re-using existing halfedges h5 and h1 like the Cycling74 reference).
+    faces[f2].halfedge = h5;
+    faces[f3].halfedge = h1;
+
+    // Update existing faces.
+    faces[f0].halfedge = h2;
+    faces[f1].halfedge = h4;
+
+    // --- New halfedges ---
+    halfedges[h6]  = Halfedge(v2,  vm, h2,  h0,  h7,  f0, vec2(0));
+    halfedges[h7]  = Halfedge(vm,  v2, h8,  h1,  h6,  f3, vec2(0));
+    halfedges[h8]  = Halfedge(v1,  vm, h1,  h7,  h3,  f3, vec2(0));
+    halfedges[h9]  = Halfedge(v3,  vm, h5,  h3,  h10, f2, vec2(0));
+    halfedges[h10] = Halfedge(vm,  v3, h11, h4,  h9,  f1, vec2(0));
+    halfedges[h11] = Halfedge(v0,  vm, h4,  h10, h0,  f1, vec2(0));
+
+    // --- Update existing halfedges ---
+    // h0: v0 -> vm
+    halfedges[h0].to       = vm;
+    halfedges[h0].next     = h6;
+    halfedges[h0].prev     = h2;
+    halfedges[h0].face     = f0;
+    halfedges[h0].opposite = h11;
+
+    // h1 -> face f3
+    halfedges[h1].from  = v1;
+    halfedges[h1].to    = v2;
+    halfedges[h1].next  = h7;
+    halfedges[h1].prev  = h8;
+    halfedges[h1].face  = f3;
+
+    // h2 -> face f0
+    halfedges[h2].from  = v2;
+    halfedges[h2].to    = v0;
+    halfedges[h2].next  = h0;
+    halfedges[h2].prev  = h6;
+    halfedges[h2].face  = f0;
+
+    // h3: v1 -> vm -> face f2
+    halfedges[h3].from     = v1;
+    halfedges[h3].to       = vm;
+    halfedges[h3].next     = h9;
+    halfedges[h3].prev     = h5;
+    halfedges[h3].face     = f2;
+    halfedges[h3].opposite = h8;
+
+    // h4 -> face f1
+    halfedges[h4].from  = v0;
+    halfedges[h4].to    = v3;
+    halfedges[h4].next  = h10;
+    halfedges[h4].prev  = h11;
+    halfedges[h4].face  = f1;
+
+    // h5 -> face f2
+    halfedges[h5].from  = v3;
+    halfedges[h5].to    = v1;
+    halfedges[h5].next  = h3;
+    halfedges[h5].prev  = h9;
+    halfedges[h5].face  = f2;
+
+    // Fix opposites that changed
+    halfedges[h11].opposite = h0;
+    halfedges[h8].opposite  = h3;
+
+    // --- Edges ---
+    edges[eid].halfedges = uvec2(h0, h11);   // e0 becomes (v0 <-> vm)
+    edges[e1].halfedges  = uvec2(h8, h3);    // new (vm <-> v1)
+    edges[e2].halfedges  = uvec2(h6, h7);    // new (vm <-> v2)
+    edges[e3].halfedges  = uvec2(h9, h10);   // new (vm <-> v3)
+
+    unlock2(la, lb);
+}

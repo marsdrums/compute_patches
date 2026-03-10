@@ -1,0 +1,31 @@
+#version 460
+layout(local_size_x = 128) in;
+
+struct Key { uint hash; uint vertex; uint start; };
+
+layout(std430, binding = 0) buffer buff_keys { Key keys[]; };
+layout(std430, binding = 1) buffer readonly buff_vertices_size  { uint vs; };
+
+shared uint sha_keys[128+1];
+
+void main() {
+
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gid >= vs) return;
+
+    uint lid = gl_LocalInvocationIndex;
+    
+    sha_keys[lid+1] = keys[gid].hash;
+    if(lid == 0){
+        sha_keys[0] = keys[max(0u, gid-1)].hash;
+    }
+    barrier();
+    
+    uint thisKey = sha_keys[lid+1];
+    uint prevKey = sha_keys[lid];
+
+    if(thisKey != prevKey){
+        keys[thisKey].start = gid;
+    }
+}
