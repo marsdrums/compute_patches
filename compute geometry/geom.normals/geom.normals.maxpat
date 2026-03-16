@@ -113,17 +113,6 @@
             },
             {
                 "box": {
-                    "id": "obj-34",
-                    "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "jit_gl_texture", "" ],
-                    "patching_rect": [ 322.0, 104.0, 290.0, 22.0 ],
-                    "text": "jit.gl.environment @file photo_studio_loft_hall_2k.exr"
-                }
-            },
-            {
-                "box": {
                     "id": "obj-29",
                     "maxclass": "comment",
                     "numinlets": 1,
