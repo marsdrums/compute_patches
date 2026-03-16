@@ -1,0 +1,20 @@
+// init valence
+#version 460
+
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) buffer buff_valence  { uint valences[];  };
+
+layout(binding = 1) uniform cfg {
+    uint vertices_size;
+};
+
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+
+    if (gid >= vertices_size) return;
+
+    valences[gid] = 0u;
+
+}

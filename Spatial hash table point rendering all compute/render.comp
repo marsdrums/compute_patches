@@ -1,0 +1,122 @@
+#version 460
+
+layout(local_size_x = 8, local_size_y = 128) in;
+
+#extension GL_GOOGLE_include_directive : require
+#include "c74.noise.funcs.glsl"
+
+struct item{
+    vec3 pos;
+    uint start;
+    uint key;
+    ivec2 uv;
+};
+
+struct Line{
+    ivec2 uv0;
+    ivec2 uv1;
+    float dist2;
+};
+
+layout(std430,  binding = 0) buffer readonly buff_points { item point[]; };
+layout(std430,  binding = 1) buffer readonly buff_counter { uint globalCount; };
+layout(std430,  binding = 2) buffer readonly buff_to_connect { Line lines[]; };
+layout(rgba32f, binding = 3) uniform readonly image2D img_pos;
+layout(rgba32f, binding = 4) uniform readonly image2D img_pos_prev;
+layout(std430,  binding = 5) buffer buff_render { uint col[]; };
+
+layout(binding = 6) uniform buff_info { 
+    float radius; 
+};
+
+layout(binding = 7) uniform mat_info { 
+    vec4 currV0; vec4 currV1; vec4 currV2; vec4 currV3; 
+    vec4 currP0; vec4 currP1; vec4 currP2; vec4 currP3; 
+    vec4 prevV0; vec4 prevV1; vec4 prevV2; vec4 prevV3; 
+    vec4 prevP0; vec4 prevP1; vec4 prevP2; vec4 prevP3; 
+};
+
+layout(binding = 8) uniform cam_info { 
+    float ratio;
+    float focalDist;
+    float aperture;
+};
+
+shared float dist[gl_WorkGroupSize.x];
+shared vec4 currPoint0[gl_WorkGroupSize.x];
+shared vec4 currPoint1[gl_WorkGroupSize.x];
+shared vec4 prevPoint0[gl_WorkGroupSize.x];
+shared vec4 prevPoint1[gl_WorkGroupSize.x];
+shared float screenDist[gl_WorkGroupSize.x];
+
+uint pos2id(ivec2 p){
+    return uint(p.x + p.y*1920);
+}
+
+void main() {
+
+    uint id = gl_GlobalInvocationID.x;
+
+    if(id >= globalCount) return;
+
+    uint lid = gl_LocalInvocationID.x;
+    uint slice = gl_LocalInvocationID.y;
+
+    if (slice == 0u) {
+        ivec2 uv0 = lines[id].uv0;
+        ivec2 uv1 = lines[id].uv1;
+        dist[lid] = sqrt(lines[id].dist2);
+
+        mat4 currV = mat4(currV0, currV1, currV2, currV3);
+        mat4 prevV = mat4(prevV0, prevV1, prevV2, prevV3);
+        mat4 currP = mat4(-currP0, currP1, -currP2, currP3);
+        mat4 prevP = mat4(-prevP0, prevP1, -prevP2, prevP3);
+        mat4 currVP = currP * currV;
+        mat4 prevVP = prevP * prevV;
+
+        currPoint0[lid] = currVP * vec4(imageLoad(img_pos,      uv0).xyz, 1.0);
+        currPoint1[lid] = currVP * vec4(imageLoad(img_pos,      uv1).xyz, 1.0);
+        prevPoint0[lid] = prevVP * vec4(imageLoad(img_pos_prev, uv0).xyz, 1.0);
+        prevPoint1[lid] = prevVP * vec4(imageLoad(img_pos_prev, uv1).xyz, 1.0);
+        currPoint0[lid].xyz /= currPoint0[lid].w;
+        currPoint1[lid].xyz /= currPoint1[lid].w;
+        prevPoint0[lid].xyz /= prevPoint0[lid].w;
+        prevPoint1[lid].xyz /= prevPoint1[lid].w;
+        currPoint0[lid].xy = vec2(1920, 1080) * (currPoint0[lid].xy*0.5 + 0.5);
+        currPoint1[lid].xy = vec2(1920, 1080) * (currPoint1[lid].xy*0.5 + 0.5);
+        prevPoint0[lid].xy = vec2(1920, 1080) * (prevPoint0[lid].xy*0.5 + 0.5);
+        prevPoint1[lid].xy = vec2(1920, 1080) * (prevPoint1[lid].xy*0.5 + 0.5);
+        const float density = 1.0;
+        float currScreenDist = min(density * length(currPoint0[lid].xy - currPoint1[lid].xy), float(gl_WorkGroupSize.y));
+        float prevScreenDist = min(density * length(prevPoint0[lid].xy - prevPoint1[lid].xy), float(gl_WorkGroupSize.y));
+        screenDist[lid] = (currScreenDist + prevScreenDist) * 0.5;
+    }
+    barrier();
+
+    if(slice > uint(screenDist[lid])) return;
+
+    uint seed = id * 1024u + slice + 9999u;
+    vec4 rand = RandomVec401(seed);
+    float interpP = (float(slice) + (rand.x-0.5)) / screenDist[lid];
+
+    vec3 curr = mix(currPoint0[lid].xyz, currPoint1[lid].xyz, interpP);
+    vec3 prev = mix(prevPoint0[lid].xyz, prevPoint1[lid].xyz, interpP);
+    vec3 pos  = mix(curr, prev, rand.y);
+
+    if(pos.z < 1.0) return;
+
+    vec2 disk = sqrt(rand.w) * vec2(cos(rand.z*TWOPI), sin(rand.z*TWOPI));
+    float dof = abs(pos.z - focalDist);
+    vec2 blur = dof * disk * aperture * 1000;
+    pos.xy += blur;
+
+    ivec2 coord = ivec2(pos.xy);
+    ivec2 size = ivec2(1920, 1080);//imageSize(img_render);
+
+    if (coord.x < 0 || coord.y < 0 || coord.x >= size.x || coord.y >= size.y) return;
+
+    float distFactor = smoothstep(0.0, 0.2, 1.0 - dist[lid] / radius);
+
+    atomicAdd(col[pos2id(coord)], uint(4294967295.0*0.0002*distFactor));
+
+}

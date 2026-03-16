@@ -1,0 +1,57 @@
+// compute vertex normals
+#version 460
+layout(local_size_x = 256) in;
+
+struct Halfedge {
+    uint to;
+    uint from;
+    uint next;
+    uint prev;
+    uint opposite;
+    uint face;
+    vec2 tex;
+};
+
+struct Vertex { vec3 point; };
+struct Face   { uint halfedge; };
+
+layout(std430, binding = 0) readonly buffer buff_halfedges { Halfedge halfedges[]; };
+layout(std430, binding = 1) readonly buffer buff_faces     { Face faces[]; };
+layout(std430, binding = 2) readonly buffer buff_vertices  { Vertex vertices[]; };
+layout(std430, binding = 3) readonly buffer buff_face_normals { vec4 face_normals[]; };
+layout(std430, binding = 4) writeonly buffer buff_vertex_normals { vec4 vertex_normlas[]; };
+
+layout(binding = 5) uniform cfg {
+    uint halfedges_size;
+};
+
+void main() {
+
+    uint gid = gl_GlobalInvocationID.x;
+
+    if (gid >= halfedges_size) return;
+
+    uint v = halfedges[gid].from;
+
+    vec3 sum = vec3(0.0);
+    uint h = gid;
+
+    do {
+        uint f = halfedges[h].face;
+        if (f >= 0u) {
+            sum += face_normals[f].xyz;
+        }
+
+        uint hp = halfedges[h].prev;
+        uint ho = (hp >= 0) ? halfedges[hp].opposite : -1;
+        h = ho;
+
+    } while (h >= 0u && h != gid);
+
+
+
+    float len2 = dot(sum, sum);
+    vec3 n = (len2 > 1e-20) ? normalize(sum) : vec3(0, 0, 1);
+
+    vertex_normlas[v] = vec4(n, 0.0);
+}

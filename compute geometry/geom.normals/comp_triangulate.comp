@@ -1,0 +1,51 @@
+#version 460
+layout(local_size_x = 256) in;
+
+struct Halfedge {
+    uint to;
+    uint from;
+    uint next;
+    uint prev;
+    uint opposite;
+    uint face;
+    vec2 tex;
+};
+
+struct Vertex { vec3 point; };
+struct Face   { uint halfedge; };
+
+layout(std430, binding = 0) readonly buffer buff_halfedges { Halfedge halfedges[]; };
+layout(std430, binding = 1) readonly buffer buff_faces     { Face faces[]; };
+layout(std430, binding = 2) readonly buffer buff_vertices  { Vertex vertices[]; };
+layout(std430, binding = 3) readonly buffer buff_vertex_normals  { vec4 vertex_normals[]; };
+layout(std430, binding = 4) writeonly buffer buff_out      { vec4 pos[]; };
+layout(std430, binding = 5) writeonly buffer buff_normals_out { vec4 nor[]; };
+
+layout(binding = 6) uniform cfg {
+    uint faces_size;
+};
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+    if (gid >= faces_size) return;
+
+    uint he0 = faces[gid].halfedge;
+    uint he1 = halfedges[he0].next;
+
+    uint v0 = halfedges[he0].from;
+    uint v1 = halfedges[he1].from;
+    uint v2 = halfedges[he1].to;
+
+    vec3 p0 = vertices[v0].point;
+    vec3 p1 = vertices[v1].point;
+    vec3 p2 = vertices[v2].point;
+
+    uint firstVert = gid * 3u;
+    pos[firstVert + 0u] = vec4(p0, 1.0);
+    pos[firstVert + 1u] = vec4(p1, 1.0);
+    pos[firstVert + 2u] = vec4(p2, 1.0);
+
+    nor[firstVert + 0u] = vertex_normals[v0];
+    nor[firstVert + 1u] = vertex_normals[v1];
+    nor[firstVert + 2u] = vertex_normals[v2];
+}

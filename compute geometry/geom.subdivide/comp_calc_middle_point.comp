@@ -1,0 +1,86 @@
+// calc the edges' midpoint and update edges in the structure
+#version 460
+
+layout(local_size_x = 256) in;
+
+struct Halfedge {
+    uint to;
+    uint from;
+    uint next;
+    uint prev;
+    uint opposite;
+    uint face;
+    vec2 tex;
+};
+
+struct Edge   { uvec2 halfedges; };
+struct Vertex { vec3 point; };
+
+layout(std430, binding = 0) buffer buff_vertices  { Vertex   vertices[];  };
+layout(std430, binding = 1) buffer buff_halfedges { Halfedge halfedges[]; };
+layout(std430, binding = 2) buffer buff_edges     { Edge     edges[];     };
+
+layout(binding = 3) uniform cfg {
+    uint prev_edges_size;
+    uint prev_vertices_size;
+    uint prev_halfedges_size;
+    uint edge_read_offset;
+    uint edge_write_offset;
+};
+
+const uint INVALID = 0xffffffffu;
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+    if (gid >= prev_edges_size) return;
+
+    uint srcEdge = edge_read_offset + gid;
+
+    uint he0 = edges[srcEdge].halfedges.x;
+    uint he1 = edges[srcEdge].halfedges.y;
+
+    Halfedge h0 = halfedges[he0];
+    Halfedge h1 = halfedges[he1];
+
+    // one midpoint vertex per old edge
+    uint vm = prev_vertices_size + gid;
+    vec3 p0 = vertices[h0.from].point;
+    vec3 p1 = vertices[h0.to].point;
+    vertices[vm].point = 0.5 * (p0 + p1);
+
+    // split each old halfedge into:
+    // old he  = from -> midpoint
+    // splitHe = midpoint -> oldTo
+    uint split0 = prev_halfedges_size + he0;
+    uint split1 = prev_halfedges_size + he1;
+
+    halfedges[he0].to = vm;
+    halfedges[he1].to = vm;
+
+    halfedges[split0].from = vm;
+    halfedges[split0].to = h0.to;
+    halfedges[split0].next = INVALID;
+    halfedges[split0].prev = INVALID;
+    halfedges[split0].opposite = he1;
+    halfedges[split0].face = h0.face;
+    halfedges[split0].tex = h0.tex;
+
+    halfedges[split1].from = vm;
+    halfedges[split1].to = h1.to;
+    halfedges[split1].next = INVALID;
+    halfedges[split1].prev = INVALID;
+    halfedges[split1].opposite = he0;
+    halfedges[split1].face = h1.face;
+    halfedges[split1].tex = h1.tex;
+
+    // cross-link the split pair
+    halfedges[he0].opposite = split1;
+    halfedges[he1].opposite = split0;
+
+    // write the 2 child edges into the write region
+    uint dst0 = edge_write_offset + 2u * gid + 0u;
+    uint dst1 = edge_write_offset + 2u * gid + 1u;
+
+    edges[dst0].halfedges = uvec2(he0,   split1);
+    edges[dst1].halfedges = uvec2(split0, he1);
+}

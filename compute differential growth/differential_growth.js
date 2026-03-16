@@ -4,13 +4,15 @@ var halfedgesOnly, edgesOnly, facesOnly, verticesOnly;
 var halfedges_size, edges_size, vertices_size, faces_size, closed;
 var face_capacity, edge_capacity;
 
-const MAX_VERTEX_COUNT = 1000000;
-const radius = 0.3;
-const radius2 = radius*radius;
-const force_strength = 0.00000025;
-const smoothing_strength = 0.15;
-const split_length = 0.08;
-const target_length = split_length / 2;
+const MAX_VERTEX_COUNT = 2000000;
+var radius = 0.3;
+var radius2 = radius*radius;
+var force_strength = 0.00000004;
+var smoothing_strength = 0.05;
+var split_length = 0.05;
+var target_length = split_length;/// 2;
+var remesh_enable = 1;
+var frame = 0;
 
 var buff_halfedges 	= new JitterObject("jit.gpu.buffer");
 var buff_edges 		= new JitterObject("jit.gpu.buffer");
@@ -52,7 +54,7 @@ var comp_commit_sizes         = new JitterObject("jit.gpu.compute"); comp_commit
 var comp_init_face_locks      = new JitterObject("jit.gpu.compute"); comp_init_face_locks.shader      = "comp_init_face_locks.comp";
 var comp_init_valence         = new JitterObject("jit.gpu.compute"); comp_init_valence.shader         = "comp_init_valence.comp";
 var comp_calc_valence         = new JitterObject("jit.gpu.compute"); comp_calc_valence.shader         = "comp_calc_valence.comp";
-var comp_remesh               = new JitterObject("jit.gpu.compute"); comp_remesh.shader               = "comp_remesh_flip.comp";
+var comp_remesh_flip          = new JitterObject("jit.gpu.compute"); comp_remesh_flip.shader          = "comp_remesh_flip.comp";
 var comp_triangulate          = new JitterObject("jit.gpu.compute"); comp_triangulate.shader          = "comp_triangulate.comp";  
 
 comp_init_counters.bind("buff_halfedges_size", buff_halfedges_size.name);
@@ -127,15 +129,15 @@ comp_calc_valence.bind("buff_valence", buff_valence.name);
 comp_calc_valence.bind("buff_halfedges_size", buff_halfedges_size.name);
 comp_calc_valence.bind("buff_vertices_size", buff_vertices_size.name);
 
-comp_remesh.bind("buff_halfedges", buff_halfedges.name);
-comp_remesh.bind("buff_edges", buff_edges.name);
-comp_remesh.bind("buff_faces", buff_faces.name);
-comp_remesh.bind("buff_valence", buff_valence.name);
-comp_remesh.bind("buff_vertices_size", buff_vertices_size.name);
-comp_remesh.bind("buff_faces_size", buff_faces_size.name);
-comp_remesh.bind("buff_halfedges_size", buff_halfedges_size.name);
-comp_remesh.bind("buff_edges_size", buff_edges_size.name);
-comp_remesh.bind("buff_face_locks", buff_face_locks.name);
+comp_remesh_flip.bind("buff_halfedges", buff_halfedges.name);
+comp_remesh_flip.bind("buff_edges", buff_edges.name);
+comp_remesh_flip.bind("buff_faces", buff_faces.name);
+comp_remesh_flip.bind("buff_valence", buff_valence.name);
+comp_remesh_flip.bind("buff_vertices_size", buff_vertices_size.name);
+comp_remesh_flip.bind("buff_faces_size", buff_faces_size.name);
+comp_remesh_flip.bind("buff_halfedges_size", buff_halfedges_size.name);
+comp_remesh_flip.bind("buff_edges_size", buff_edges_size.name);
+comp_remesh_flip.bind("buff_face_locks", buff_face_locks.name);
 
 comp_triangulate.bind("buff_halfedges",     buff_halfedges.name);
 comp_triangulate.bind("buff_faces",         buff_faces.name);
@@ -143,6 +145,15 @@ comp_triangulate.bind("buff_vertices",      buff_vertices.name);
 comp_triangulate.bind("buff_faces_size",    buff_faces_size.name);
 comp_triangulate.bind("img_out",            img_out.name);
 comp_triangulate.bind("img_nor",            img_nor.name);
+
+function set_radius(x){
+    radius = x;
+    radius2 = x*x;
+}
+
+function set_force_strength(x){
+    force_strength = x*0.0000001;;
+}
 
 function set_workgroups(){
 	comp_init_counters.workgroups 			= [1, 1, 1];
@@ -159,7 +170,7 @@ function set_workgroups(){
     comp_commit_sizes.workgroups            = [1, 1, 1];
     comp_init_valence.workgroups            = [Math.ceil(MAX_VERTEX_COUNT / 256), 1, 1];
     comp_calc_valence.workgroups            = [Math.ceil(MAX_VERTEX_COUNT / 256), 1, 1];
-    comp_remesh.workgroups                  = [Math.ceil(MAX_VERTEX_COUNT / 256), 1, 1];
+    comp_remesh_flip.workgroups             = [Math.ceil(MAX_VERTEX_COUNT / 256), 1, 1];
     comp_triangulate.workgroups             = [Math.ceil(MAX_VERTEX_COUNT / 256), 1, 1];
 }
 
@@ -169,17 +180,7 @@ function set_params(){
 	comp_init_counters.param("faces_size", faces_size);
 	comp_init_counters.param("vertices_size", vertices_size);
 
-	comp_init_hash.param("radius", radius);
-	comp_init_hash.param("MAX_VERTEX_COUNT", MAX_VERTEX_COUNT);
-
-	comp_calc_repulsive_force.param("radius", radius);
-	comp_calc_repulsive_force.param("radius2", radius2);
-	comp_calc_repulsive_force.param("MAX_VERTEX_COUNT", MAX_VERTEX_COUNT);
-    comp_calc_repulsive_force.param("force_strength", force_strength);
-
 	comp_calc_spring_force.param("target_length", target_length);
-
-	comp_apply_forces.param("force_strength", force_strength);
 
     comp_apply_smoothing.param("smoothing_strength", smoothing_strength);
 
@@ -192,7 +193,7 @@ function set_params(){
     //comp_split_edges.param("max_faces", face_capacity);
     //comp_split_edges.param("max_edges", edge_capacity);
 
-    comp_remesh.param("remesh_enable", 1); // 0 disables
+    comp_remesh_flip.param("remesh_enable", remesh_enable); // 0 disables
 }
 
 function set_dim(){
@@ -223,12 +224,6 @@ function set_passnames_and_blocknames(){
 
 function resize_buffers(vertices_size){
 
-	let scaling_factor = Math.ceil(MAX_VERTEX_COUNT / vertices_size);
-	//enlarge the buffers to include more geometry data
-	//buff_halfedges.bytecount 	= scaling_factor * buff_halfedges.bytecount; 	
-	//buff_edges.bytecount 		= scaling_factor * buff_edges.bytecount; 			
-	//buff_faces.bytecount 		= scaling_factor * buff_faces.bytecount; 			
-	//buff_vertices.bytecount 	= scaling_factor * buff_vertices.bytecount; 
     buff_halfedges.bytecount    = MAX_VERTEX_COUNT * 4 * 8;   
     buff_edges.bytecount        = MAX_VERTEX_COUNT * 4 * 2;   
     buff_faces.bytecount        = MAX_VERTEX_COUNT * 4;   
@@ -309,57 +304,75 @@ function dictionary(dictName) {
 
 function bang(){
 
-    //compute hash key
-    comp_init_hash.bang();
+    for(let i = 0; i < 1; i++){
 
-    //Sort by ascending key
-    const np2 = nextPowerOfTwo(MAX_VERTEX_COUNT);
-    const numPairs = np2 / 2;
-    const numStages = Math.log2(np2);
-    
-    comp_sort_keys.workgroups = [Math.ceil(numPairs / 128), 1, 1];
-    comp_sort_keys.param("pc.numValues", MAX_VERTEX_COUNT);
+        //compute hash key
+        comp_init_hash.param("radius", radius);
+        comp_init_hash.param("MAX_VERTEX_COUNT", MAX_VERTEX_COUNT);
+        comp_init_hash.bang();
 
-    for(let stageIndex = 0; stageIndex < numStages; stageIndex++){
-        for(let stepIndex = 0; stepIndex < stageIndex + 1; stepIndex++){
-            
-            let groupWidth = 1 << (stageIndex - stepIndex);
-            let groupHeight = 2 * groupWidth - 1;
-            comp_sort_keys.param("pc.groupWidth", groupWidth);
-            comp_sort_keys.param("pc.groupHeight", groupHeight);
-            comp_sort_keys.param("pc.stepIndex", stepIndex);
-            comp_sort_keys.bang();
+        //Sort by ascending key
+        const np2 = nextPowerOfTwo(MAX_VERTEX_COUNT);
+        const numPairs = np2 / 2;
+        const numStages = Math.log2(np2);
+        
+        comp_sort_keys.workgroups = [Math.ceil(numPairs / 128), 1, 1];
+        comp_sort_keys.param("pc.numValues", MAX_VERTEX_COUNT);
+
+        for(let stageIndex = 0; stageIndex < numStages; stageIndex++){
+            for(let stepIndex = 0; stepIndex < stageIndex + 1; stepIndex++){
+                
+                let groupWidth = 1 << (stageIndex - stepIndex);
+                let groupHeight = 2 * groupWidth - 1;
+                comp_sort_keys.param("pc.groupWidth", groupWidth);
+                comp_sort_keys.param("pc.groupHeight", groupHeight);
+                comp_sort_keys.param("pc.stepIndex", stepIndex);
+                comp_sort_keys.bang();
+            }
         }
+
+        //Find key start
+        comp_find_key_start.bang();
+
+        // Smoothing
+        comp_init_neighbors_count.bang();
+        comp_calc_smoothing.bang();
+        comp_apply_smoothing.bang();
+
+        //compute the repulsive force
+        comp_calc_repulsive_force.param("radius", radius);
+        comp_calc_repulsive_force.param("radius2", radius2);
+        comp_calc_repulsive_force.param("MAX_VERTEX_COUNT", MAX_VERTEX_COUNT);
+        comp_calc_repulsive_force.param("force_strength", force_strength);
+        comp_calc_repulsive_force.bang();
+
+        //compute the spring force
+        comp_calc_spring_force.bang();
+
+        //apply forces
+        comp_apply_forces.param("force_strength", force_strength);
+        comp_apply_forces.param("split_length", split_length);
+        comp_apply_forces.bang();
+
+        // Edge split
+        comp_init_add_counts.bang();
+        comp_split_edges.param("frame", frame);
+        comp_split_edges.bang();
+        comp_commit_sizes.bang();       
+
+/*
+        // Remesh (edge flip)
+        //for(let i = 0; i < 4; i++){
+            //comp_init_face_locks.bang();
+            comp_init_valence.bang();
+            comp_calc_valence.bang();
+            comp_remesh_flip.bang();               
+        //}
+*/
+        frame++;
+
     }
 
-    //Find key start
-    comp_find_key_start.bang();
-
-    // Smoothing
-    comp_init_neighbors_count.bang();
-    comp_calc_smoothing.bang();
-    comp_apply_smoothing.bang();
-
-    //compute the repulsive force
-    comp_calc_repulsive_force.bang();
-
-    //compute the spring force
-    comp_calc_spring_force.bang();
-
-    //apply forces
-    comp_apply_forces.bang();
-
-
-    // Edge split
-    comp_init_add_counts.bang();
-    comp_split_edges.bang();
-    comp_commit_sizes.bang();       
-/*
-    // Remesh (edge flip)
-    comp_init_valence.bang();
-    comp_calc_valence.bang();
-    comp_remesh.bang();       
-*/
     //triangulate and output
     comp_triangulate.bang();
 

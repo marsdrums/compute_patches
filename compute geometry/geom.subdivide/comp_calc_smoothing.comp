@@ -1,0 +1,42 @@
+// compute smoothing offset
+#version 460
+#extension GL_EXT_shader_atomic_float : enable
+
+layout(local_size_x = 256) in;
+
+struct Halfedge {
+    uint to;
+    uint from;
+    uint next;
+    uint prev;
+    uint opposite;
+    uint face;
+    vec2 tex;
+};
+
+struct Vertex { vec3 point; };
+
+layout(std430, binding = 0) buffer buff_valence  { uint valences[];  };
+layout(std430, binding = 1) buffer readonly buff_halfedges { Halfedge halfedges[]; };
+layout(std430, binding = 2) buffer readonly buff_vertices  { Vertex   vertices[];  };
+layout(std430, binding = 3) buffer buff_forces  { vec3 forces[]; };
+
+layout(binding = 4) uniform cfg {
+    uint halfedges_size;
+};
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+
+    if (gid >= halfedges_size) return;
+
+    Halfedge he = halfedges[gid];
+
+    vec3 p0 = vertices[he.from].point;
+
+    atomicAdd(forces[he.to].x, p0.x);
+    atomicAdd(forces[he.to].y, p0.y);
+    atomicAdd(forces[he.to].z, p0.z);
+    atomicAdd(valences[he.to], 1u);
+
+}

@@ -8,17 +8,21 @@ struct item{
     ivec2 uv;
 };
 
+struct Line{
+    ivec2 uv0;
+    ivec2 uv1;
+    float dist2;
+};
+
 layout(std430,  binding = 0) buffer buff_points { item point[];};
 layout(std430,  binding = 1) buffer buff_counter { uint globalCount; };
-layout(rgba32f, binding = 2) uniform writeonly image2D img_lines;
+layout(std430,  binding = 2) buffer buff_to_connect { Line lines[];};
 layout(         binding = 3) uniform buff_info { uint buffer_length; float radius; float radius2; };
 
 void main() {
 
     uint gid = gl_GlobalInvocationID.x;
     if(gid >= buffer_length) return;
-
-    int imgWidth = imageSize(img_lines).x;
 
     vec3 a = point[gid].pos;
     uvec3 cell_a = uvec3(floor(a/radius) + 1000);
@@ -47,9 +51,10 @@ void main() {
                     if(dist2 > radius2) continue;  
 
                     uint globalOffset = atomicAdd(globalCount, 1u);
-                    ivec2 coord = ivec2(globalOffset % imgWidth, globalOffset / imgWidth);
-                    imageStore(img_lines, coord,                vec4(point[gid].uv, 0.0, dist2));
-                    imageStore(img_lines, coord+ivec2(0,2000),  vec4(point[id].uv, 0.0, dist2));
+
+                    lines[globalOffset].uv0 = point[gid].uv;
+                    lines[globalOffset].uv1 = point[id].uv;
+                    lines[globalOffset].dist2 = dist2;
                 }
             }
         }

@@ -1,0 +1,27 @@
+// Compute valence
+#version 460
+
+layout(local_size_x = 256) in;
+
+struct Halfedge {
+    uint    to;    
+    uint    from; 
+    uint    next;
+    uint    prev;
+    uint    opposite;
+    uint    face;
+    vec2    tex;  
+};
+
+layout(std430, binding = 0) buffer readonly  buff_halfedges { Halfedge halfedges[]; };
+layout(std430, binding = 1) buffer buff_valence { uint valences[]; };
+layout(binding = 2) uniform cfg{ uint halfedges_size; };
+
+void main() {
+
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gid >= halfedges_size) return;
+
+    atomicAdd(valences[halfedges[gid].to], 1u);
+}

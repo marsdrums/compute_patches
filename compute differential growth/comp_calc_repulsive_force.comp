@@ -10,7 +10,7 @@ layout(std430, binding = 0) buffer readonly  buff_vertices  { Vertex vertices[];
 layout(std430, binding = 1) buffer readonly  buff_keys { Key keys[]; };
 layout(std430, binding = 2) buffer buff_forces { vec3 forces[]; };
 layout(std430, binding = 3) buffer readonly buff_vertices_size  { uint vs; };
-layout(        binding = 4) uniform cfg{
+layout(        binding = 5) uniform cfg{
     float radius;
     float radius2;
     uint MAX_VERTEX_COUNT;
@@ -26,6 +26,8 @@ void main() {
     vec3 forwardPos = thisP + forces[gid]*force_strength;
 
     uvec3 cell = uvec3(floor(forwardPos/radius) + 1000);
+
+    const float target_length = 0.2;
 
     vec3 forceToApply = vec3(0.0);
 
@@ -47,13 +49,19 @@ void main() {
                     uint testVertID = keys[keyID].vertex;
                     vec3 testP = vertices[testVertID].point;
 
-                    vec3 diff = testP - thisP;
+                    vec3 diff = thisP - testP;
                     float dist2 = dot(diff, diff);
                     if(dist2 > radius2) continue;
 
                     float dist = sqrt(dist2);
-                    vec3 forceDir = -diff / max(0.0000001, dist);
-                    vec3 force = forceDir / max(0.001, dist2);
+                    vec3 forceDir = diff / max(0.0000001, dist);
+                    vec3 force = forceDir / max(0.00001, dist2);
+
+/*
+                    float dist = sqrt(dist2);
+                    float intensity = dist - target_length;
+                    vec3 force = diff * intensity;
+*/
                     forceToApply += force;
                 }
             }        

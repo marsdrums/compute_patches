@@ -1,0 +1,42 @@
+// Triangulate the mesh and write the vertex positions into the output buffer
+#version 460
+layout(local_size_x = 256) in;
+
+struct Halfedge { 
+    uint to; 
+    uint from; 
+    uint next; 
+    uint prev; 
+    uint opposite; 
+    uint face; 
+    vec2 tex; };
+    
+struct Vertex { vec3  point; };
+struct Face   { uint  halfedge;  };
+
+layout(std430, binding = 0) buffer readonly buff_halfedges { Halfedge halfedges[]; };
+layout(std430, binding = 1) buffer readonly buff_faces     { Face faces[]; };
+layout(std430, binding = 2) buffer readonly buff_vertices  { Vertex vertices[]; };
+layout(std430, binding = 3) buffer writeonly buff_out  { vec4 pos[]; };
+layout(binding = 4) uniform cfg{ uint faces_size; };
+
+void main(){
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gid >= faces_size) return;
+
+    uint he0 = faces[gid].halfedge;
+    uint he1 = halfedges[he0].next;
+    uint v0 = halfedges[he0].from;
+    uint v1 = halfedges[he1].from;
+    uint v2 = halfedges[he1].to;
+    vec3 p0 = vertices[v0].point;
+    vec3 p1 = vertices[v1].point;
+    vec3 p2 = vertices[v2].point;
+
+    uint fistVert = gid*3u;
+
+    pos[fistVert     ] = vec4(p0, 1.0);
+    pos[fistVert + 1u] = vec4(p1, 1.0);
+    pos[fistVert + 2u] = vec4(p2, 1.0);
+}

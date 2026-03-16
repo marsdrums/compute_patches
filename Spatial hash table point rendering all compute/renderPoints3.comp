@@ -1,0 +1,82 @@
+#version 460
+
+layout(local_size_x = 64) in;
+
+#extension GL_GOOGLE_include_directive : require
+#include "c74.noise.funcs.glsl"
+
+layout(rgba32f, binding = 0) uniform readonly image2D img_pos;
+layout(rgba32f, binding = 1) uniform readonly image2D img_pos_prev;
+layout(std430,  binding = 2) buffer buff_render { uint col[]; };
+
+layout(binding = 3) uniform buff_info { 
+    float radius; 
+};
+
+layout(binding = 4) uniform mat_info { 
+    vec4 currV0; vec4 currV1; vec4 currV2; vec4 currV3; 
+    vec4 currP0; vec4 currP1; vec4 currP2; vec4 currP3; 
+    vec4 prevV0; vec4 prevV1; vec4 prevV2; vec4 prevV3; 
+    vec4 prevP0; vec4 prevP1; vec4 prevP2; vec4 prevP3; 
+};
+
+layout(binding = 5) uniform cam_info { 
+    float ratio;
+    float focalDist;
+    float aperture;
+};
+
+shared vec4 currPoint;
+shared vec4 prevPoint;
+
+uint pos2id(ivec2 p){
+    return uint(p.x + p.y*1920);
+}
+
+void main() {
+
+    int id = int(gl_WorkGroupID.x);
+    ivec2 img_size = imageSize(img_pos);
+    ivec2 gid = ivec2(id % img_size.x, id / img_size.x);
+
+    if(gid.x >= img_size.x || gid.y >= img_size.y) return;
+
+    uint lid = gl_LocalInvocationIndex;
+
+    if(lid == 0u){
+        mat4 currV = mat4(currV0, currV1, currV2, currV3);
+        mat4 prevV = mat4(prevV0, prevV1, prevV2, prevV3);
+        mat4 currP = mat4(-currP0, currP1, -currP2, currP3);
+        mat4 prevP = mat4(-prevP0, prevP1, -prevP2, prevP3);
+        mat4 currVP = currP * currV;
+        mat4 prevVP = prevP * prevV;        
+        currPoint = currVP * vec4(imageLoad(img_pos,      gid).xyz, 1.0);
+        prevPoint = prevVP * vec4(imageLoad(img_pos_prev, gid).xyz, 1.0);
+        currPoint.xyz /= currPoint.w;
+        prevPoint.xyz /= prevPoint.w;
+        currPoint.xy = vec2(1920, 1080) * (currPoint.xy*0.5 + 0.5);
+        prevPoint.xy = vec2(1920, 1080) * (prevPoint.xy*0.5 + 0.5);
+    }
+    barrier();
+
+    uint seed = lid + 9999u;
+    vec4 rand = RandomVec401(seed);
+    float interpP = (float(lid) + (rand.x-0.5)*0.5) / float(gl_WorkGroupSize.x);
+
+    vec3 pos = mix(currPoint.xyz, prevPoint.xyz, interpP);
+
+    if(pos.z < 1.0) return;
+
+    vec2 disk = sqrt(rand.w) * vec2(cos(rand.z*TWOPI), sin(rand.z*TWOPI));
+    float dof = abs(pos.z - focalDist);
+    vec2 blur = dof * disk * aperture * 1000;
+    pos.xy += blur;
+
+    ivec2 coord = ivec2(pos.xy);
+    const ivec2 render_size = ivec2(1920, 1080);
+    if (coord.x < 0 || coord.y < 0 || coord.x >= render_size.x || coord.y >= render_size.y)
+        return;
+
+    atomicAdd(col[pos2id(coord)], uint(4294967295.0*0.0003));
+
+}

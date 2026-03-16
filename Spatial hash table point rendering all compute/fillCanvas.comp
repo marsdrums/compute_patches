@@ -1,0 +1,24 @@
+#version 460
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(std430,  binding = 0) buffer readonly buff_render { uint col[]; };
+layout(rgba32f, binding = 1) uniform writeonly image2D img_canvas;
+
+uint pos2id(ivec2 p){
+    return uint(p.x + p.y*1920);
+}
+
+void main() {
+
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(img_canvas);
+
+    if(coord.x >= size.x || coord.y >= size.y) return;
+
+    float res = 200*float(col[pos2id(coord)]) / 4294967295.0; // or divide by your expected max
+    res += 0.005;
+    res /= res + 1.0;
+    res = pow(res, 0.45454545);
+    imageStore(img_canvas, coord, vec4(res, res, res, 1.0));
+}

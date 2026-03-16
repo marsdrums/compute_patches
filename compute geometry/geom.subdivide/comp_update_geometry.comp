@@ -1,0 +1,131 @@
+// update the half edge structure
+#version 460
+
+layout(local_size_x = 256) in;
+
+struct Halfedge {
+    uint to;
+    uint from;
+    uint next;
+    uint prev;
+    uint opposite;
+    uint face;
+    vec2 tex;
+};
+
+struct Edge   { uvec2 halfedges; };
+struct Face   { uint halfedge;   };
+struct Vertex { vec3 point;      };
+
+layout(std430, binding = 0) buffer buff_vertices  { Vertex   vertices[];  };
+layout(std430, binding = 1) buffer buff_halfedges { Halfedge halfedges[]; };
+layout(std430, binding = 2) buffer buff_edges     { Edge     edges[];     };
+layout(std430, binding = 3) buffer buff_faces     { Face     faces[];     };
+
+layout(binding = 4) uniform cfg {
+    uint prev_edges_size;
+    uint prev_vertices_size;
+    uint prev_faces_size;
+    uint prev_halfedges_size;
+    uint edge_read_offset;
+    uint edge_write_offset;
+};
+
+void setTriangle(uint faceId, uint h0, uint h1, uint h2) {
+    halfedges[h0].next = h1;
+    halfedges[h1].next = h2;
+    halfedges[h2].next = h0;
+
+    halfedges[h0].prev = h2;
+    halfedges[h1].prev = h0;
+    halfedges[h2].prev = h1;
+
+    halfedges[h0].face = faceId;
+    halfedges[h1].face = faceId;
+    halfedges[h2].face = faceId;
+
+    faces[faceId].halfedge = h0;
+}
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+    if (gid >= prev_faces_size) return;
+
+    // old face cycle
+    uint he0 = faces[gid].halfedge;
+    uint he1 = halfedges[he0].next;
+    uint he2 = halfedges[he1].next;
+
+    // split halfedges created in the edge pass
+    uint split0 = prev_halfedges_size + he0; // m01 -> v1
+    uint split1 = prev_halfedges_size + he1; // m12 -> v2
+    uint split2 = prev_halfedges_size + he2; // m20 -> v0
+
+    // midpoint vertices now sit at the "to" of old halfedges
+    uint m01 = halfedges[he0].to;
+    uint m12 = halfedges[he1].to;
+    uint m20 = halfedges[he2].to;
+
+    // 6 internal halfedges per old face
+    uint innerBase = 2u * prev_halfedges_size + 6u * gid;
+
+    uint h_m01_m20 = innerBase + 0u;
+    uint h_m20_m01 = innerBase + 1u;
+
+    uint h_m12_m01 = innerBase + 2u;
+    uint h_m01_m12 = innerBase + 3u;
+
+    uint h_m20_m12 = innerBase + 4u;
+    uint h_m12_m20 = innerBase + 5u;
+
+    halfedges[h_m01_m20].from = m01;
+    halfedges[h_m01_m20].to = m20;
+    halfedges[h_m01_m20].opposite = h_m20_m01;
+    halfedges[h_m01_m20].tex = vec2(0.0); //place holder
+
+    halfedges[h_m20_m01].from = m20;
+    halfedges[h_m20_m01].to = m01;
+    halfedges[h_m20_m01].opposite = h_m01_m20;
+    halfedges[h_m20_m01].tex = vec2(0.0);
+
+    halfedges[h_m12_m01].from = m12;
+    halfedges[h_m12_m01].to = m01;
+    halfedges[h_m12_m01].opposite = h_m01_m12;
+    halfedges[h_m12_m01].tex = vec2(0.0);
+
+    halfedges[h_m01_m12].from = m01;
+    halfedges[h_m01_m12].to = m12;
+    halfedges[h_m01_m12].opposite = h_m12_m01;
+    halfedges[h_m01_m12].tex = vec2(0.0);
+
+    halfedges[h_m20_m12].from = m20;
+    halfedges[h_m20_m12].to = m12;
+    halfedges[h_m20_m12].opposite = h_m12_m20;
+    halfedges[h_m20_m12].tex = vec2(0.0);
+
+    halfedges[h_m12_m20].from = m12;
+    halfedges[h_m12_m20].to = m20;
+    halfedges[h_m12_m20].opposite = h_m20_m12;
+    halfedges[h_m12_m20].tex = vec2(0.0);
+
+    // 4 output faces per old face
+    uint f0 = gid;
+    uint f1 = prev_faces_size + 3u * gid + 0u;
+    uint f2 = prev_faces_size + 3u * gid + 1u;
+    uint f3 = prev_faces_size + 3u * gid + 2u;
+
+    // corner triangles
+    setTriangle(f0, he0, h_m01_m20, split2);
+    setTriangle(f1, he1, h_m12_m01, split0);
+    setTriangle(f2, he2, h_m20_m12, split1);
+
+    // center triangle
+    setTriangle(f3, h_m01_m12, h_m12_m20, h_m20_m01);
+
+    // append the 3 interior edges into the write region
+    uint innerEdgeBase = edge_write_offset + 2u * prev_edges_size + 3u * gid;
+
+    edges[innerEdgeBase + 0u].halfedges = uvec2(h_m01_m20, h_m20_m01);
+    edges[innerEdgeBase + 1u].halfedges = uvec2(h_m12_m01, h_m01_m12);
+    edges[innerEdgeBase + 2u].halfedges = uvec2(h_m20_m12, h_m12_m20);
+}

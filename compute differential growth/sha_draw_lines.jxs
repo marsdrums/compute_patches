@@ -38,7 +38,7 @@ void main() {
     ivec2 iuv = to2DIndex(gl_InstanceID*3 + offset, ivec2(texDim));
     vec3 pos = texelFetch(posTex, iuv).xyz;
     vec3 N = texelFetch(norTex, iuv).xyz;
-    pos += N*0.001;
+    pos += N*0.0001;
 	gl_Position = modelViewProjectionMatrix * vec4(pos, 1.);	
 	jit_out.color = color;
 }

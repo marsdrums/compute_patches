@@ -1,6 +1,9 @@
 // Apply repulsive force
 #version 460
 
+#extension GL_GOOGLE_include_directive : require
+#include "c74.noise.funcs.glsl"
+
 layout(local_size_x = 256) in;
 
 struct Vertex   { vec3  point; };
@@ -10,6 +13,7 @@ layout(std430, binding = 1) buffer readonly buff_forces { vec3 forces[]; };
 layout(std430, binding = 2) buffer readonly buff_vertices_size  { uint vs; };
 layout(        binding = 3) uniform cfg{
     float force_strength;
+    float split_length;
 };
 
 void main() {
@@ -17,6 +21,24 @@ void main() {
 
     if(gid >= vs) return;
 
-    vertices[gid].point += forces[gid] * force_strength;
+    const float scale = 1;
+    vec3 pos = vertices[gid].point * scale + vec3(100);
+    vec3 flow;
+    flow.x = fBmA(pos + vec3(0,0,0), 0.7, 2., 1, 8);
+    flow.y = fBmA(pos + vec3(10,10,10), 0.7, 2., 1, 8);
+    flow.z = fBmA(pos + vec3(100,100,100), 0.7, 2., 1, 8);
+    flow = normalize(flow*vec3(1,0.2,1) + vec3(0,0.5,0));
+
+    vec3 forceToApply = forces[gid] * force_strength;
+    float len = length(forceToApply);
+    vec3 normForce = forceToApply / len;
+    
+    //float anysotropicFactor = dot(normForce, vec3(0,1,0))*0.5 + 0.5;
+    float anysotropicFactor = max(0.0, dot(normForce, flow));
+
+    //anysotropicFactor *= anysotropicFactor;
+    normForce *= min(len, split_length*0.1);
+    normForce *= anysotropicFactor;
+    vertices[gid].point += normForce;// - flow*0.0003;
 
 }

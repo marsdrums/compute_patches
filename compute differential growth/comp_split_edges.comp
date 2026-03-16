@@ -1,6 +1,8 @@
 // Split long edges (triangle mesh) by inserting one vertex in the middle.
 // Parallel version: per-face spin-lock + append counters (no in-dispatch size mutation).
 #version 460
+#extension GL_GOOGLE_include_directive : require
+#include "c74.noise.funcs.glsl"
 
 layout(local_size_x = 256) in;
 
@@ -43,6 +45,7 @@ layout(binding = 10) uniform cfg{
     uint  max_faces;
     uint  max_halfedges;
     uint  max_edges;
+    uint  frame;
 };
 
 bool try_lock2(uint f0, uint f1, out uint a, out uint b){
@@ -75,17 +78,17 @@ void main(){
     Edge e0 = edges[eid];
     uint h0 = e0.halfedges.x;
     uint h3 = e0.halfedges.y;
-/*
+
     if(h0 == INVALID || h3 == INVALID) return;
     if(h0 >= hs || h3 >= hs) return;
-*/
+
     // Quick length check (no locks yet).
     Halfedge he0 = halfedges[h0];
     Halfedge he3 = halfedges[h3];
-/*
+
     // Only split manifold pairs that still look like opposites.
     if(he0.opposite != h3 || he3.opposite != h0) return;
-*/
+
     uint v0 = he0.from;
     uint v1 = he3.from;
     if(v0 >= vs || v1 >= vs) return;
@@ -94,14 +97,25 @@ void main(){
     vec3 p1 = vertices[v1].point;
     vec3 d01 = p1 - p0;
     float len2 = dot(d01, d01);
+
+    uint seed = eid + frame*es + 9999u;
+    //if(RandomFloat01(seed) > 20 / float(es)) return;
+
     if(len2 <= split_len2) return;
+/*  
+    if(len2 <= split_len2){
+        if(RandomFloat01(seed) > 40 / float(es)){
+            return;
+        }
+    } 
+*/    
 
     uint f0 = he0.face;
     uint f1 = he3.face;
-/*
+
     if(f0 == INVALID || f1 == INVALID) return;
     if(f0 >= fs || f1 >= fs) return;
-*/
+
     if(f0 == f1) return;
 
     // Lock the two adjacent faces (prevents splitting two edges of same triangle pair).

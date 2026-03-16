@@ -134,7 +134,7 @@ comp_raytrace.bind("buff_nodeAabbMax", buff_nodeAabbMax.name);
 comp_raytrace.bind("buff_nodePrim", buff_nodePrim.name);
 comp_raytrace.bind("img_res", img_res.name);
 
-init_particles(10000);
+init_particles(100000);
 
 function check_build_speed(x){ _debug = x; }
 function lookAtCenter(x){
@@ -231,7 +231,7 @@ function bang(){
 
 	if(!_debug){
 		//generate random positions
-		comp_gen_rand_pos.param("radius", 0.01);
+		comp_gen_rand_pos.param("radius", 0.005);
 		comp_gen_rand_pos.param("time", time);
 		comp_gen_rand_pos.param("offset", 0.0);
 		comp_gen_rand_pos.param("scale", 0.001);

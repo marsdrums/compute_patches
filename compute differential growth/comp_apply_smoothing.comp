@@ -22,7 +22,7 @@ void main() {
     uint n = neighbors[gid];
     if(n == 0u) return;
 
-    vec3 meanPos = forces[gid] / float(n);
+    vec3 meanPos = forces[gid] / max(1.0, float(n));
 
     vertices[gid].point = mix(vertices[gid].point, meanPos, smoothing_strength);
 }
