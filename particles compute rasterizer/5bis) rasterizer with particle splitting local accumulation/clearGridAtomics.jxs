@@ -1,7 +1,7 @@
 //Reset the canvas
 #version 460
 
-layout(local_size_x = 1024) in;
+layout(local_size_x = 128) in;
 layout(std430, set = 0, binding = 0) buffer grid {
     uint cell[]; 
 };

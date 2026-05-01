@@ -1,0 +1,45 @@
+// Audio samples analysis
+#version 460
+
+layout(local_size_x = 1, local_size_y = 256) in;
+
+layout(std430, binding = 0) buffer readonly buff_samples { vec2 samples[]; };
+layout(std430, binding = 1) buffer writeonly buff_temp_amp { float tempAmp[]; };
+layout(std430, binding = 2) buffer readonly buff_hann { float hann[]; };
+layout(binding = 3) uniform grain_info {
+    uint num_grains; 
+    uint grain_length;  
+    uint num_samples;         
+};
+
+shared float sha_amp[gl_WorkGroupSize.y];
+
+void main() {
+
+    uint grainID = gl_GlobalInvocationID.x;
+    uint sampleInGrainID = gl_GlobalInvocationID.y;
+    uint split = gl_WorkGroupID.y;
+    uint lid = gl_LocalInvocationID.y;
+
+    uint s = grainID * grain_length + sampleInGrainID;
+    bool validSample = (sampleInGrainID < grain_length) && (s < num_samples);
+
+    float amp2 = 0.0;
+    if (validSample) {
+        float windowID = 2047 * float(sampleInGrainID) / float(grain_length - 1);
+        float w = mix(hann[uint(floor(windowID))], hann[uint(floor(windowID))+1u], fract(windowID));
+        float amp = samples[s].x * w;
+        amp2 = amp * amp;
+    }
+    sha_amp[lid] = amp2;       
+    barrier();
+
+    if(lid == 0){
+        float sum = 0.0;
+        for(uint i = 0u; i < gl_WorkGroupSize.y; i++){
+
+            sum += sha_amp[i];
+        }
+        tempAmp[grainID + num_grains*split] = sum;
+    }
+}

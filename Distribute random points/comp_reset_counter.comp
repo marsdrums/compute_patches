@@ -1,0 +1,14 @@
+#version 460
+
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) writeonly buffer buff_point_count { uint count[]; };
+layout(binding = 1) uniform cfg { uint tri_count; };
+
+void main()
+{
+    uint tri = gl_GlobalInvocationID.x;
+    if (tri >= tri_count) return;
+
+    count[tri] = 0u;
+}

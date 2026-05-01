@@ -13,6 +13,16 @@
         "boxes": [
             {
                 "box": {
+                    "id": "obj-31",
+                    "maxclass": "comment",
+                    "numinlets": 1,
+                    "numoutlets": 0,
+                    "patching_rect": [ 262.0, 603.0, 139.0, 20.0 ],
+                    "text": "enable/disable poly lines"
+                }
+            },
+            {
+                "box": {
                     "id": "obj-26",
                     "maxclass": "comment",
                     "numinlets": 1,
@@ -94,6 +104,7 @@
                     "fontsize": 12.0,
                     "id": "obj-4",
                     "maxclass": "jit.fpsgui",
+                    "mode": 3,
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],

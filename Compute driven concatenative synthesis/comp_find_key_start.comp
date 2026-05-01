@@ -1,0 +1,37 @@
+#version 460
+layout(local_size_x = 128) in;
+
+struct Grain{
+    float RMS;
+    float onset;
+    uint key;
+    uint start;
+};
+
+layout(std430, binding = 0) buffer buff_grains { Grain grains[]; };
+layout(binding = 1) uniform grain_info {
+    uint num_grains; 
+};
+
+shared uint keys[128+1];
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+
+    if(gid >= num_grains) return;
+
+    uint lid = gl_LocalInvocationIndex;
+    
+    keys[lid+1] = grains[gid].key;
+    if(lid == 0){
+        keys[0] = grains[max(0u, gid-1)].key;
+    }
+    barrier();
+    
+    uint thisKey = keys[lid+1];
+    uint prevKey = keys[lid];
+
+    if(thisKey != prevKey){
+        grains[thisKey].start = gid;
+    }
+}

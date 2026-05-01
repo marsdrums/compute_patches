@@ -16,7 +16,7 @@ void main() {
 
     if(coord.x >= size.x || coord.y >= size.y) return;
 
-    float res = 200*float(col[pos2id(coord)]) / 4294967295.0; // or divide by your expected max
+    float res = 10*float(col[pos2id(coord)]) / 4294967295.0; // or divide by your expected max
     res += 0.005;
     res /= res + 1.0;
     res = pow(res, 0.45454545);

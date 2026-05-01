@@ -19,30 +19,15 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 159.0, 459.0, 252.0, 22.0 ],
+                    "patching_rect": [ 159.0, 516.0, 252.0, 22.0 ],
                     "text": "jit.gl.shader @embed 1 @name drawNormals",
                     "textfile": {
-                        "text": "<jittershader name=\"fill-flat-triangles\">\n\t<description>Default Shader </description>\n\t<param name=\"position\" type=\"vec3\" state=\"POSITION\" />\n\t<param name=\"modelViewProjectionMatrix\" type=\"mat4\" state=\"MODELVIEW_PROJECTION_MATRIX\" />\n\t<param name=\"color\" type=\"vec4\" state=\"COLOR\" />\n\t<language name=\"glsl\" version=\"1.5\">\n\t\t<bind param=\"position\" program=\"vp\" />\n\t\t<bind param=\"modelViewProjectionMatrix\" program=\"vp\" />\n\t\t<bind param=\"color\" program=\"vp\" />\n\t\t<program name=\"vp\" type=\"vertex\">\n<![CDATA[\n#version 330 core\nuniform mat4 modelViewProjectionMatrix;\nin vec3 position;\nin vec4 color;\n\nout jit_PerVertex {\n\tsmooth vec4 color;\t\n} jit_out;\n\nvoid main() {\t\n\tgl_Position = modelViewProjectionMatrix * vec4(position, 1.);\t\n\tjit_out.color = color;\n}\n]]>\n\t\t</program>\n\t\t<program name=\"fp\" type=\"fragment\">\n<![CDATA[\n#version 330 core\n\nin jit_PerVertex {\n\tsmooth vec4 color;\n} jit_in;\n\nout vec4 color;\n\nvoid main() {\n\tcolor = jit_in.color;\n}\t\n]]>\n\t\t</program>\n\t</language>\n</jittershader>\n",
+                        "text": "<jittershader name=\"fill-flat-triangles\">\n\t<description>Default Shader </description>\n\t<param name=\"position\" type=\"vec3\" state=\"POSITION\" />\n\t<param name=\"modelViewProjectionMatrix\" type=\"mat4\" state=\"MODELVIEW_PROJECTION_MATRIX\" />\n\t<param name=\"color\" type=\"vec4\" state=\"COLOR\" />\n\t<language name=\"glsl\" version=\"1.5\">\n\t\t<bind param=\"position\" program=\"vp\" />\n\t\t<bind param=\"modelViewProjectionMatrix\" program=\"vp\" />\n\t\t<bind param=\"color\" program=\"vp\" />\n\t\t<program name=\"vp\" type=\"vertex\">\n<![CDATA[\n#version 330 core\nuniform mat4 modelViewProjectionMatrix;\nin vec3 position;\nin vec4 color;\n\nout jit_PerVertex {\n\tsmooth vec4 color;\t\n} jit_out;\n\nvoid main() {\t\n\tgl_Position = modelViewProjectionMatrix * vec4(position, 1.);\t\n\tjit_out.color = color;\n}\n]]>\n\t\t</program>\n\t\t<program name=\"fp\" type=\"fragment\">\n<![CDATA[\n#version 330 core\n\nin jit_PerVertex {\n\tsmooth vec4 color;\n} jit_in;\n\nout vec4 color;\n\nvoid main() {\n\tcolor = vec4(normalize(jit_in.color.rgb), 1.0);\n}\t\n]]>\n\t\t</program>\n\t</language>\n</jittershader>\n",
                         "filename": "none",
                         "flags": 1,
                         "embed": 1,
                         "autowatch": 1
                     }
-                }
-            },
-            {
-                "box": {
-                    "depthbuffer": 1,
-                    "doublebuffer": 1,
-                    "fsaa": 0,
-                    "id": "obj-11",
-                    "maxclass": "jit.pwindow",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 567.0, 421.0, 296.0, 64.0 ],
-                    "stereo": 0,
-                    "sync": 1
                 }
             },
             {
@@ -185,7 +170,7 @@
                     "numinlets": 9,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 159.0, 421.0, 393.0, 22.0 ],
+                    "patching_rect": [ 159.0, 478.0, 393.0, 22.0 ],
                     "text": "jit.gl.mesh @draw_mode triangles @scale 0.999 @shader drawNormals"
                 }
             },
@@ -237,15 +222,7 @@
         "lines": [
             {
                 "patchline": {
-                    "destination": [ "obj-11", 0 ],
-                    "order": 0,
-                    "source": [ "obj-10", 0 ]
-                }
-            },
-            {
-                "patchline": {
                     "destination": [ "obj-7", 3 ],
-                    "order": 1,
                     "source": [ "obj-10", 0 ]
                 }
             },

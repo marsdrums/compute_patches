@@ -1021,8 +1021,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_gl_texture", "" ],
-                    "patching_rect": [ 308.0, 66.0, 198.0, 22.0 ],
-                    "text": "jit.gl.camera @locklook 1 @tripod 1"
+                    "patching_rect": [ 308.0, 66.0, 292.0, 22.0 ],
+                    "text": "jit.gl.camera @locklook 1 @tripod 1 @lookat 0. 1.2 0."
                 }
             },
             {

@@ -34,7 +34,7 @@ img_history.format 			= "rgba32_float";
 img_raw_ind.format 			= "rgba32_float";
 img_out.format 				= "rgba32_float";
 
-setSize([1920, 1080]);
+setSize([960, 540]);
 
 //=== Compute passes ===============
 
@@ -254,14 +254,14 @@ function bang(){
 	comp_draw_lights.bang();
 
 	//=== Indirect Illumination ===============================
-
+/*
 	//collect sample candidates and perform temporal reuse
 	comp_ReSTIR_coll_temp_ind.param("frame", frame);
 	comp_ReSTIR_coll_temp_ind.param("readOffset", readWrite_ind[0]);
 	comp_ReSTIR_coll_temp_ind.param("writeOffset", readWrite_ind[1]);
 	comp_ReSTIR_coll_temp_ind.bang();
 	readWrite_ind = swap(readWrite_ind);
-/*
+
 	//perform spatial reuse
 	comp_ReSTIR_spat_ind.param("frame", frame);
 	comp_ReSTIR_spat_ind.param("readOffset", readWrite_ind[0]);
@@ -271,13 +271,13 @@ function bang(){
 	comp_ReSTIR_spat_ind.param("normalReject", 0.96);
 	comp_ReSTIR_spat_ind.bang();
 	readWrite_ind = swap(readWrite_ind);
-*/
+
 	//Resolve and display
 	comp_ReSTIR_resolve_ind.param("frame", frame);
 	comp_ReSTIR_resolve_ind.param("readOffset", readWrite_ind[0]);
 	comp_ReSTIR_resolve_ind.param("writeOffset", readWrite_ind[1]);
 	comp_ReSTIR_resolve_ind.bang();
-
+*/
 	//=== Composite direct and indirect
 	comp_composite.bang();
 

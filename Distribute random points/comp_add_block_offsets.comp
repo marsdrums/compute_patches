@@ -1,0 +1,19 @@
+// Add one block offset to each value of the per-block scan
+#version 460
+
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) buffer buff_cdf { float cdf[]; };
+layout(std430, binding = 1) readonly buffer buff_block_offsets { float blockOffsets[]; };
+
+layout(binding = 2) uniform cfg {
+    uint tri_count;
+};
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+    if (gid >= tri_count) return;
+
+    uint block = gid / 256u;
+    cdf[gid] += blockOffsets[block];
+}

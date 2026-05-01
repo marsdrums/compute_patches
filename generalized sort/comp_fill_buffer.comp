@@ -1,0 +1,35 @@
+#version 460
+
+#extension GL_GOOGLE_include_directive : require
+#include "c74.noise.funcs.glsl"
+
+layout(local_size_x = 128) in;
+
+struct Data{
+    vec2 myVec;
+    float myFloat;
+    int myInt;
+};
+
+layout(std430, set = 0, binding = 0) buffer writeonly buff_values { Data data[]; };
+
+layout(binding = 1) uniform push_constants {
+    uint size;
+};
+
+
+void main() {
+
+    uint gid = gl_GlobalInvocationID.x;
+    if(gid >= size) return;
+
+    uint seed = gid * 9999u + 777u;
+
+    Data d;
+    
+    d.myVec = RandomVec201(seed);
+    d.myFloat = RandomFloat01(seed);
+    d.myInt = int(RandomFloat01(seed) * 2147483647);
+
+    data[gid] = d;
+}

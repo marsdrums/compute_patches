@@ -5,10 +5,10 @@ var halfedges_size, edges_size, vertices_size, faces_size, closed;
 var face_capacity, edge_capacity;
 
 const MAX_VERTEX_COUNT = 2000000;
-var radius = 0.3;
+var radius = 0.1;
 var radius2 = radius*radius;
-var force_strength = 0.00000004;
-var smoothing_strength = 0.05;
+var force_strength = 0.0000002;
+var smoothing_strength = 0.1;
 var split_length = 0.05;
 var target_length = split_length;/// 2;
 var remesh_enable = 1;
@@ -152,7 +152,7 @@ function set_radius(x){
 }
 
 function set_force_strength(x){
-    force_strength = x*0.0000001;;
+    force_strength = x*0.0000001;
 }
 
 function set_workgroups(){

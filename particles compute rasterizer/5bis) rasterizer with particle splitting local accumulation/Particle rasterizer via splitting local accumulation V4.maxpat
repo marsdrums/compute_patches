@@ -13,6 +13,17 @@
         "boxes": [
             {
                 "box": {
+                    "id": "obj-18",
+                    "maxclass": "newobj",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "int" ],
+                    "patching_rect": [ 577.0, 602.0, 29.5, 22.0 ],
+                    "text": "* 4"
+                }
+            },
+            {
+                "box": {
                     "candicane2": [ 0.145098, 0.203922, 0.356863, 1.0 ],
                     "candicane3": [ 0.290196, 0.411765, 0.713726, 1.0 ],
                     "candicane4": [ 0.439216, 0.619608, 0.070588, 1.0 ],
@@ -46,23 +57,12 @@
             },
             {
                 "box": {
-                    "id": "obj-28",
-                    "maxclass": "message",
-                    "numinlets": 2,
-                    "numoutlets": 1,
-                    "outlettype": [ "" ],
-                    "patching_rect": [ 234.0, 166.0, 88.0, 22.0 ],
-                    "text": "dim 1920 1080"
-                }
-            },
-            {
-                "box": {
                     "id": "obj-26",
                     "maxclass": "newobj",
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "bang", "bang" ],
-                    "patching_rect": [ 406.0, 611.0, 32.0, 22.0 ],
+                    "patching_rect": [ 436.0, 617.0, 32.0, 22.0 ],
                     "text": "t b b"
                 }
             },
@@ -96,7 +96,7 @@
                     "numoutlets": 1,
                     "outlettype": [ "" ],
                     "patching_rect": [ 795.0, 403.0, 35.0, 22.0 ],
-                    "text": "2000"
+                    "text": "3000"
                 }
             },
             {
@@ -118,7 +118,7 @@
                     "numinlets": 0,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 577.0, 581.0, 68.0, 22.0 ],
+                    "patching_rect": [ 577.0, 575.0, 68.0, 22.0 ],
                     "text": "r buffersize"
                 }
             },
@@ -544,8 +544,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 270.0, 16.0, 47.0, 22.0 ],
-                    "text": "jit.bang"
+                    "patching_rect": [ 270.0, 16.0, 71.0, 22.0 ],
+                    "text": "jit.gpu.bang"
                 }
             },
             {
@@ -780,8 +780,8 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 283.0, 541.0, 139.0, 22.0 ],
-                    "text": "expr int(ceil($f1 / 1024.))"
+                    "patching_rect": [ 283.0, 530.0, 132.0, 22.0 ],
+                    "text": "expr int(ceil($f1 / 128.))"
                 }
             },
             {
@@ -791,7 +791,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 577.0, 640.0, 143.0, 22.0 ],
+                    "patching_rect": [ 577.0, 656.0, 143.0, 22.0 ],
                     "text": "jit.gpu.buffer @name grid"
                 }
             },
@@ -802,8 +802,8 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 577.0, 611.0, 109.0, 22.0 ],
-                    "text": "prepend allocitems"
+                    "patching_rect": [ 577.0, 627.0, 108.0, 22.0 ],
+                    "text": "prepend bytecount"
                 }
             },
             {
@@ -873,8 +873,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 313.0, 628.0, 47.0, 22.0 ],
-                    "text": "jit.bang"
+                    "patching_rect": [ 313.0, 628.0, 71.0, 22.0 ],
+                    "text": "jit.gpu.bang"
                 }
             },
             {
@@ -1045,7 +1045,7 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-34", 0 ],
+                    "destination": [ "obj-18", 0 ],
                     "source": [ "obj-15", 0 ]
                 }
             },
@@ -1065,6 +1065,12 @@
                 "patchline": {
                     "destination": [ "obj-39", 0 ],
                     "source": [ "obj-17", 1 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-34", 0 ],
+                    "source": [ "obj-18", 0 ]
                 }
             },
             {
@@ -1238,15 +1244,7 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-28", 1 ],
-                    "order": 1,
-                    "source": [ "obj-41", 0 ]
-                }
-            },
-            {
-                "patchline": {
                     "destination": [ "obj-46", 0 ],
-                    "order": 0,
                     "source": [ "obj-41", 0 ]
                 }
             },

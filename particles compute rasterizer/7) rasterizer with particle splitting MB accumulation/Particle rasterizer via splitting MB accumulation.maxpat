@@ -13,6 +13,28 @@
         "boxes": [
             {
                 "box": {
+                    "id": "obj-76",
+                    "maxclass": "newobj",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "int" ],
+                    "patching_rect": [ 1264.0, 723.0, 29.5, 22.0 ],
+                    "text": "* 4"
+                }
+            },
+            {
+                "box": {
+                    "id": "obj-75",
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 3,
+                    "outlettype": [ "", "", "" ],
+                    "patching_rect": [ 69.0, 1105.0, 79.0, 22.0 ],
+                    "text": "jit.gpu.submit"
+                }
+            },
+            {
+                "box": {
                     "id": "obj-74",
                     "maxclass": "message",
                     "numinlets": 2,
@@ -29,8 +51,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 552.0, 358.0, 429.0, 22.0 ],
-                    "text": "jit.gpu.image @dim 2000 2000 @format RGBA32_FLOAT @name prevPosImg"
+                    "patching_rect": [ 552.0, 358.0, 404.0, 22.0 ],
+                    "text": "jit.gpu.image @dim 2000 2000 @format rgba32_float @name prevPosImg"
                 }
             },
             {
@@ -402,8 +424,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 1536.0, 67.0, 109.0, 22.0 ],
-                    "text": "jit.bang @enable 0"
+                    "patching_rect": [ 1536.0, 67.0, 132.0, 22.0 ],
+                    "text": "jit.gpu.bang @enable 0"
                 }
             },
             {
@@ -819,7 +841,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_gl_texture", "" ],
-                    "patching_rect": [ 73.0, 1101.0, 75.0, 22.0 ],
+                    "patching_rect": [ 246.0, 1101.0, 75.0, 22.0 ],
                     "text": "jit.fx.lin2srgb",
                     "textfile": {
                         "filename": "jit.fx.lin2srgb.jxs",
@@ -847,8 +869,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 94.0, 245.0, 47.0, 22.0 ],
-                    "text": "jit.bang"
+                    "patching_rect": [ 94.0, 245.0, 71.0, 22.0 ],
+                    "text": "jit.gpu.bang"
                 }
             },
             {
@@ -1059,11 +1081,11 @@
                     "filename": "copyOriginalPosition.jxs",
                     "id": "obj-53",
                     "maxclass": "newobj",
-                    "numinlets": 2,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "" ],
-                    "patching_rect": [ 75.0, 878.0, 995.0, 22.0 ],
-                    "text": "jit.gpu.compute @name copyOriginalPosition @file copyOriginalPosition.jxs @threads 63 63 1 @automatic 0 @posImg posImg @originalPosImg originalPosImg @depends_on clearGrid",
+                    "numinlets": 3,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 75.0, 878.0, 806.0, 22.0 ],
+                    "text": "jit.gpu.compute @name copyOriginalPosition @file copyOriginalPosition.jxs @workgroups 63 63 1 @posImg posImg @originalPosImg originalPosImg",
                     "textfile": {
                         "filename": "copyOriginalPosition.jxs",
                         "flags": 0,
@@ -1101,8 +1123,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 537.0, 255.0, 444.0, 22.0 ],
-                    "text": "jit.gpu.image @dim 2000 2000 @format RGBA32_FLOAT @name originalPosImg"
+                    "patching_rect": [ 537.0, 255.0, 419.0, 22.0 ],
+                    "text": "jit.gpu.image @dim 2000 2000 @format rgba32_float @name originalPosImg"
                 }
             },
             {
@@ -1189,8 +1211,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 523.0, 329.0, 404.0, 22.0 ],
-                    "text": "jit.gpu.image @dim 2000 2000 @format RGBA32_FLOAT @name posImg"
+                    "patching_rect": [ 523.0, 329.0, 379.0, 22.0 ],
+                    "text": "jit.gpu.image @dim 2000 2000 @format rgba32_float @name posImg"
                 }
             },
             {
@@ -1200,8 +1222,8 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 1097.0, 758.0, 147.0, 22.0 ],
-                    "text": "prepend param bufferSize"
+                    "patching_rect": [ 1097.0, 758.0, 110.0, 22.0 ],
+                    "text": "prepend bufferSize"
                 }
             },
             {
@@ -1211,8 +1233,8 @@
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 1011.0, 833.0, 85.0, 22.0 ],
-                    "text": "threads $1 1 1"
+                    "patching_rect": [ 1011.0, 833.0, 107.0, 22.0 ],
+                    "text": "workgroups $1 1 1"
                 }
             },
             {
@@ -1244,8 +1266,8 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 1264.0, 758.0, 115.0, 22.0 ],
-                    "text": "prepend item_count"
+                    "patching_rect": [ 1264.0, 758.0, 108.0, 22.0 ],
+                    "text": "prepend bytecount"
                 }
             },
             {
@@ -1325,8 +1347,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 75.0, 771.0, 109.0, 22.0 ],
-                    "text": "jit.bang @enable 0"
+                    "patching_rect": [ 75.0, 771.0, 132.0, 22.0 ],
+                    "text": "jit.gpu.bang @enable 0"
                 }
             },
             {
@@ -1335,10 +1357,10 @@
                     "id": "obj-16",
                     "maxclass": "newobj",
                     "numinlets": 3,
-                    "numoutlets": 3,
-                    "outlettype": [ "", "", "" ],
-                    "patching_rect": [ 75.0, 839.0, 705.0, 22.0 ],
-                    "text": "jit.gpu.compute @file clearGridAtomics.jxs @threads 1 1 1 @grid grid @automatic 0 @depends_on clearCanvas @name clearGrid",
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 75.0, 839.0, 497.0, 22.0 ],
+                    "text": "jit.gpu.compute @file clearGridAtomics.jxs @workgroups 1 1 1 @grid grid @name clearGrid",
                     "textfile": {
                         "filename": "clearGridAtomics.jxs",
                         "flags": 0,
@@ -1352,11 +1374,11 @@
                     "filename": "clearCanvas.jxs",
                     "id": "obj-15",
                     "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "" ],
-                    "patching_rect": [ 75.0, 811.0, 629.0, 22.0 ],
-                    "text": "jit.gpu.compute @file clearCanvas.jxs @threads 60 34 1 @renderImg renderImg @automatic 0 @name clearCanvas",
+                    "numinlets": 2,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 75.0, 804.0, 573.0, 22.0 ],
+                    "text": "jit.gpu.compute @file clearCanvas.jxs @workgroups 60 34 1 @renderImg renderImg @name clearCanvas",
                     "textfile": {
                         "filename": "clearCanvas.jxs",
                         "flags": 0,
@@ -1372,7 +1394,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 73.0, 1156.0, 201.0, 22.0 ],
+                    "patching_rect": [ 294.0, 1183.0, 201.0, 22.0 ],
                     "text": "jit.gl.videoplane @transform_reset 2"
                 }
             },
@@ -1381,11 +1403,11 @@
                     "filename": "combineLevelsAtomics.jxs",
                     "id": "obj-13",
                     "maxclass": "newobj",
-                    "numinlets": 3,
-                    "numoutlets": 4,
-                    "outlettype": [ "", "", "", "" ],
-                    "patching_rect": [ 73.0, 993.0, 917.0, 22.0 ],
-                    "text": "jit.gpu.compute @file combineLevelsAtomics.jxs @threads 60 34 1 @grid grid @renderImg renderImg @automatic 0 @depends_on renderParticle @name combineLevels",
+                    "numinlets": 4,
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 73.0, 993.0, 702.0, 22.0 ],
+                    "text": "jit.gpu.compute @file combineLevelsAtomics.jxs @workgroups 60 34 1 @grid grid @renderImg renderImg @name combineLevels",
                     "textfile": {
                         "filename": "combineLevelsAtomics.jxs",
                         "flags": 0,
@@ -1412,19 +1434,19 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 75.0, 429.0, 420.0, 22.0 ],
-                    "text": "jit.gpu.image @dim 1920 1080 @format RGBA32_FLOAT @name renderImg"
+                    "patching_rect": [ 75.0, 429.0, 395.0, 22.0 ],
+                    "text": "jit.gpu.image @dim 1920 1080 @format rgba32_float @name renderImg"
                 }
             },
             {
                 "box": {
                     "id": "obj-10",
                     "maxclass": "newobj",
-                    "numinlets": 1,
-                    "numoutlets": 2,
-                    "outlettype": [ "", "" ],
-                    "patching_rect": [ 73.0, 1044.0, 365.0, 22.0 ],
-                    "text": "jit.gpu.totexture @source renderImg @depends_on combineLevels"
+                    "numinlets": 2,
+                    "numoutlets": 3,
+                    "outlettype": [ "", "jit_gl_texture", "" ],
+                    "patching_rect": [ 73.0, 1044.0, 200.0, 22.0 ],
+                    "text": "jit.gpu.totexture @source renderImg"
                 }
             },
             {
@@ -1433,10 +1455,10 @@
                     "id": "obj-9",
                     "maxclass": "newobj",
                     "numinlets": 5,
-                    "numoutlets": 5,
-                    "outlettype": [ "", "", "", "", "" ],
-                    "patching_rect": [ 75.0, 962.0, 1057.0, 22.0 ],
-                    "text": "jit.gpu.compute @file renderParticleAtomics.jxs @threads 63 63 1 @grid grid @posImg posImg @prevPosImg prevPosImg @automatic 0 @depends_on copyOriginalPosition @name renderParticle",
+                    "numoutlets": 1,
+                    "outlettype": [ "" ],
+                    "patching_rect": [ 75.0, 916.0, 807.0, 22.0 ],
+                    "text": "jit.gpu.compute @file renderParticleAtomics.jxs @workgroups 63 63 1 @grid grid @posImg posImg @prevPosImg prevPosImg @name renderParticle",
                     "textfile": {
                         "filename": "renderParticleAtomics.jxs",
                         "flags": 0,
@@ -1490,14 +1512,12 @@
             {
                 "patchline": {
                     "destination": [ "obj-22", 0 ],
-                    "order": 1,
-                    "source": [ "obj-10", 0 ]
+                    "source": [ "obj-10", 1 ]
                 }
             },
             {
                 "patchline": {
-                    "destination": [ "obj-81", 0 ],
-                    "order": 0,
+                    "destination": [ "obj-75", 0 ],
                     "source": [ "obj-10", 0 ]
                 }
             },
@@ -1563,6 +1583,24 @@
                 "patchline": {
                     "destination": [ "obj-11", 0 ],
                     "source": [ "obj-12", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-10", 0 ],
+                    "source": [ "obj-13", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-16", 0 ],
+                    "source": [ "obj-15", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-53", 0 ],
+                    "source": [ "obj-16", 0 ]
                 }
             },
             {
@@ -1810,6 +1848,12 @@
             },
             {
                 "patchline": {
+                    "destination": [ "obj-9", 0 ],
+                    "source": [ "obj-53", 0 ]
+                }
+            },
+            {
+                "patchline": {
                     "destination": [ "obj-1", 0 ],
                     "source": [ "obj-54", 0 ]
                 }
@@ -1854,13 +1898,6 @@
             },
             {
                 "patchline": {
-                    "destination": [ "obj-34", 0 ],
-                    "order": 0,
-                    "source": [ "obj-6", 0 ]
-                }
-            },
-            {
-                "patchline": {
                     "destination": [ "obj-36", 0 ],
                     "order": 2,
                     "source": [ "obj-6", 0 ]
@@ -1870,6 +1907,13 @@
                 "patchline": {
                     "destination": [ "obj-42", 0 ],
                     "order": 1,
+                    "source": [ "obj-6", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-76", 0 ],
+                    "order": 0,
                     "source": [ "obj-6", 0 ]
                 }
             },
@@ -1959,6 +2003,18 @@
             },
             {
                 "patchline": {
+                    "destination": [ "obj-81", 0 ],
+                    "source": [ "obj-75", 1 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-34", 0 ],
+                    "source": [ "obj-76", 0 ]
+                }
+            },
+            {
+                "patchline": {
                     "destination": [ "obj-12", 0 ],
                     "source": [ "obj-8", 0 ]
                 }
@@ -1967,6 +2023,12 @@
                 "patchline": {
                     "destination": [ "obj-71", 0 ],
                     "source": [ "obj-81", 0 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-13", 0 ],
+                    "source": [ "obj-9", 0 ]
                 }
             },
             {

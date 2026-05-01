@@ -1,0 +1,18 @@
+// Convert inclusive scanned block sums into exclusive block offsets
+#version 460
+
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) readonly buffer buff_scanned_block_sums { float scannedBlockSums[]; };
+layout(std430, binding = 1) writeonly buffer buff_block_offsets { float blockOffsets[]; };
+
+layout(binding = 2) uniform cfg {
+    uint num_blocks;
+};
+
+void main() {
+    uint gid = gl_GlobalInvocationID.x;
+    if (gid >= num_blocks) return;
+
+    blockOffsets[gid] = (gid == 0u) ? 0.0 : scannedBlockSums[gid - 1u];
+}

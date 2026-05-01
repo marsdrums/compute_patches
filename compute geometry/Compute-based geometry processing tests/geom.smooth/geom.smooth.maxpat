@@ -9,7 +9,7 @@
             "modernui": 1
         },
         "classnamespace": "box",
-        "rect": [ 59.0, 119.0, 1000.0, 780.0 ],
+        "rect": [ 112.0, 217.0, 1000.0, 780.0 ],
         "boxes": [
             {
                 "box": {
@@ -73,7 +73,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_gl_texture", "" ],
-                    "patching_rect": [ 322.0, 104.0, 290.0, 22.0 ],
+                    "patching_rect": [ 322.0, 112.0, 290.0, 22.0 ],
                     "text": "jit.gl.environment @file photo_studio_loft_hall_2k.exr"
                 }
             },
@@ -104,7 +104,7 @@
                     "numinlets": 9,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 170.0, 541.0, 284.0, 22.0 ],
+                    "patching_rect": [ 155.0, 541.0, 284.0, 22.0 ],
                     "text": "jit.gl.mesh @draw_mode triangles @poly_mode 1 1"
                 }
             },
@@ -115,7 +115,7 @@
                     "numinlets": 8,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 292.0, 454.0, 92.5, 22.0 ],
+                    "patching_rect": [ 271.0, 454.0, 92.5, 22.0 ],
                     "text": "jit.gl.pbr"
                 }
             },
@@ -148,7 +148,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 322.0, 44.0, 145.0, 22.0 ],
+                    "patching_rect": [ 322.0, 52.0, 145.0, 22.0 ],
                     "text": "jit.anim.drive @ui_listen 1"
                 }
             },
@@ -159,7 +159,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_gl_texture", "" ],
-                    "patching_rect": [ 322.0, 71.0, 198.0, 22.0 ],
+                    "patching_rect": [ 322.0, 79.0, 198.0, 22.0 ],
                     "text": "jit.gl.camera @locklook 1 @tripod 1"
                 }
             },
@@ -205,7 +205,7 @@
                     "numinlets": 9,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 190.0, 503.0, 365.0, 22.0 ],
+                    "patching_rect": [ 175.0, 503.0, 365.0, 22.0 ],
                     "text": "jit.gl.mesh @draw_mode triangles @auto_normals 1 @scale 0.996"
                 }
             },
@@ -216,7 +216,7 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "jit_matrix", "" ],
-                    "patching_rect": [ 170.0, 454.0, 106.0, 22.0 ],
+                    "patching_rect": [ 155.0, 454.0, 106.0, 22.0 ],
                     "text": "jit.coerce 4 float32"
                 }
             },
@@ -227,7 +227,7 @@
                     "numinlets": 2,
                     "numoutlets": 3,
                     "outlettype": [ "", "jit_matrix", "" ],
-                    "patching_rect": [ 68.0, 423.0, 224.0, 22.0 ],
+                    "patching_rect": [ 68.0, 423.0, 193.0, 22.0 ],
                     "text": "jit.gpu.tomatrix"
                 }
             },
@@ -239,7 +239,7 @@
                     "numinlets": 1,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 68.0, 385.0, 109.0, 22.0 ],
+                    "patching_rect": [ 68.5, 391.0, 109.0, 22.0 ],
                     "saved_object_attributes": {
                         "embed": 0,
                         "parameter_enable": 0
@@ -271,7 +271,7 @@
                     "numinlets": 2,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 473.0, 274.0, 63.0, 22.0 ],
+                    "patching_rect": [ 473.0, 279.0, 63.0, 22.0 ],
                     "text": "route read"
                 }
             },

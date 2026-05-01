@@ -1,0 +1,39 @@
+// fill buff_grain
+#version 460
+
+layout(local_size_x = 256) in;
+
+struct Grain{
+    float RMS;
+    float onset;
+    uint key;
+    uint start;
+};
+
+layout(std430, binding = 0) buffer readonly buff_temp_amp { float tempAmp[]; };
+layout(std430, binding = 1) buffer writeonly buff_grains { Grain grains[]; };
+layout(binding = 2) uniform grain_info {
+    uint num_grains; 
+    uint num_splits;   
+    uint grain_length;  
+    float radius;  
+};
+
+void main() {
+
+    uint grainID = gl_GlobalInvocationID.x;
+
+    if(grainID >= num_grains) return;
+
+    float sum = 0.0;
+
+    for(uint i = 0; i < num_splits; i++){
+        sum += tempAmp[grainID + i*num_grains];
+    }
+
+    float rms = sqrt(sum / float(grain_length));
+    grains[grainID].RMS = rms;
+    grains[grainID].onset = float(grainID * grain_length);
+    grains[grainID].key = uint(floor(rms / radius)); 
+    grains[grainID].start = 0xFFFFFFFFu;
+}

@@ -5,6 +5,8 @@ layout(local_size_x = 8, local_size_y = 128) in;
 #extension GL_GOOGLE_include_directive : require
 #include "c74.noise.funcs.glsl"
 
+#define GOLDEN_RATIO 1.618033988749895
+
 struct item{
     vec3 pos;
     uint start;
@@ -23,20 +25,21 @@ layout(std430,  binding = 1) buffer readonly buff_counter { uint globalCount; };
 layout(std430,  binding = 2) buffer readonly buff_to_connect { Line lines[]; };
 layout(rgba32f, binding = 3) uniform readonly image2D img_pos;
 layout(rgba32f, binding = 4) uniform readonly image2D img_pos_prev;
-layout(std430,  binding = 5) buffer buff_render { uint col[]; };
+layout(rg8, binding = 5) uniform readonly image2D stbnImg;
+layout(std430,  binding = 6) buffer buff_render { uint col[]; };
 
-layout(binding = 6) uniform buff_info { 
+layout(binding = 7) uniform buff_info { 
     float radius; 
 };
 
-layout(binding = 7) uniform mat_info { 
+layout(binding = 8) uniform mat_info { 
     vec4 currV0; vec4 currV1; vec4 currV2; vec4 currV3; 
     vec4 currP0; vec4 currP1; vec4 currP2; vec4 currP3; 
     vec4 prevV0; vec4 prevV1; vec4 prevV2; vec4 prevV3; 
     vec4 prevP0; vec4 prevP1; vec4 prevP2; vec4 prevP3; 
 };
 
-layout(binding = 8) uniform cam_info { 
+layout(binding = 9) uniform cam_info { 
     float ratio;
     float focalDist;
     float aperture;
@@ -96,27 +99,38 @@ void main() {
     if(slice > uint(screenDist[lid])) return;
 
     uint seed = id * 1024u + slice + 9999u;
-    vec4 rand = RandomVec401(seed);
-    float interpP = (float(slice) + (rand.x-0.5)) / screenDist[lid];
-
-    vec3 curr = mix(currPoint0[lid].xyz, currPoint1[lid].xyz, interpP);
-    vec3 prev = mix(prevPoint0[lid].xyz, prevPoint1[lid].xyz, interpP);
-    vec3 pos  = mix(curr, prev, rand.y);
-
-    if(pos.z < 1.0) return;
-
-    vec2 disk = sqrt(rand.w) * vec2(cos(rand.z*TWOPI), sin(rand.z*TWOPI));
-    float dof = abs(pos.z - focalDist);
-    vec2 blur = dof * disk * aperture * 1000;
-    pos.xy += blur;
-
-    ivec2 coord = ivec2(pos.xy);
-    ivec2 size = ivec2(1920, 1080);//imageSize(img_render);
-
-    if (coord.x < 0 || coord.y < 0 || coord.x >= size.x || coord.y >= size.y) return;
-
     float distFactor = smoothstep(0.0, 0.2, 1.0 - dist[lid] / radius);
+    uint partColor = uint(4294967295.0*0.0002*distFactor);
+    float normalizer = 1.0 / screenDist[lid];
 
-    atomicAdd(col[pos2id(coord)], uint(4294967295.0*0.0002*distFactor));
+    for(int i = 0; i < 16; i++){
 
+        vec4 rand = RandomVec401(seed);
+        
+        //rand.x = fract(float(slice)*GOLDEN_RATIO);
+        //rand.xy = imageLoad(stbnImg, ivec2(slice%32, slice/32)).xy;
+        //rand.zx = fract(rand.xy + GOLDEN_RATIO*vec2(1,2));
+        float interpP = (float(slice) + (rand.x-0.5)) * normalizer;
+
+        vec3 curr = mix(currPoint0[lid].xyz, currPoint1[lid].xyz, interpP);
+        vec3 prev = mix(prevPoint0[lid].xyz, prevPoint1[lid].xyz, interpP);
+        vec3 pos  = mix(curr, prev, rand.y);
+
+        if(pos.z < 1.0) continue;
+/*
+        vec2 disk = sqrt(rand.w) * vec2(cos(rand.z*TWOPI), sin(rand.z*TWOPI));
+        float dof = abs(pos.z + focalDist);
+        vec2 blur = dof * disk * aperture * 1000;
+        pos.xy += blur;
+*/
+        ivec2 coord = ivec2(pos.xy);
+        ivec2 size = ivec2(1920, 1080);//imageSize(img_render);
+
+        if (coord.x < 0 || coord.y < 0 || coord.x >= size.x || coord.y >= size.y) continue;
+
+        uint prevColor = atomicAdd(col[pos2id(coord)], partColor);    
+        if(prevColor >= 3294967295u){
+            col[pos2id(coord)] = 3294967295u;
+        }   
+    }
 }

@@ -1,0 +1,51 @@
+#version 460
+layout(local_size_x = 1) in;
+
+struct Grain{
+    float RMS;
+    float onset;
+    uint key;
+    uint start;
+};
+
+layout(std430, binding = 0) buffer buff_grains { Grain grains[]; };
+layout(std430,  binding = 1) buffer buff_counter { uint globalCount; };
+layout(std430,  binding = 2) buffer buff_neighbors { float selected_onsets[];};
+layout(         binding = 3) uniform buff_info { float select; float radius; float radius2; uint num_grains; };
+
+shared uint count;
+
+void main() {
+
+    count = 0u;
+
+    uint cell = uint(floor(select / radius)); 
+
+    for(int x = -1; x <= 1; x++){
+
+        int key = int(cell) + x;
+        if(key < 0) continue;
+
+        uint first = grains[key].start;
+
+        if(first == 0xFFFFFFFFu) continue; //there's nothing in this bucket
+
+        for(uint i = 0u; i < 800u; i++){
+
+            uint id = first + i;
+            if(id >= num_grains) break;
+            uint key_b = grains[id].key;
+            if(key != key_b) break;
+
+            float b = grains[id].RMS; 
+            float diff = b-select;
+            //float dist2 = dot(diff, diff);
+            if(abs(diff) > radius) continue;  
+
+            uint globalOffset = atomicAdd(count, 1u);
+
+            selected_onsets[globalOffset] = grains[id].onset;
+        }
+    }
+    globalCount = count;
+}

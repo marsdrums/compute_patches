@@ -1,0 +1,18 @@
+#version 460
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(rgba32f, binding = 0) uniform writeonly image2D img_height;
+layout(binding = 1) uniform cfg{
+    vec4 col;
+};
+
+void main() {
+
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(img_height);
+
+    if(coord.x >= size.x || coord.y >= size.y) return;
+    
+    imageStore(img_height, coord, col);
+}

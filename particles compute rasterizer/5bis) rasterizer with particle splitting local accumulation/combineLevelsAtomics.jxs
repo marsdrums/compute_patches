@@ -26,7 +26,7 @@
 //     ensures coordinates remain valid even if cache mapping misses.
 // ------------------------------------------------------------
 
-layout(local_size_x = 32, local_size_y = 32) in;
+layout(local_size_x = 16, local_size_y = 16) in;
 
 // ------------------------------------------------------------
 // INPUT PYRAMID GRID

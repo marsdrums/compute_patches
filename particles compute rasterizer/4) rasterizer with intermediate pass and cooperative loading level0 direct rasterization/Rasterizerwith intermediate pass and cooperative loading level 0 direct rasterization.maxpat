@@ -14,11 +14,13 @@
             {
                 "box": {
                     "id": "obj-89",
+                    "linecount": 2,
                     "maxclass": "message",
                     "numinlets": 2,
                     "numoutlets": 1,
                     "outlettype": [ "" ],
-                    "patching_rect": [ 1453.0, 788.0, 50.0, 22.0 ]
+                    "patching_rect": [ 1453.0, 788.0, 50.0, 35.0 ],
+                    "text": "2831258624."
                 }
             },
             {
@@ -1284,8 +1286,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 87.0, 675.0, 47.0, 22.0 ],
-                    "text": "jit.bang"
+                    "patching_rect": [ 87.0, 675.0, 71.0, 22.0 ],
+                    "text": "jit.gpu.bang"
                 }
             },
             {
@@ -1399,8 +1401,8 @@
                     "numinlets": 1,
                     "numoutlets": 2,
                     "outlettype": [ "", "" ],
-                    "patching_rect": [ 61.0, 55.0, 47.0, 22.0 ],
-                    "text": "jit.bang"
+                    "patching_rect": [ 61.0, 55.0, 71.0, 22.0 ],
+                    "text": "jit.gpu.bang"
                 }
             },
             {

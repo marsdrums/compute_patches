@@ -48,8 +48,6 @@ void main() {
 
     } while (h >= 0u && h != gid);
 
-
-
     float len2 = dot(sum, sum);
     vec3 n = (len2 > 1e-20) ? normalize(sum) : vec3(0, 0, 1);
 
